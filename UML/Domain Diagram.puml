@@ -14,8 +14,9 @@ class Coordinate {
 abstract class Instruction {
     - Name : string
 }
-class PenStatus extends Instruction {
-    - State : bool
+enum PenStatus {
+    PEN_UP
+    PEN_DOWN
 }
 
 
@@ -55,5 +56,6 @@ Program "1" --> "*" Instruction : executes
 Shape "1" --> "*" Line : contains
 Program "1" --> "*" Line : draws
 Line "1" --> "2" Coordinate : has
+PenStatus -- Instruction : has
 
 @end
