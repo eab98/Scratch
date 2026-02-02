@@ -6,7 +6,6 @@ public class Translation extends Movement{
 
     public Translation(String name, MovementType type, int direction) {
         super(name, type, direction);
-        this.distance = distance;
     }
 
     public int getDistance() {
