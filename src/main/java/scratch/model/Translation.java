@@ -19,10 +19,12 @@ public class Translation extends Movement{
     }
 
     public Coordinates translate(Coordinates origin, int direction){
-        double x = Math.cos(direction) * distance;
-        double y = Math.sin(direction) * distance;
-        origin.setX(x);
-        origin.setY(y);
+        double x = Math.cos(Math.toRadians(direction)) * distance;
+        double y = Math.sin(Math.toRadians(direction)) * distance;
+        double x_in = origin.getX();
+        double y_in = origin.getY();
+        origin.setX(x_in + x);
+        origin.setY(y_in + y);
         return origin;
     }
 
