@@ -21,10 +21,11 @@ public class Translation extends Movement{
     public Coordinates translate(Coordinates origin, int direction){
         double x = Math.cos(Math.toRadians(direction)) * distance;
         double y = Math.sin(Math.toRadians(direction)) * distance;
+
         double x_in = origin.getX();
         double y_in = origin.getY();
-        origin.setX(x_in + x);
-        origin.setY(y_in + y);
+        origin.setX(x_in + (int)x);
+        origin.setY(y_in + (int)y);
         return origin;
     }
 
