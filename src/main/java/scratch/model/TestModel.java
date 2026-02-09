@@ -10,6 +10,7 @@ public class TestModel {
         tr.setDistance(30);
         program.addInstruction(tr);
         Rotation rot = new Rotation("Tourner", MovementType.RIGHT, 90);
+        PenAction action = new PenAction("Lever", PenMovement.PEN_UP);
         program.addInstruction(rot);
         program.addInstruction(tr);
         program.execute(0);

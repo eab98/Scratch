@@ -9,6 +9,7 @@ public class Program {
     private final Character pen;
     private final List<Instruction> instructions = new ArrayList<>();
     //private int instructionIndex = 0;
+    private boolean penDown = true;   //true si PEN_DOWN, false si PEN_UP
 
     public Program(Character pen) {
         this.pen = pen;
@@ -16,6 +17,14 @@ public class Program {
 
     public Character getPen() {
         return pen;
+    }
+
+    public boolean isPenDown() {
+        return penDown;
+    }
+
+    public void setPenDown(boolean penDown) {
+        this.penDown = penDown;
     }
 
     public void addInstruction(Instruction instr) {
@@ -32,9 +41,10 @@ public class Program {
     public void execute(int instructionIndex) {
         if (instructionIndex < instructions.size()) {
             Instruction instr = instructions.get(instructionIndex);
-            instr.execute(getPen());
-        } else {
-            throw new RuntimeException("Index out of bounds");
+            if (instr instanceof PenAction)
+                setPenDown(((PenAction) instr).changePenStatus(this.penDown));
+            else
+                instr.execute(getPen());
         }
     }
 }
