@@ -1,6 +1,6 @@
 package scratch.model;
 
-abstract class Movement extends Instruction {
+public abstract class Movement extends Instruction {
     private final MovementType type;
     private int direction;
 

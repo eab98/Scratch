@@ -10,4 +10,7 @@ public abstract class Instruction {
     public String getName() {
         return name;
     }
+
+    public void execute(Character pen) {
+    }
 }

@@ -6,7 +6,6 @@ public class Translation extends Movement{
 
     public Translation(String name, MovementType type, int direction) {
         super(name, type, direction);
-        this.distance = distance;
     }
 
     public int getDistance() {
@@ -19,12 +18,16 @@ public class Translation extends Movement{
         }
     }
 
-    public Coordinates translate(Coordinates origin, int direction){
-        double x = Math.cos(direction) * distance;
-        double y = Math.sin(direction) * distance;
-        origin.setX(x);
-        origin.setY(y);
-        return origin;
-    }
+    @Override
+    public void execute(Character pen){
+        int direction = pen.getOrientation();
+        Coordinates origin = pen.getCoord();
+        double x = Math.cos(Math.toRadians(direction)) * distance;
+        double y = Math.sin(Math.toRadians(direction)) * distance;
 
+        double x_in = origin.getX();
+        double y_in = origin.getY();
+        origin.setX(x_in + (int)x);
+        origin.setY(y_in + (int)y);
+    }
 }
