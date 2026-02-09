@@ -16,4 +16,10 @@ public class Program {
     public Character getPen() {
         return pen;
     }
+
+    public void addInstruction(Instruction instr) {
+        instructions.add(instr);
+    }
+
+    public void execute() {}
 }

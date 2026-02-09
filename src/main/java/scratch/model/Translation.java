@@ -18,7 +18,10 @@ public class Translation extends Movement{
         }
     }
 
-    public Coordinates translate(Coordinates origin, int direction){
+    @Override
+    public void execute(Character pen){
+        int direction = pen.getOrientation();
+        Coordinates origin = pen.getCoord();
         double x = Math.cos(Math.toRadians(direction)) * distance;
         double y = Math.sin(Math.toRadians(direction)) * distance;
 
@@ -26,6 +29,5 @@ public class Translation extends Movement{
         double y_in = origin.getY();
         origin.setX(x_in + (int)x);
         origin.setY(y_in + (int)y);
-        return origin;
     }
 }

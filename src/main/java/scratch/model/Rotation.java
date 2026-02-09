@@ -14,5 +14,12 @@ public class Rotation extends Movement {
         super.setDirection(newDirection);
     }
 
-
+    @Override
+    public void execute(Character pen) {
+        int initial_angle = pen.getOrientation();
+        int modif = getDirection();
+        if (this.getType() == MovementType.RIGHT)
+            modif = -modif;
+        pen.setOrientation(initial_angle + modif);
+    }
 }
