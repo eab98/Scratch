@@ -7,15 +7,16 @@ class Character {
 
     }
 class Coordinate {
-    - x: integer
-    - y: integer
+    - x: double
+    - y: double
 }
 
 abstract class Instruction {
     - Name : string
 }
-class PenStatus extends Instruction {
-    - State : bool
+enum PenStatus {
+    PEN_UP
+    PEN_DOWN
 }
 
 
@@ -24,8 +25,8 @@ abstract class Movement extends Instruction {
      }
 
 
-abstract class Rotate extends Movement
-abstract class Translation extends Movement {
+class Rotation extends Movement
+class Translation extends Movement {
     - Distance : integer
     }
 
@@ -55,5 +56,6 @@ Program "1" --> "*" Instruction : executes
 Shape "1" --> "*" Line : contains
 Program "1" --> "*" Line : draws
 Line "1" --> "2" Coordinate : has
+PenStatus -- Instruction : has
 
 @end
