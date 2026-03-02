@@ -1,6 +1,6 @@
 package scratch.model;
 
-public enum PenStatus {
+public enum PenMovement {
     PEN_UP,
     PEN_DOWN
 }
