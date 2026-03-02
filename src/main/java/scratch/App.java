@@ -1,5 +1,6 @@
 package scratch;
 
+import com.sun.tools.javac.Main;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -7,7 +8,11 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import scratch.model.Coordinates;
+import scratch.model.Program;
+import scratch.view.MainView;
 import scratch.view.ScratchView;
+import scratch.viewmodel.MainViewModel;
 import scratch.viewmodel.ScratchViewModel;
 
 public class App extends Application {
@@ -22,9 +27,16 @@ public class App extends Application {
 //        primaryStage.setTitle("Scratch");
 //        primaryStage.setScene(scene);
 
-        ScratchViewModel scratchViewModel = new ScratchViewModel();
+        Coordinates origin = new Coordinates(150, 150);
+        Character pen = new Character(0, origin);
+        Program program = new Program(pen);
 
-        Scene scene = new Scene(new ScratchView(scratchViewModel));
+        ScratchViewModel scratchViewModel = new ScratchViewModel();
+        MainViewModel mainViewModel = new MainViewModel(program);
+
+        MainView mainView = new MainView(mainViewModel);
+
+        Scene scene = new Scene(mainView, 800, 600);
         primaryStage.setTitle("Scratch");
         primaryStage.setScene(scene);
         primaryStage.show();
