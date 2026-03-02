@@ -57,7 +57,7 @@ public class ScratchView extends BorderPane {
         this.setCenter(program);
         this.setRight(scene);
 
-        //loadData();
+        loadData();
     }
     
     private void configPaletteBox() {
@@ -109,10 +109,10 @@ public class ScratchView extends BorderPane {
 
     }
 
-//    private void loadData() {
-//        paletteList.setItems(scratchViewModel.getInstructions());
-//        programList.setItems(scratchViewModel.getChosenAction());
-//    }
+    private void loadData() {
+        paletteList.setItems(scratchViewModel.getInstru());
+      //  programList.setItems(scratchViewModel.getChosenAction());
+    }
 
     private void beautify() {
         palette.setPrefWidth(50);
