@@ -22,4 +22,9 @@ public class PenAction extends Instruction {
             return status;
         return !status;
     }
+
+    @Override
+    public Instruction duplicate() {
+        return new PenAction(this.getName(), this.getMovement());
+    }
 }

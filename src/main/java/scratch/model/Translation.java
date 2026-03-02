@@ -41,4 +41,9 @@ public class Translation extends Movement{
         String msg = this.distance == 0 ? "" : Integer.toString(this.distance);
         return super.toString() + msg;
     }
+
+    @Override
+    public Instruction duplicate() {
+        return new Translation(this.getName(), this.getType(), this.getDirection(), this.getDistance());
+    }
 }

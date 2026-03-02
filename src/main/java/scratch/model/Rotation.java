@@ -33,4 +33,9 @@ public class Rotation extends Movement {
         String msg = this.getDirection() == 0 ? "" : Integer.toString(this.getDirection());
         return super.toString() + msg;
     }
+
+    @Override
+    public Instruction duplicate() {
+        return new Rotation(this.getName(), this.getType(), this.getDirection());
+    }
 }

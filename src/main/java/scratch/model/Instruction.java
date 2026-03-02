@@ -18,4 +18,8 @@ public abstract class Instruction {
     public String toString() {
         return this.getName();
     }
+
+    public Instruction duplicate() {
+        return this;
+    }
 }
