@@ -22,4 +22,15 @@ public class Rotation extends Movement {
             modif = -modif;
         pen.setOrientation(initial_angle + modif);
     }
+
+    public Rotation newRotation(MovementType type) {
+        String name = "Tourner à " + (type == MovementType.LEFT ? "gauche" : "droite");
+        return new Rotation(name, type, 90);
+    }
+
+    @Override
+    public String toString() {
+        String msg = this.getDirection() == 0 ? "" : Integer.toString(this.getDirection());
+        return super.toString() + msg;
+    }
 }

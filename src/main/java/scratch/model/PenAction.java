@@ -9,6 +9,14 @@ public class PenAction extends Instruction {
         this.movement = move;
     }
 
+    public PenMovement getMovement() {
+        return movement;
+    }
+
+    public PenAction newPenAction() {
+        return new PenAction(this.getName(), this.getMovement());
+    }
+
     public boolean changePenStatus(boolean status) {
         if (status && movement == PenMovement.PEN_DOWN || !status && movement == PenMovement.PEN_UP)
             return status;
