@@ -13,4 +13,9 @@ public abstract class Instruction {
 
     public void execute(Character pen) {
     }
+
+    @Override
+    public String toString() {
+        return this.getName();
+    }
 }
