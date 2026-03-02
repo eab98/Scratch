@@ -58,6 +58,9 @@ public class ScratchView extends BorderPane {
         this.setRight(scene);
 
         loadData();
+        configSelection();
+        configActions();
+
     }
     
     private void configPaletteBox() {
@@ -81,6 +84,20 @@ public class ScratchView extends BorderPane {
 
     private void configButtonsScene() {
         buttonScene.getChildren().addAll(reinitButton, nextButton);
+    }
+
+    private void configSelection() {
+        this.paletteList.getSelectionModel().selectedIndexProperty()
+                .addListener((observable, oldValue, newValue) -> {
+                    this.scratchViewModel.getCatalogIndexProperty().setValue(newValue.intValue());
+                } );
+        this.programList.getSelectionModel().selectedIndexProperty()
+                .addListener((observable, oldValue, newValue) -> {
+                    this.scratchViewModel.getIndexProperty().setValue(newValue.intValue());
+                } );
+        this.scratchViewModel.getIndexProperty().addListener((observable, oldValue, newValue) -> {
+            this.programList.getSelectionModel().select(newValue.intValue());
+        });
     }
 
     private void configCanvas() {
@@ -109,9 +126,18 @@ public class ScratchView extends BorderPane {
 
     }
 
+    private void configActions(){
+        addToProgramButton.setOnAction(e -> scratchViewModel.addInstruction());
+        upButton.setOnAction(e -> scratchViewModel.up());
+        downButton.setOnAction(e -> scratchViewModel.down());
+        duplicateButton.setOnAction(e-> scratchViewModel.duplicate());
+        deleteButton.setOnAction(e-> scratchViewModel.removeInstru());
+        emptyButton.setOnAction(e-> scratchViewModel.empty());
+    }
+
     private void loadData() {
-        paletteList.setItems(scratchViewModel.getInstru());
-      //  programList.setItems(scratchViewModel.getChosenAction());
+        paletteList.setItems(scratchViewModel.getCatalogue());
+        programList.setItems(scratchViewModel.getInstru());
     }
 
     private void beautify() {

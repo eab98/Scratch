@@ -18,7 +18,7 @@ public class Program {
             new PenAction("Abaisser stylo", PenMovement.PEN_DOWN)
             );
 
-    private final ObservableList<Instruction> instructions = FXCollections.observableArrayList();
+    private static final ObservableList<Instruction> instructions = FXCollections.observableArrayList();
     //private int instructionIndex = 0;
     private boolean penDown = true;   //true si PEN_DOWN, false si PEN_UP
 
@@ -38,15 +38,36 @@ public class Program {
         this.penDown = penDown;
     }
 
-    public void addInstruction(Instruction instr) {
-        instructions.add(instr);
-        //++instructionIndex;
+    public void addInstruction(int idx) {
+
+        Instruction instru = catalogue.get(idx);
+        instructions.add(instru.newInstruction());
+    }
+
+    public void up(int idx) {
+        if(idx > 0 && idx < instructions.size()) {
+            Instruction instru = instructions.set(idx, instructions.get(idx - 1));
+            instructions.set(idx-1, instru);
+        }
+    }
+
+    public void down(int idx) {
+        if(idx>=0 && idx < instructions.size() - 1) {
+            Instruction instru = instructions.set(idx, instructions.get(idx + 1));
+            instructions.set(idx + 1, instru);
+        }
     }
 
     public void deleteInstruction(int index) {
         instructions.remove(index);
-        /*if (instructionIndex >= instructions.size())
-            instructionIndex--;*/
+
+    }
+
+    public void duplicate(int idx){
+        if(idx >= 0 && idx < instructions.size()) {
+            Instruction instru = instructions.get(idx);
+            instructions.add(instru.duplicate());
+        }
     }
 
     public void execute(int instructionIndex) {
@@ -59,11 +80,21 @@ public class Program {
         }
     }
 
+    public void empty(){
+        instructions.removeAll();
+    }
+
+
+
 //    public ObservableList<Instruction> getCatalogue() {
 //        return catalogue;
 //    }
 
     public static ObservableList<Instruction> getCatalogue() {
         return FXCollections.unmodifiableObservableList(catalogue);
+    }
+
+    public static ObservableList<Instruction> getInstructions() {
+        return FXCollections.unmodifiableObservableList(instructions);
     }
 }
