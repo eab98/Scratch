@@ -13,7 +13,8 @@ public class PenAction extends Instruction {
         return movement;
     }
 
-    public PenAction newPenAction() {
+    @Override
+    public Instruction newInstruction() {
         return new PenAction(this.getName(), this.getMovement());
     }
 

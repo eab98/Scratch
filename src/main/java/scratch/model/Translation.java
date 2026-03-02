@@ -13,7 +13,8 @@ public class Translation extends Movement{
         return distance;
     }
 
-    public Translation newTranslation() {
+    @Override
+    public Instruction newInstruction() {
         return new Translation("Avancer de", MovementType.FORWARD, 0, 30);
     }
 

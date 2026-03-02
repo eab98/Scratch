@@ -19,6 +19,10 @@ public abstract class Instruction {
         return this.getName();
     }
 
+    public Instruction newInstruction() {
+        return this;
+    }
+
     public Instruction duplicate() {
         return this;
     }
