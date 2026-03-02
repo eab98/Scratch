@@ -13,7 +13,8 @@ public class Translation extends Movement{
         return distance;
     }
 
-    public Translation newTranslation() {
+    @Override
+    public Instruction newInstruction() {
         return new Translation("Avancer de", MovementType.FORWARD, 0, 30);
     }
 
@@ -40,5 +41,10 @@ public class Translation extends Movement{
     public String toString() {
         String msg = this.distance == 0 ? "" : Integer.toString(this.distance);
         return super.toString() + msg;
+    }
+
+    @Override
+    public Instruction duplicate() {
+        return new Translation(this.getName(), this.getType(), this.getDirection(), this.getDistance());
     }
 }

@@ -13,7 +13,8 @@ public class PenAction extends Instruction {
         return movement;
     }
 
-    public PenAction newPenAction() {
+    @Override
+    public Instruction newInstruction() {
         return new PenAction(this.getName(), this.getMovement());
     }
 
@@ -21,5 +22,10 @@ public class PenAction extends Instruction {
         if (status && movement == PenMovement.PEN_DOWN || !status && movement == PenMovement.PEN_UP)
             return status;
         return !status;
+    }
+
+    @Override
+    public Instruction duplicate() {
+        return new PenAction(this.getName(), this.getMovement());
     }
 }
