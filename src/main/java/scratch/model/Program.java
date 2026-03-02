@@ -38,9 +38,10 @@ public class Program {
         this.penDown = penDown;
     }
 
-    public void addInstruction(Instruction instr) {
-        instructions.add(instr);
-        //++instructionIndex;
+    public void addInstruction(int idx) {
+
+        Instruction instru = catalogue.get(idx);
+        instructions.add(instru.newInstruction());
     }
 
     public void up(int idx) {
@@ -59,15 +60,13 @@ public class Program {
 
     public void deleteInstruction(int index) {
         instructions.remove(index);
-        /*if (instructionIndex >= instructions.size())
-            instructionIndex--;*/
+
     }
 
     public void duplicate(int idx){
         if(idx >= 0 && idx < instructions.size()) {
             Instruction instru = instructions.get(idx);
-            instru.duplicate();
-            addInstruction(instru);
+            instructions.add(instru.duplicate());
         }
     }
 
@@ -79,6 +78,10 @@ public class Program {
             else
                 instr.execute(getPen());
         }
+    }
+
+    public void empty(){
+        instructions.removeAll();
     }
 
 

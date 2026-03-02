@@ -7,6 +7,9 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import scratch.model.Coordinates;
+import scratch.model.Program;
+import scratch.model.Character;
 import scratch.view.ScratchView;
 import scratch.viewmodel.ScratchViewModel;
 
@@ -21,8 +24,11 @@ public class App extends Application {
 //        Scene scene = new Scene(pane, 640, 480);
 //        primaryStage.setTitle("Scratch");
 //        primaryStage.setScene(scene);
+        Coordinates coord = new Coordinates(0, 0);
+        Character pen = new Character(0, coord);
+        Program program = new Program(pen);
 
-        ScratchViewModel scratchViewModel = new ScratchViewModel();
+        ScratchViewModel scratchViewModel = new ScratchViewModel(program);
 
         Scene scene = new Scene(new ScratchView(scratchViewModel));
         primaryStage.setTitle("Scratch");

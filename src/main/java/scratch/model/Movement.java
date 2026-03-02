@@ -21,9 +21,4 @@ public abstract class Movement extends Instruction {
     public void setDirection(int direction) {
         this.direction = direction;
     }
-
-    public Movement() {
-        super(super.name);
-
-    }
 }

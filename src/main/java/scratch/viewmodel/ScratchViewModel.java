@@ -6,7 +6,6 @@ import javafx.collections.ObservableList;
 import scratch.model.Instruction;
 import scratch.model.Program;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ScratchViewModel {
@@ -17,11 +16,18 @@ public class ScratchViewModel {
     private final IntegerProperty index = new SimpleIntegerProperty(-1),
             catalogIndex = new SimpleIntegerProperty(-1);
 
+    public IntegerProperty getIndexProperty(){
+        return index;
+    }
+    public IntegerProperty getCatalogIndexProperty(){
+        return catalogIndex;
+    }
+
     public ScratchViewModel(Program program) {
         this.program = program;
     }
 
-    public ObservableList<Instruction> getPossibleInstru() {
+    public ObservableList<Instruction> getCatalogue() {
         return Program.getCatalogue();
     }
 
@@ -29,8 +35,12 @@ public class ScratchViewModel {
         return Program.getInstructions();
     }
 
-    public void addInstruction(Instruction instru) {
-        program.addInstruction(instru);
+    public void addInstruction() {
+        int idx = catalogIndex.get();
+        if (idx >= 0 && idx < getCatalogue().size()) {
+            program.addInstruction(idx);
+        }
+
     }
 
     public void up() {
@@ -59,8 +69,11 @@ public class ScratchViewModel {
         int idx = index.get();
         if(idx >= 0 && idx < getInstru().size()){
             program.duplicate(idx);
-
         }
+    }
+
+    public void empty() {
+        program.empty();
     }
 
 }
