@@ -32,7 +32,6 @@ public class App extends Application {
         Character pen = new Character(0, origin);
         Program program = new Program(pen);
 
-        ScratchViewModel scratchViewModel = new ScratchViewModel();
         MainViewModel mainViewModel = new MainViewModel(program);
 
         MainView mainView = new MainView(mainViewModel);
