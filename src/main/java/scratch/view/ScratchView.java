@@ -8,8 +8,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import scratch.model.Instruction;
 import scratch.viewmodel.MainViewModel;
 import scratch.viewmodel.ScratchViewModel;
@@ -18,11 +20,15 @@ import scratch.viewmodel.ScratchViewModel;
 
 public class ScratchView extends BorderPane {
 
+    private static final double TURTLE_HEAD_SIZE = 5;
     private ScratchViewModel scratchViewModel;
 
     private final VBox palette = new VBox(10);
     private final VBox program = new VBox(10);
     private final VBox scene = new VBox(20);
+
+    private final Circle headTurtle = new Circle(TURTLE_HEAD_SIZE);
+
 
     private final Label paletteTitle = new Label("Palette d'actions");
     private final Label programTitle = new Label("Programme");
@@ -78,7 +84,11 @@ public class ScratchView extends BorderPane {
 
     private void configSceneBox() {
         configButtonsScene();
-        scene.getChildren().addAll(sceneTitle, canvas, buttonScene);
+
+        StackPane canvasContainer = new StackPane();
+        canvasContainer.getChildren().addAll(canvas, headTurtle);
+
+        scene.getChildren().addAll(sceneTitle, canvasContainer, buttonScene);
         configCanvas();
     }
 
@@ -114,15 +124,18 @@ public class ScratchView extends BorderPane {
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(0.2);
 
-        for (int i = 0; i < w; i += 30) {
-            gc.strokeLine(i + 5, 10, i + 5, h - 10);
+        for (int i = 15; i < w; i += 30) {
+            gc.strokeLine(i, 0, i, h);
         }
 
         gc.setStroke(Color.BLACK);
 
-        for (int i = 0; i < h; i += 30) {
-            gc.strokeLine(10, i + 5, w - 10, i + 5);
+        for (int i = 15; i < h; i += 30) {
+            gc.strokeLine(0, i, w, i);
         }
+
+        headTurtle.setCenterX(w / 2);
+        headTurtle.setCenterY(h / 2);
 
     }
 
@@ -156,7 +169,5 @@ public class ScratchView extends BorderPane {
         BorderPane.setMargin(scene, new Insets(10));
 
     }
-
-
 
 }
