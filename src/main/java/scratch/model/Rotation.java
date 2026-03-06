@@ -25,7 +25,7 @@ public class Rotation extends Movement {
 
     @Override
     public Instruction newInstruction() {
-        String name = "Tourner à " + (this.getType() == MovementType.LEFT ? "gauche" : "droite");
+        String name = "Tourner à " + (this.getType() == MovementType.LEFT ? "gauche de" : "droite de");
         return new Rotation(name, this.getType(), 90);
     }
 
