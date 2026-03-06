@@ -1,15 +1,15 @@
 package scratch.view;
 
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import scratch.model.Instruction;
 import scratch.viewmodel.MainViewModel;
 import scratch.viewmodel.ScratchViewModel;
@@ -18,23 +18,27 @@ import scratch.viewmodel.ScratchViewModel;
 
 public class ScratchView extends BorderPane {
 
+    private static final double TURTLE_HEAD_SIZE = 5;
     private ScratchViewModel scratchViewModel;
 
-    private final VBox palette = new VBox(10);
-    private final VBox program = new VBox(10);
+    private final VBox palette = new VBox(8);
+    private final VBox program = new VBox(8);
     private final VBox scene = new VBox(20);
+
+    private final Circle headTurtle = new Circle(TURTLE_HEAD_SIZE);
+
 
     private final Label paletteTitle = new Label("Palette d'actions");
     private final Label programTitle = new Label("Programme");
     private final Label sceneTitle = new Label("Scène");
     
-    private final HBox buttonProgram = new HBox(10);
+    private final HBox buttonProgram = new HBox(8);
     private final HBox buttonScene = new HBox(10);
 
     private final ListView<Instruction> paletteList = new ListView<>();
     private final ListView<Instruction> programList = new ListView<>();
 
-    private final Canvas canvas = new Canvas(300, 300);
+    private final Canvas canvas = new Canvas(400, 400);
 
     private final Button addToProgramButton = new Button("Ajouter au programme");
 
@@ -57,7 +61,11 @@ public class ScratchView extends BorderPane {
         this.setCenter(program);
         this.setRight(scene);
 
-        //loadData();
+        loadData();
+        configSelection();
+        configActions();
+        beautify();
+
     }
     
     private void configPaletteBox() {
@@ -75,12 +83,30 @@ public class ScratchView extends BorderPane {
 
     private void configSceneBox() {
         configButtonsScene();
-        scene.getChildren().addAll(sceneTitle, canvas, buttonScene);
+
+        StackPane canvasContainer = new StackPane();
+        canvasContainer.getChildren().addAll(canvas, headTurtle);
+
+        scene.getChildren().addAll(sceneTitle, canvasContainer, buttonScene);
         configCanvas();
     }
 
     private void configButtonsScene() {
         buttonScene.getChildren().addAll(reinitButton, nextButton);
+    }
+
+    private void configSelection() {
+        this.paletteList.getSelectionModel().selectedIndexProperty()
+                .addListener((observable, oldValue, newValue) -> {
+                    this.scratchViewModel.getCatalogIndexProperty().setValue(newValue.intValue());
+                } );
+        this.programList.getSelectionModel().selectedIndexProperty()
+                .addListener((observable, oldValue, newValue) -> {
+                    this.scratchViewModel.getIndexProperty().setValue(newValue.intValue());
+                } );
+        this.scratchViewModel.getIndexProperty().addListener((observable, oldValue, newValue) -> {
+            this.programList.getSelectionModel().select(newValue.intValue());
+        });
     }
 
     private void configCanvas() {
@@ -97,40 +123,55 @@ public class ScratchView extends BorderPane {
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(0.2);
 
-        for (int i = 0; i < w; i += 30) {
-            gc.strokeLine(i + 5, 10, i + 5, h - 10);
+        for (int i = 15; i < w; i += 30) {
+            gc.strokeLine(i, 0, i, h);
         }
 
         gc.setStroke(Color.BLACK);
 
-        for (int i = 0; i < h; i += 30) {
-            gc.strokeLine(10, i + 5, w - 10, i + 5);
+        for (int i = 15; i < h; i += 30) {
+            gc.strokeLine(0, i, w, i);
         }
 
+        headTurtle.setCenterX(w / 2);
+        headTurtle.setCenterY(h / 2);
+
     }
 
-//    private void loadData() {
-//        paletteList.setItems(scratchViewModel.getInstructions());
-//        programList.setItems(scratchViewModel.getChosenAction());
-//    }
+    private void configActions(){
+        addToProgramButton.setOnAction(e -> scratchViewModel.addInstruction());
+        upButton.setOnAction(e -> scratchViewModel.up());
+        downButton.setOnAction(e -> scratchViewModel.down());
+        duplicateButton.setOnAction(e-> scratchViewModel.duplicate());
+        deleteButton.setOnAction(e-> scratchViewModel.removeInstru());
+        emptyButton.setOnAction(e-> scratchViewModel.empty());
+    }
+
+    private void loadData() {
+        paletteList.setItems(scratchViewModel.getCatalogue());
+        programList.setItems(scratchViewModel.getInstru());
+    }
 
     private void beautify() {
-        palette.setPrefWidth(50);
-        scene.setPrefWidth(60);
+        palette.setPrefWidth(250);
+        scene.setPrefWidth(500);
+        program.setPrefWidth(300);
 
-        this.setPadding(new Insets(100));
-        this.program.setPadding(new Insets(16, 16, 12, 16));
-        this.palette.setPadding(new Insets(16, 16, 12, 16));
-        this.scene.setPadding(new Insets(16, 16, 12, 16));
-        this.programList.setPadding(new Insets(16, 16, 12, 16));
-        this.paletteList.setPadding(new Insets(16, 16, 12, 16));
+        BorderPane.setAlignment(palette, Pos.CENTER_LEFT);
+        BorderPane.setAlignment(program, Pos.CENTER);
+        BorderPane.setAlignment(scene, Pos.CENTER_RIGHT);
 
-        BorderPane.setMargin(palette, new Insets(10));
-        BorderPane.setMargin(program, new Insets(10));
-        BorderPane.setMargin(scene, new Insets(10));
+        this.setPadding(new Insets(2));
+        this.program.setPadding(new Insets(2));
+        this.palette.setPadding(new Insets(2));
+        this.scene.setPadding(new Insets(2));
+
+        VBox.setVgrow(canvas, Priority.ALWAYS);
+
+        BorderPane.setMargin(palette, new Insets(2));
+        BorderPane.setMargin(program, new Insets(2));
+        BorderPane.setMargin(scene, new Insets(2));
 
     }
-
-
 
 }

@@ -9,9 +9,23 @@ public class PenAction extends Instruction {
         this.movement = move;
     }
 
+    public PenMovement getMovement() {
+        return movement;
+    }
+
+    @Override
+    public Instruction newInstruction() {
+        return new PenAction(this.getName(), this.getMovement());
+    }
+
     public boolean changePenStatus(boolean status) {
         if (status && movement == PenMovement.PEN_DOWN || !status && movement == PenMovement.PEN_UP)
             return status;
         return !status;
+    }
+
+    @Override
+    public Instruction duplicate() {
+        return new PenAction(this.getName(), this.getMovement());
     }
 }
