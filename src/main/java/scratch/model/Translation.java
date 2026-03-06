@@ -4,12 +4,18 @@ public class Translation extends Movement{
     private int distance;
 
 
-    public Translation(String name, MovementType type, int direction) {
+    public Translation(String name, MovementType type, int direction, int distance) {
         super(name, type, direction);
+        this.distance = distance;
     }
 
     public int getDistance() {
         return distance;
+    }
+
+    @Override
+    public Instruction newInstruction() {
+        return new Translation("Avancer de", MovementType.FORWARD, 0, 30);
     }
 
     public void setDistance(int distance) {
@@ -29,5 +35,16 @@ public class Translation extends Movement{
         double y_in = origin.getY();
         origin.setX(x_in + (int)x);
         origin.setY(y_in + (int)y);
+    }
+
+    @Override
+    public String toString() {
+        String msg = this.distance == 0 ? "" : Integer.toString(this.distance);
+        return super.toString() + msg;
+    }
+
+    @Override
+    public Instruction duplicate() {
+        return new Translation(this.getName(), this.getType(), this.getDirection(), this.getDistance());
     }
 }
