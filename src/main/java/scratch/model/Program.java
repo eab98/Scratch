@@ -1,5 +1,6 @@
 package scratch.model;
 
+import javafx.beans.property.IntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -70,14 +71,11 @@ public class Program {
         }
     }
 
-    public void execute(int instructionIndex) {
-        if (instructionIndex < instructions.size()) {
-            Instruction instr = instructions.get(instructionIndex);
-            if (instr instanceof PenAction)
-                setPenDown(((PenAction) instr).changePenStatus(this.penDown));
-            else
-                instr.execute(getPen());
-        }
+    public void execute(Instruction instr) {
+        if (instr instanceof PenAction)
+            setPenDown(((PenAction) instr).changePenStatus(this.penDown));
+        else
+            instr.execute(getPen());
     }
 
     public void empty(){
