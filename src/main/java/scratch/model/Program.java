@@ -81,7 +81,7 @@ public class Program {
     }
 
     public void empty(){
-        instructions.removeAll();
+        instructions.clear();
     }
 
 
