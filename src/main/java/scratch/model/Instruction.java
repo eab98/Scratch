@@ -16,7 +16,7 @@ public abstract class Instruction {
 
     @Override
     public String toString() {
-        return this.getName();
+        return this.getName() + " ";
     }
 
     public Instruction newInstruction() {
