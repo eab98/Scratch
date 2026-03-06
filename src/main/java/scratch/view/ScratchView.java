@@ -166,8 +166,6 @@ public class ScratchView extends BorderPane {
         this.palette.setPadding(new Insets(2));
         this.scene.setPadding(new Insets(2));
 
-        VBox.setVgrow(canvas, Priority.ALWAYS);
-
         BorderPane.setMargin(palette, new Insets(2));
         BorderPane.setMargin(program, new Insets(2));
         BorderPane.setMargin(scene, new Insets(2));

@@ -10,7 +10,7 @@ public class MainViewModel {
 
     public MainViewModel(Program program) {
         this.program = program;
-        this.scratchViewModel = new ScratchViewModel();
+        this.scratchViewModel = new ScratchViewModel(program);
     }
 
     public ScratchViewModel getScratchViewModel() {
