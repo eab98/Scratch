@@ -47,4 +47,14 @@ public class Translation extends Movement{
     public Instruction duplicate() {
         return new Translation(this.getName(), this.getType(), this.getDirection(), this.getDistance());
     }
+
+    @Override
+    public void setParameter(int value) {
+        this.setDistance(value);
+    }
+
+    @Override
+    public int getParameter() {
+        return this.getDistance();
+    }
 }

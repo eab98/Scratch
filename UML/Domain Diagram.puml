@@ -1,9 +1,11 @@
 @startuml
 
-class Program {}
+class Program {
+        - penDown : boolean
+}
 
 class Character {
-        - Degrees : integer
+        - degrees : integer
 
     }
 class Coordinate {
@@ -14,26 +16,31 @@ class Coordinate {
 abstract class Instruction {
     - Name : string
 }
-enum PenStatus {
+enum PenMovement {
     PEN_UP
     PEN_DOWN
 }
 
 
 abstract class Movement extends Instruction {
-     - Direction : integer
+     - direction : integer
      }
 
 
 class Rotation extends Movement
+
 class Translation extends Movement {
-    - Distance : integer
+    - distance : integer
     }
 
 class Line {
 }
 
 class Shape {
+
+}
+
+class PenAction extends Instruction {
 
 }
 
@@ -56,6 +63,6 @@ Program "1" --> "*" Instruction : executes
 Shape "1" --> "*" Line : contains
 Program "1" --> "*" Line : draws
 Line "1" --> "2" Coordinate : has
-PenStatus -- Instruction : has
+PenMovement -- PenAction
 
 @end
