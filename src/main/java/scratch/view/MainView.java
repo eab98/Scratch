@@ -7,6 +7,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import scratch.viewmodel.MainViewModel;
+import scratch.viewmodel.ScratchViewModel;
 
 import java.io.File;
 
@@ -31,7 +32,7 @@ public class MainView extends BorderPane {
             mainViewModel.saveProgram(file);
         });
 
-        saveItem.setOnAction(e -> {
+        loadItem.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Charger un programme");
             File file = fileChooser.showOpenDialog(this.getScene().getWindow());
@@ -39,5 +40,12 @@ public class MainView extends BorderPane {
         });
 
         this.setTop(menuBar);
+
+        // récupère le ViewModel de la ScratchView et on l'instancie
+        ScratchViewModel scratchVM = mainViewModel.getScratchViewModel();
+
+        ScratchView scratchView = new ScratchView(scratchVM);
+
+        this.setCenter(scratchView);
     }
 }

@@ -1,5 +1,6 @@
 package scratch;
 
+import scratch.model.Character;
 import com.sun.tools.javac.Main;
 import javafx.application.Application;
 import javafx.scene.Scene;
