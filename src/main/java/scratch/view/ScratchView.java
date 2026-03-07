@@ -145,6 +145,18 @@ public class ScratchView extends BorderPane {
         duplicateButton.setOnAction(e-> scratchViewModel.duplicate());
         deleteButton.setOnAction(e-> scratchViewModel.removeInstru());
         emptyButton.setOnAction(e-> scratchViewModel.empty());
+        nextButton.setOnAction(e -> {
+            scratchViewModel.execute();
+            updateCanvas();
+        });
+        reinitButton.setOnAction(e -> {
+            scratchViewModel.resetExecution();
+            //efface le canvas
+            GraphicsContext gc = canvas.getGraphicsContext2D();
+            gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+            // redessine la grille
+            configCanvas();
+        });
     }
 
     private void loadData() {
@@ -170,6 +182,29 @@ public class ScratchView extends BorderPane {
         BorderPane.setMargin(program, new Insets(2));
         BorderPane.setMargin(scene, new Insets(2));
 
+    }
+
+
+    private void updateCanvas() {
+        // mémorise l'ancienne position de la tortue
+        double oldX = headTurtle.getCenterX();
+        double oldY = headTurtle.getCenterY();
+
+        // récupère la nouvelle position calculée
+        double newX = scratchViewModel.coordXProperty().get();
+        double newY = scratchViewModel.coordYProperty().get();
+
+        // dessine la ligne rouge (si pen baissé)
+        if (scratchViewModel.isPenDown()) {
+            GraphicsContext gc = canvas.getGraphicsContext2D();
+            gc.setStroke(Color.RED);
+            gc.setLineWidth(2);
+            gc.strokeLine(oldX, oldY, newX, newY);
+        }
+
+        // déplace la tortue à sa nouvelle position
+        headTurtle.setCenterX(newX);
+        headTurtle.setCenterY(newY);
     }
 
 }

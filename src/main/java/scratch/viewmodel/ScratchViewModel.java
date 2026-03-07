@@ -91,12 +91,43 @@ public class ScratchViewModel {
     }
 
     public void execute() {
-        Instruction instru = instructions.get(indexExec.get());
-        Coordinates initial = program.getPen().getCoord();
-        program.execute(instru);
-        Coordinates end = program.getPen().getCoord();
-        Line line = new Line(initial, end);
-        shape.addLine(line);
+        int nextIndex = indexExec.get() + 1;
+
+        if (nextIndex < instructions.size()) {
+            indexExec.set(nextIndex); // On passe à l'instruction suivante
+            Instruction instru = instructions.get(nextIndex);
+
+            // Position de départ
+            Coordinates initial = new Coordinates(program.getPen().getCoord().getX(), program.getPen().getCoord().getY());
+
+            // le modèle exécute l'action
+            program.execute(instru);
+
+            // Position d'arrivée
+            Coordinates end = program.getPen().getCoord();
+            coordX.set(end.getX());
+            coordY.set(end.getY());
+
+            // Si le stylo est baissé, on mémorise le trait à dessiner
+            if (program.isPenDown()) {
+                shape.addLine(new Line(initial, end));
+            }
+        }
+    }
+
+    public boolean isPenDown() {
+        return program.isPenDown();
+    }
+
+    public void resetExecution() {
+        indexExec.set(-1); // remet le compteur à zéro
+        program.getPen().setCoord(new Coordinates(200, 200)); // Retour au centre
+        program.getPen().setOrientation(0); // Regarde vers la droite
+        program.setPenDown(true);
+
+        // màj sur la Vue
+        coordX.set(200);
+        coordY.set(200);
     }
 
 }
