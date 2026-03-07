@@ -1,15 +1,12 @@
 package scratch.viewmodel;
 
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.*;
 import javafx.collections.ObservableList;
 import scratch.model.*;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class ScratchViewModel {
     private final Program program;
@@ -49,6 +46,28 @@ public class ScratchViewModel {
     public DoubleProperty coordXProperty() { return coordX; }
 
     public DoubleProperty coordYProperty() { return coordY; }
+
+    public BooleanBinding canUp() {
+        return index.greaterThan(0);
+    }
+
+    public BooleanBinding canDown() {
+        return Bindings.createBooleanBinding(() -> {
+            int idx = index.get();
+            return idx >= 0 && idx < instructions.size() - 1;
+        }, getInstru(), index);
+    }
+
+    public BooleanBinding canEmpty() {
+        return Bindings.createBooleanBinding(() -> {
+            List<Instruction> instr = getInstru();
+            return !instr.isEmpty();
+        }, getInstru());
+    }
+
+    public BooleanBinding canDuplicateOrDelete() {
+        return index.greaterThan(-1);
+    }
 
     public void addInstruction() {
         int idx = catalogIndex.get();

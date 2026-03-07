@@ -13,7 +13,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import scratch.model.Instruction;
-import scratch.viewmodel.MainViewModel;
 import scratch.viewmodel.ScratchViewModel;
 
 
@@ -66,6 +65,7 @@ public class ScratchView extends BorderPane {
         loadData();
         configSelection();
         configActions();
+        configButtonsDisabling();
         beautify();
 
     }
@@ -179,6 +179,14 @@ public class ScratchView extends BorderPane {
             // redessine la grille
             configCanvas();
         });
+    }
+
+    private void configButtonsDisabling() {
+        upButton.disableProperty().bind(scratchViewModel.canUp().not());
+        downButton.disableProperty().bind(scratchViewModel.canDown().not());
+        duplicateButton.disableProperty().bind(scratchViewModel.canDuplicateOrDelete().not());
+        deleteButton.disableProperty().bind(scratchViewModel.canDuplicateOrDelete().not());
+        emptyButton.disableProperty().bind(scratchViewModel.canEmpty().not());
     }
 
     private void loadData() {
