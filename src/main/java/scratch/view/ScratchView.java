@@ -1,5 +1,6 @@
 package scratch.view;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -48,6 +49,10 @@ public class ScratchView extends BorderPane {
 
     private final Button reinitButton = new Button("Ré-initiliaser");
     private final Button nextButton = new Button("Suivant");
+
+    private final TitledPane detailsAction = new TitledPane();
+    private final HBox content = new HBox();
+
     
     public ScratchView(ScratchViewModel scratchViewModel) {
         this.scratchViewModel = scratchViewModel;
@@ -77,21 +82,11 @@ public class ScratchView extends BorderPane {
 
     private void configProgramBox(){
         configButtonsProg();
-
-        TitledPane detailsAction = new TitledPane();
+        program.getChildren().addAll(programTitle, programList, buttonProgram);
         detailsAction.setText("Détails de l'action");
+        program.getChildren().add(detailsAction);
 
-        Label text = new Label("Avancer de");
-        Label text2 = new Label("pixels");
-
-        TextField input = new TextField("30");
-
-        HBox content = new HBox();
-        content.getChildren().addAll(text, input, text2);
-
-        detailsAction.setContent(content);
-
-        program.getChildren().addAll(programTitle, programList, buttonProgram, detailsAction);
+        updateDetails();
     }
 
     private void configSceneBox() {
@@ -116,10 +111,12 @@ public class ScratchView extends BorderPane {
         this.programList.getSelectionModel().selectedIndexProperty()
                 .addListener((observable, oldValue, newValue) -> {
                     this.scratchViewModel.getIndexProperty().setValue(newValue.intValue());
+                    updateDetails();
                 } );
         this.scratchViewModel.getIndexProperty().addListener((observable, oldValue, newValue) -> {
             this.programList.getSelectionModel().select(newValue.intValue());
         });
+
     }
 
     private void configCanvas() {
@@ -247,6 +244,22 @@ public class ScratchView extends BorderPane {
         headTurtle.setLayoutX(newX);
         headTurtle.setLayoutY(newY);
         headTurtle.setRotate(scratchViewModel.getOrientation());
+    }
+
+    private void updateDetails(){
+        int index = scratchViewModel.getIndexProperty().get();
+        if(index == -1){
+            Label empty = new Label("(aucune action selectionnée)");
+            detailsAction.setContent(empty);
+
+        }else{
+            HBox box = new HBox();
+            Label text = new Label(scratchViewModel.getNameInstruParIndex());
+            Label text2 = new Label("pixels");
+            TextField input = new TextField("30");
+            box.getChildren().addAll(text, input, text2);
+            detailsAction.setContent(box);
+        }
     }
 
 }

@@ -153,4 +153,9 @@ public class ScratchViewModel {
         return program.getPen().getOrientation();
     }
 
+    public String getNameInstruParIndex() {
+        int index = getIndexProperty().get();
+        return instructions.get(index).getName();
+    }
+
 }
