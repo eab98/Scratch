@@ -5,9 +5,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -27,7 +25,6 @@ public class ScratchView extends BorderPane {
     private final VBox scene = new VBox(20);
 
     private final Group headTurtle = new Group();
-
 
     private final Label paletteTitle = new Label("Palette d'actions");
     private final Label programTitle = new Label("Programme");
@@ -80,7 +77,21 @@ public class ScratchView extends BorderPane {
 
     private void configProgramBox(){
         configButtonsProg();
-        program.getChildren().addAll(programTitle, programList, buttonProgram);
+
+        TitledPane detailsAction = new TitledPane();
+        detailsAction.setText("Détails de l'action");
+
+        Label text = new Label("Avancer de");
+        Label text2 = new Label("pixels");
+
+        TextField input = new TextField("30");
+
+        HBox content = new HBox();
+        content.getChildren().addAll(text, input, text2);
+
+        detailsAction.setContent(content);
+
+        program.getChildren().addAll(programTitle, programList, buttonProgram, detailsAction);
     }
 
     private void configSceneBox() {
