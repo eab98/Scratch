@@ -29,7 +29,7 @@ public class App extends Application {
 //        primaryStage.setScene(scene);
 
         Coordinates origin = new Coordinates(195, 195);
-        Character pen = new Character(0, origin);
+        Character pen = new Character(-90, origin);
         Program program = new Program(pen);
 
         MainViewModel mainViewModel = new MainViewModel(program);

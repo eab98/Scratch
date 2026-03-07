@@ -2,6 +2,7 @@ package scratch.view;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
@@ -10,6 +11,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Polygon;
 import scratch.model.Instruction;
 import scratch.viewmodel.MainViewModel;
 import scratch.viewmodel.ScratchViewModel;
@@ -25,7 +27,7 @@ public class ScratchView extends BorderPane {
     private final VBox program = new VBox(8);
     private final VBox scene = new VBox(20);
 
-    private final Circle headTurtle = new Circle(TURTLE_HEAD_SIZE);
+    private final Group headTurtle = new Group();
 
 
     private final Label paletteTitle = new Label("Palette d'actions");
@@ -133,9 +135,29 @@ public class ScratchView extends BorderPane {
             gc.strokeLine(0, i, w, i);
         }
 
-        headTurtle.setCenterX(195);
-        headTurtle.setCenterY(195);
+        // le triangle bleu
+        Polygon body = new Polygon(
+                -7.5, -5.0,
+                7.5, 0.0,
+                -7.5, 5.0
+        );
+        body.setFill(Color.DEEPSKYBLUE);
+        body.setStroke(Color.BLACK);
 
+        // le petit point vert
+        Circle dot = new Circle(7.5, 0.0, 2.5);
+        dot.setFill(Color.GREEN);
+        dot.setStroke(Color.BLACK);
+
+        // assemblage dans le groupe
+        headTurtle.getChildren().addAll(body, dot);
+
+        // coordonnée au centre
+        headTurtle.setLayoutX(195);
+        headTurtle.setLayoutY(195);
+
+        // angle initial au demarrage
+        headTurtle.setRotate(scratchViewModel.getOrientation());
     }
 
     private void configActions(){
@@ -187,8 +209,8 @@ public class ScratchView extends BorderPane {
 
     private void updateCanvas() {
         // mémorise l'ancienne position de la tortue
-        double oldX = headTurtle.getCenterX();
-        double oldY = headTurtle.getCenterY();
+        double oldX = headTurtle.getLayoutX();
+        double oldY = headTurtle.getLayoutY();
 
         // récupère la nouvelle position calculée
         double newX = scratchViewModel.coordXProperty().get();
@@ -203,8 +225,9 @@ public class ScratchView extends BorderPane {
         }
 
         // déplace la tortue à sa nouvelle position
-        headTurtle.setCenterX(newX);
-        headTurtle.setCenterY(newY);
+        headTurtle.setLayoutX(newX);
+        headTurtle.setLayoutY(newY);
+        headTurtle.setRotate(scratchViewModel.getOrientation());
     }
 
 }
