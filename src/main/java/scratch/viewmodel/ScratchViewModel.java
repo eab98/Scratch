@@ -121,13 +121,13 @@ public class ScratchViewModel {
 
     public void resetExecution() {
         indexExec.set(-1); // remet le compteur à zéro
-        program.getPen().setCoord(new Coordinates(200, 200)); // Retour au centre
+        program.getPen().setCoord(new Coordinates(195, 195)); // Retour au centre
         program.getPen().setOrientation(0); // Regarde vers la droite
         program.setPenDown(true);
 
         // màj sur la Vue
-        coordX.set(200);
-        coordY.set(200);
+        coordX.set(195);
+        coordY.set(195);
     }
 
 }

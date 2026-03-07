@@ -28,7 +28,7 @@ public class App extends Application {
 //        primaryStage.setTitle("Scratch");
 //        primaryStage.setScene(scene);
 
-        Coordinates origin = new Coordinates(200, 200);
+        Coordinates origin = new Coordinates(195, 195);
         Character pen = new Character(0, origin);
         Program program = new Program(pen);
 

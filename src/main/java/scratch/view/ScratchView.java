@@ -84,7 +84,7 @@ public class ScratchView extends BorderPane {
     private void configSceneBox() {
         configButtonsScene();
 
-        StackPane canvasContainer = new StackPane();
+        Pane canvasContainer = new Pane();
         canvasContainer.getChildren().addAll(canvas, headTurtle);
 
         scene.getChildren().addAll(sceneTitle, canvasContainer, buttonScene);
@@ -133,8 +133,8 @@ public class ScratchView extends BorderPane {
             gc.strokeLine(0, i, w, i);
         }
 
-        headTurtle.setCenterX(w / 2);
-        headTurtle.setCenterY(h / 2);
+        headTurtle.setCenterX(195);
+        headTurtle.setCenterY(195);
 
     }
 
