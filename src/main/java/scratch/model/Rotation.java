@@ -2,7 +2,7 @@ package scratch.model;
 
 public class Rotation extends Movement {
 
-    public Rotation(String name, MovementType type, int direction) {
+    public Rotation(String name, InstructionType type, int direction) {
         super(name, type, direction);
     }
 
@@ -18,14 +18,14 @@ public class Rotation extends Movement {
     public void execute(Character pen) {
         int initial_angle = pen.getOrientation();
         int modif = getDirection();
-        if (this.getType() == MovementType.LEFT)
+        if (this.getType() == InstructionType.TURN_LEFT)
             modif = -modif;
         pen.setOrientation(initial_angle + modif);
     }
 
     @Override
     public Instruction newInstruction() {
-        String name = "Tourner à " + (this.getType() == MovementType.LEFT ? "gauche de" : "droite de");
+        String name = "Tourner à " + (this.getType() == InstructionType.TURN_LEFT ? "gauche de" : "droite de");
         return new Rotation(name, this.getType(), 90);
     }
 

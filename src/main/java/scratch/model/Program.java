@@ -4,22 +4,18 @@ package scratch.model;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.*;
-import javafx.beans.property.IntegerProperty;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class Program {
     private final Character pen;
     private static final ObservableList<Instruction> catalogue = FXCollections.observableArrayList(
-            new Translation("Avancer de", MovementType.FORWARD, 0, 0),
-            new Rotation("Tourner à gauche de", MovementType.LEFT,  0),
-            new Rotation("Tourner à droite de", MovementType.RIGHT,  0),
-            new PenAction("Lever stylo", PenMovement.PEN_UP),
-            new PenAction("Abaisser stylo", PenMovement.PEN_DOWN)
+            new Translation("Avancer de", InstructionType.MOVE_FORWARD, 0, 0),
+            new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  0),
+            new Rotation("Tourner à droite de", InstructionType.TURN_RIGHT,  0),
+            new PenAction("Lever stylo", InstructionType.PEN_UP),
+            new PenAction("Abaisser stylo", InstructionType.PEN_DOWN)
             );
 
     private static final ObservableList<Instruction> instructions = FXCollections.observableArrayList();
@@ -87,7 +83,7 @@ public class Program {
         try (PrintWriter writer = new PrintWriter(file)) {
             // parcourt toutes les instructions du programme
             for (Instruction instr : instructions) {
-                writer.println(instr.getName() + ";" + instr.getParameter());
+                writer.println(instr.getType() + ";" + instr.getParameter());
             }
             System.out.println("Fichier sauvegardé avec succès !");
         } catch (Exception e) {
@@ -115,7 +111,7 @@ public class Program {
                     for (int i = 0; i < catalogue.size(); i++) {
                         Instruction modele = catalogue.get(i);
 
-                        if (modele.getName().equals(typeAction)) {
+                        if (modele.getType().toString().equals(typeAction)) {
                             this.addInstruction(i);
 
                             // on ajoute à la fin de notre liste d'instruction

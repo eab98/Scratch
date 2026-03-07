@@ -10,10 +10,10 @@ public class TestModel {
 //        Coordinates origin = new Coordinates(0, 0);
 //        Character pen = new Character(0, origin);
 //        Program program = new Program(pen);
-//        Translation tr = new Translation("Avancer", MovementType.FORWARD, 0, 30);
+//        Translation tr = new Translation("Avancer", InstructionType.FORWARD, 0, 30);
 //        tr.setDistance(30);
 //        program.addInstruction(tr);
-//        Rotation rot = new Rotation("Tourner", MovementType.RIGHT, 90);
+//        Rotation rot = new Rotation("Tourner", InstructionType.TURN_RIGHT, 90);
 //        PenAction action = new PenAction("Lever", PenMovement.PEN_UP);
 //        program.addInstruction(rot);
 //        program.addInstruction(tr);
