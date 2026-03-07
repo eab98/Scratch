@@ -2,30 +2,23 @@ package scratch.model;
 
 public class PenAction extends Instruction {
 
-    private final PenMovement movement;
-
-    public PenAction(String name, PenMovement move) {
-        super(name);
-        this.movement = move;
-    }
-
-    public PenMovement getMovement() {
-        return movement;
+    public PenAction(String name, InstructionType type) {
+        super(name, type);
     }
 
     @Override
     public Instruction newInstruction() {
-        return new PenAction(this.getName(), this.getMovement());
+        return new PenAction(this.getName(), this.getType());
     }
 
     public boolean changePenStatus(boolean status) {
-        if (status && movement == PenMovement.PEN_DOWN || !status && movement == PenMovement.PEN_UP)
+        if (status && this.getType() == InstructionType.PEN_DOWN || !status && this.getType() == InstructionType.PEN_UP)
             return status;
         return !status;
     }
 
     @Override
     public Instruction duplicate() {
-        return new PenAction(this.getName(), this.getMovement());
+        return new PenAction(this.getName(), this.getType());
     }
 }

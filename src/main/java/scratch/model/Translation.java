@@ -4,7 +4,7 @@ public class Translation extends Movement{
     private int distance;
 
 
-    public Translation(String name, MovementType type, int direction, int distance) {
+    public Translation(String name, InstructionType type, int direction, int distance) {
         super(name, type, direction);
         this.distance = distance;
     }
@@ -15,7 +15,7 @@ public class Translation extends Movement{
 
     @Override
     public Instruction newInstruction() {
-        return new Translation("Avancer de", MovementType.FORWARD, 0, 30);
+        return new Translation("Avancer de", InstructionType.MOVE_FORWARD, 0, 30);
     }
 
     public void setDistance(int distance) {
@@ -46,5 +46,15 @@ public class Translation extends Movement{
     @Override
     public Instruction duplicate() {
         return new Translation(this.getName(), this.getType(), this.getDirection(), this.getDistance());
+    }
+
+    @Override
+    public void setParameter(int value) {
+        this.setDistance(value);
+    }
+
+    @Override
+    public int getParameter() {
+        return this.getDistance();
     }
 }
