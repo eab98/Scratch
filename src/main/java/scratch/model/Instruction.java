@@ -2,9 +2,15 @@ package scratch.model;
 
 public abstract class Instruction {
     private final String name;
+    private final InstructionType type;
 
-    public Instruction(String name) {
+    public Instruction(String name, InstructionType type) {
         this.name = name;
+        this.type = type;
+    }
+
+    public InstructionType getType() {
+        return this.type;
     }
 
     public String getName() {
