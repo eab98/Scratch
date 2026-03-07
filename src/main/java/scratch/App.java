@@ -28,8 +28,8 @@ public class App extends Application {
 //        primaryStage.setTitle("Scratch");
 //        primaryStage.setScene(scene);
 
-        Coordinates origin = new Coordinates(150, 150);
-        Character pen = new Character(0, origin);
+        Coordinates origin = new Coordinates(195, 195);
+        Character pen = new Character(-90, origin);
         Program program = new Program(pen);
 
         MainViewModel mainViewModel = new MainViewModel(program);
