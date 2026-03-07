@@ -83,7 +83,7 @@ public class Program {
         try (PrintWriter writer = new PrintWriter(file)) {
             // parcourt toutes les instructions du programme
             for (Instruction instr : instructions) {
-                writer.println(instr.getName() + ";" + instr.getParameter());
+                writer.println(instr.getType() + ";" + instr.getParameter());
             }
             System.out.println("Fichier sauvegardé avec succès !");
         } catch (Exception e) {
@@ -111,7 +111,7 @@ public class Program {
                     for (int i = 0; i < catalogue.size(); i++) {
                         Instruction modele = catalogue.get(i);
 
-                        if (modele.getName().equals(typeAction)) {
+                        if (modele.getType().toString().equals(typeAction)) {
                             this.addInstruction(i);
 
                             // on ajoute à la fin de notre liste d'instruction
