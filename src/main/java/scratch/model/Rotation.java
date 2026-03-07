@@ -18,7 +18,7 @@ public class Rotation extends Movement {
     public void execute(Character pen) {
         int initial_angle = pen.getOrientation();
         int modif = getDirection();
-        if (this.getType() == MovementType.RIGHT)
+        if (this.getType() == MovementType.LEFT)
             modif = -modif;
         pen.setOrientation(initial_angle + modif);
     }
