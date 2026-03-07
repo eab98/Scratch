@@ -26,4 +26,11 @@ public abstract class Instruction {
     public Instruction duplicate() {
         return this;
     }
+
+    public void setParameter(int value) {
+    }
+
+    public int getParameter() {
+        return 0;
+    }
 }

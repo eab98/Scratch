@@ -1,17 +1,17 @@
 package scratch.view;
 
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Polygon;
 import scratch.model.Instruction;
 import scratch.viewmodel.MainViewModel;
 import scratch.viewmodel.ScratchViewModel;
@@ -23,24 +23,24 @@ public class ScratchView extends BorderPane {
     private static final double TURTLE_HEAD_SIZE = 5;
     private ScratchViewModel scratchViewModel;
 
-    private final VBox palette = new VBox(10);
-    private final VBox program = new VBox(10);
+    private final VBox palette = new VBox(8);
+    private final VBox program = new VBox(8);
     private final VBox scene = new VBox(20);
 
-    private final Circle headTurtle = new Circle(TURTLE_HEAD_SIZE);
+    private final Group headTurtle = new Group();
 
 
     private final Label paletteTitle = new Label("Palette d'actions");
     private final Label programTitle = new Label("Programme");
     private final Label sceneTitle = new Label("Scène");
     
-    private final HBox buttonProgram = new HBox(10);
+    private final HBox buttonProgram = new HBox(8);
     private final HBox buttonScene = new HBox(10);
 
     private final ListView<Instruction> paletteList = new ListView<>();
     private final ListView<Instruction> programList = new ListView<>();
 
-    private final Canvas canvas = new Canvas(300, 300);
+    private final Canvas canvas = new Canvas(400, 400);
 
     private final Button addToProgramButton = new Button("Ajouter au programme");
 
@@ -66,6 +66,7 @@ public class ScratchView extends BorderPane {
         loadData();
         configSelection();
         configActions();
+        beautify();
 
     }
     
@@ -85,7 +86,7 @@ public class ScratchView extends BorderPane {
     private void configSceneBox() {
         configButtonsScene();
 
-        StackPane canvasContainer = new StackPane();
+        Pane canvasContainer = new Pane();
         canvasContainer.getChildren().addAll(canvas, headTurtle);
 
         scene.getChildren().addAll(sceneTitle, canvasContainer, buttonScene);
@@ -134,9 +135,29 @@ public class ScratchView extends BorderPane {
             gc.strokeLine(0, i, w, i);
         }
 
-        headTurtle.setCenterX(w / 2);
-        headTurtle.setCenterY(h / 2);
+        // le triangle bleu
+        Polygon body = new Polygon(
+                -7.5, -5.0,
+                7.5, 0.0,
+                -7.5, 5.0
+        );
+        body.setFill(Color.DEEPSKYBLUE);
+        body.setStroke(Color.BLACK);
 
+        // le petit point vert
+        Circle dot = new Circle(7.5, 0.0, 2.5);
+        dot.setFill(Color.GREEN);
+        dot.setStroke(Color.BLACK);
+
+        // assemblage dans le groupe
+        headTurtle.getChildren().addAll(body, dot);
+
+        // coordonnée au centre
+        headTurtle.setLayoutX(195);
+        headTurtle.setLayoutY(195);
+
+        // angle initial au demarrage
+        headTurtle.setRotate(scratchViewModel.getOrientation());
     }
 
     private void configActions(){
@@ -146,6 +167,18 @@ public class ScratchView extends BorderPane {
         duplicateButton.setOnAction(e-> scratchViewModel.duplicate());
         deleteButton.setOnAction(e-> scratchViewModel.removeInstru());
         emptyButton.setOnAction(e-> scratchViewModel.empty());
+        nextButton.setOnAction(e -> {
+            scratchViewModel.execute();
+            updateCanvas();
+        });
+        reinitButton.setOnAction(e -> {
+            scratchViewModel.resetExecution();
+            //efface le canvas
+            GraphicsContext gc = canvas.getGraphicsContext2D();
+            gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+            // redessine la grille
+            configCanvas();
+        });
     }
 
     private void loadData() {
@@ -154,20 +187,47 @@ public class ScratchView extends BorderPane {
     }
 
     private void beautify() {
-        palette.setPrefWidth(50);
-        scene.setPrefWidth(60);
+        palette.setPrefWidth(250);
+        scene.setPrefWidth(500);
+        program.setPrefWidth(300);
 
-        this.setPadding(new Insets(100));
-        this.program.setPadding(new Insets(16, 16, 12, 16));
-        this.palette.setPadding(new Insets(16, 16, 12, 16));
-        this.scene.setPadding(new Insets(16, 16, 12, 16));
-        this.programList.setPadding(new Insets(16, 16, 12, 16));
-        this.paletteList.setPadding(new Insets(16, 16, 12, 16));
+        BorderPane.setAlignment(palette, Pos.CENTER_LEFT);
+        BorderPane.setAlignment(program, Pos.CENTER);
+        BorderPane.setAlignment(scene, Pos.CENTER_RIGHT);
 
-        BorderPane.setMargin(palette, new Insets(10));
-        BorderPane.setMargin(program, new Insets(10));
-        BorderPane.setMargin(scene, new Insets(10));
+        this.setPadding(new Insets(2));
+        this.program.setPadding(new Insets(2));
+        this.palette.setPadding(new Insets(2));
+        this.scene.setPadding(new Insets(2));
 
+        BorderPane.setMargin(palette, new Insets(2));
+        BorderPane.setMargin(program, new Insets(2));
+        BorderPane.setMargin(scene, new Insets(2));
+
+    }
+
+
+    private void updateCanvas() {
+        // mémorise l'ancienne position de la tortue
+        double oldX = headTurtle.getLayoutX();
+        double oldY = headTurtle.getLayoutY();
+
+        // récupère la nouvelle position calculée
+        double newX = scratchViewModel.coordXProperty().get();
+        double newY = scratchViewModel.coordYProperty().get();
+
+        // dessine la ligne rouge (si pen baissé)
+        if (scratchViewModel.isPenDown()) {
+            GraphicsContext gc = canvas.getGraphicsContext2D();
+            gc.setStroke(Color.RED);
+            gc.setLineWidth(2);
+            gc.strokeLine(oldX, oldY, newX, newY);
+        }
+
+        // déplace la tortue à sa nouvelle position
+        headTurtle.setLayoutX(newX);
+        headTurtle.setLayoutY(newY);
+        headTurtle.setRotate(scratchViewModel.getOrientation());
     }
 
 }
