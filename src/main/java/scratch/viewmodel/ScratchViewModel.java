@@ -23,13 +23,18 @@ public class ScratchViewModel {
     private final DoubleProperty coordX = new SimpleDoubleProperty(0);
     private final DoubleProperty coordY = new SimpleDoubleProperty(0);
 
+    private final IntegerProperty amount = new SimpleIntegerProperty(0);
+
+    private Error errorAmount = new Error();
+
     public IntegerProperty getIndexProperty(){
         return index;
     }
     public IntegerProperty getCatalogIndexProperty(){
         return catalogIndex;
     }
-    public IntegerProperty getIndexExec() { return indexExec; }
+
+    public IntegerProperty getAmountProperty() { return amount; }
 
     public ScratchViewModel(Program program) {
         this.program = program;
@@ -42,6 +47,8 @@ public class ScratchViewModel {
     public ObservableList<Instruction> getInstru() {
         return Program.getInstructions();
     }
+
+    public String getErrorAmount(){ return errorAmount.getMessage(); }
 
     public DoubleProperty coordXProperty() { return coordX; }
 
@@ -156,6 +163,24 @@ public class ScratchViewModel {
     public String getNameInstruParIndex() {
         int index = getIndexProperty().get();
         return instructions.get(index).getName();
+    }
+
+    public void changeAmount() {
+        int index = getIndexProperty().get();
+        Instruction instru = instructions.get(index);
+
+        try {
+            program.changeAmount(instru, amount.get());
+        } catch(RuntimeException e) {
+            errorAmount = new Error(e.getMessage());
+        }
+    }
+
+    public int getParameterInstru() {
+        int index = getIndexProperty().get();
+        Instruction instru = instructions.get(index);
+
+        return instru.getParameter();
     }
 
 }

@@ -1,6 +1,7 @@
 package scratch.view;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -52,8 +53,12 @@ public class ScratchView extends BorderPane {
 
     private final TitledPane detailsAction = new TitledPane();
     private final HBox content = new HBox();
+    private final TextField input = new TextField();
 
-    
+    //on initialise le listener ici pour pouvoir l'ajouter/l'enlever plus facilement
+    private ChangeListener<String> inputListener;
+
+
     public ScratchView(ScratchViewModel scratchViewModel) {
         this.scratchViewModel = scratchViewModel;
         configPaletteBox();
@@ -87,6 +92,7 @@ public class ScratchView extends BorderPane {
         program.getChildren().add(detailsAction);
 
         updateDetails();
+        configInputAmount();
     }
 
     private void configSceneBox() {
@@ -197,6 +203,18 @@ public class ScratchView extends BorderPane {
         emptyButton.disableProperty().bind(scratchViewModel.canEmpty().not());
     }
 
+    private void configInputAmount() {
+        inputListener = (observable, oldValue, newValue)
+              -> {
+            this.scratchViewModel.getAmountProperty().set(Integer.parseInt(newValue));
+            this.scratchViewModel.changeAmount();
+        };
+        input.textProperty().addListener(inputListener);
+        input.setOnAction(e -> {
+            this.programList.refresh();
+        });
+    }
+
     private void loadData() {
         paletteList.setItems(scratchViewModel.getCatalogue());
         programList.setItems(scratchViewModel.getInstru());
@@ -256,7 +274,15 @@ public class ScratchView extends BorderPane {
             HBox box = new HBox();
             Label text = new Label(scratchViewModel.getNameInstruParIndex());
             Label text2 = new Label("pixels");
-            TextField input = new TextField("30");
+
+            int param = scratchViewModel.getParameterInstru();
+
+            //on enleve le listener, on attend que l'user introduise l'input, on remet le listener pour notifier le vm
+
+            input.textProperty().removeListener(inputListener);
+            input.setText(Integer.toString(param));
+            input.textProperty().addListener(inputListener);
+
             box.getChildren().addAll(text, input, text2);
             detailsAction.setContent(box);
         }
