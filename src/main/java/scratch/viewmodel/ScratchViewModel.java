@@ -259,6 +259,10 @@ public class ScratchViewModel {
         try {
             program.changeAmount(instru, amount.get());
             errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+            resetExecution();
         } catch(RuntimeException e) {
             errorMessage.set(e.getMessage());
         }
