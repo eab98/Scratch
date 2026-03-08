@@ -23,6 +23,21 @@ public class ScratchViewModel {
     private final DoubleProperty coordX = new SimpleDoubleProperty(0);
     private final DoubleProperty coordY = new SimpleDoubleProperty(0);
 
+    // état pour les boutons charger et executer
+    private boolean isLoaded = false;
+    private boolean isRunning = false;
+
+    private final StringProperty leftBtnText = new SimpleStringProperty("Charger");
+    private final BooleanProperty leftBtnDisabled = new SimpleBooleanProperty(true);
+
+    private final StringProperty rightBtnText = new SimpleStringProperty("Exécuter");
+    private final BooleanProperty rightBtnDisabled = new SimpleBooleanProperty(true);
+
+    public StringProperty leftBtnTextProperty() { return leftBtnText; }
+    public BooleanProperty leftBtnDisabledProperty() { return leftBtnDisabled; }
+    public StringProperty rightBtnTextProperty() { return rightBtnText; }
+    public BooleanProperty rightBtnDisabledProperty() { return rightBtnDisabled; }
+
     public IntegerProperty getIndexProperty(){
         return index;
     }
@@ -33,6 +48,7 @@ public class ScratchViewModel {
 
     public ScratchViewModel(Program program) {
         this.program = program;
+        updateState();
     }
 
     public ObservableList<Instruction> getCatalogue() {
@@ -74,6 +90,7 @@ public class ScratchViewModel {
         if (idx >= 0 && idx < getCatalogue().size()) {
             program.addInstruction(idx);
         }
+        notifyProgramChanged();
     }
 
     public void up() {
@@ -82,6 +99,7 @@ public class ScratchViewModel {
             program.up(idx);
             index.setValue(idx - 1);
         }
+        notifyProgramChanged();
     }
     public void down() {
         int idx = index.get();
@@ -89,6 +107,7 @@ public class ScratchViewModel {
             program.down(idx);
             index.setValue(idx + 1);
         }
+        notifyProgramChanged();
     }
 
     public void removeInstru(){
@@ -96,6 +115,7 @@ public class ScratchViewModel {
         if (idx >= 0 && idx < getInstru().size()){
             program.deleteInstruction(idx);
         }
+        notifyProgramChanged();
     }
 
     public void duplicate() {
@@ -103,10 +123,12 @@ public class ScratchViewModel {
         if(idx >= 0 && idx < getInstru().size()){
             program.duplicate(idx);
         }
+        notifyProgramChanged();
     }
 
     public void empty() {
         program.empty();
+        notifyProgramChanged();
     }
 
     public void execute() {
@@ -151,6 +173,71 @@ public class ScratchViewModel {
 
     public int getOrientation() {
         return program.getPen().getOrientation();
+    }
+
+    public void updateState() {
+        if (getInstru().isEmpty()) {
+            // état 1 (quand on lance le programme) : charger et executer desact
+            isLoaded = false;
+            isRunning = false;
+            leftBtnText.set("Charger");
+            leftBtnDisabled.set(true);
+            rightBtnText.set("Exécuter");
+            rightBtnDisabled.set(true);
+        } else if (!isLoaded) {
+            // état 2 : charger actif et exec desact
+            leftBtnText.set("Charger");
+            leftBtnDisabled.set(false);
+            rightBtnText.set("Exécuter");
+            rightBtnDisabled.set(true);
+        } else if (isLoaded && !isRunning) {
+            // état 3 : charger devient ré-initialiser et executer s'active
+            leftBtnText.set("Ré-initialiser");
+            leftBtnDisabled.set(false);
+            rightBtnText.set("Exécuter");
+            rightBtnDisabled.set(false);
+        } else if (isRunning) {
+            // état 4 : gestion bouton suivant et executer
+            leftBtnText.set("Ré-initialiser");
+            leftBtnDisabled.set(false);
+
+            // on a tout terminé ?
+            if (indexExec.get() >= getInstru().size() - 1) {
+                rightBtnText.set("Exécuter");
+                rightBtnDisabled.set(true);
+            } else {
+                rightBtnText.set("Suivant");
+                rightBtnDisabled.set(false);
+            }
+        }
+    }
+
+    public void clickLeftButton() {
+        if (!isLoaded) {
+            isLoaded = true; // qund on clic sur chargé
+        } else {
+            // On clic sur reset
+            isRunning = false;
+            resetExecution();
+        }
+        updateState(); // update le visuel
+    }
+
+    public void clickRightButton() {
+        if (!isRunning) {
+            isRunning = true; // bouton exec qui devient suivant
+        } else {
+            execute(); // on avance d'un step
+        }
+        updateState();
+    }
+
+    public void notifyProgramChanged() {
+        // dès qu'on modifie dans programme, on annule et on doit recharger à nouveau
+        isLoaded = false;
+        isRunning = false;
+        resetExecution();
+        updateState();
     }
 
 }
