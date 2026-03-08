@@ -144,8 +144,6 @@ public class ScratchView extends BorderPane {
 
         gc.fillRect(0, 0, w, h);
 
-        System.out.println(getWidth() + ", " + getHeight());
-
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(0.2);
 
