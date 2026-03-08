@@ -111,6 +111,12 @@ public class ScratchView extends BorderPane {
 
     private void configButtonsScene() {
         buttonScene.getChildren().addAll(reinitButton, nextButton);
+
+        reinitButton.textProperty().bind(scratchViewModel.leftBtnTextProperty());
+        reinitButton.disableProperty().bind(scratchViewModel.leftBtnDisabledProperty());
+
+        nextButton.textProperty().bind(scratchViewModel.rightBtnTextProperty());
+        nextButton.disableProperty().bind(scratchViewModel.rightBtnDisabledProperty());
     }
 
     private void configSelection() {
@@ -186,11 +192,11 @@ public class ScratchView extends BorderPane {
         deleteButton.setOnAction(e-> scratchViewModel.removeInstru());
         emptyButton.setOnAction(e-> scratchViewModel.empty());
         nextButton.setOnAction(e -> {
-            scratchViewModel.execute();
+            scratchViewModel.clickRightButton();
             updateCanvas();
         });
         reinitButton.setOnAction(e -> {
-            scratchViewModel.resetExecution();
+            scratchViewModel.clickLeftButton();
             //efface le canvas
             GraphicsContext gc = canvas.getGraphicsContext2D();
             gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
