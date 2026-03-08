@@ -211,8 +211,18 @@ public class ScratchView extends BorderPane {
         errorMessage.textProperty().bind(scratchViewModel.getErrorMessage());
         inputListener = (observable, oldValue, newValue)
               -> {
-            this.scratchViewModel.getAmountProperty().set(Integer.parseInt(newValue));
-            this.scratchViewModel.changeAmount();
+
+            /*besoin du try/catch car si on vide l'input box et qu'on a donc un String vide, on a une erreur de type
+            NumberFormatException qui s'affiche dans la console */
+
+            try{
+                int value = newValue.isEmpty() ? 0 : Integer.parseInt(newValue);
+                this.scratchViewModel.getAmountProperty().set(value);
+                this.scratchViewModel.changeAmount();
+            }catch(NumberFormatException _){
+
+            }
+
         };
         input.textProperty().addListener(inputListener);
         input.setOnAction(e -> {
