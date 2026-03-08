@@ -1,6 +1,5 @@
 package scratch.view;
 
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -12,10 +11,13 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
+import javafx.scene.text.Text;
+import javafx.util.Callback;
 import scratch.model.Instruction;
+import scratch.model.PenAction;
+import scratch.model.Rotation;
+import scratch.model.Translation;
 import scratch.viewmodel.ScratchViewModel;
-
-import javax.swing.*;
 
 
 public class ScratchView extends BorderPane {
@@ -82,6 +84,36 @@ public class ScratchView extends BorderPane {
     
     private void configPaletteBox() {
         palette.getChildren().addAll(paletteTitle, paletteList, addToProgramButton);
+        paletteList.setCellFactory(lv -> new ListCell<Instruction>() {
+            @Override
+            protected void updateItem(Instruction item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item.toString()); // or item.getLabel()
+
+                    switch (item.getType()) {
+                        case MOVE_FORWARD:
+                            setStyle("-fx-text-fill: blue;");
+                            break;
+
+                        case TURN_LEFT, TURN_RIGHT:
+                            setStyle("-fx-text-fill: red;");
+                            break;
+
+                        case PEN_UP, PEN_DOWN:
+                            setStyle("-fx-text-fill: green;");
+                            break;
+
+                        default:
+                            setStyle("-fx-text-fill: black;");
+                    }
+                }
+            }
+        });
     }
     
     private void configButtonsProg() {
@@ -91,6 +123,36 @@ public class ScratchView extends BorderPane {
     private void configProgramBox(){
         configButtonsProg();
         program.getChildren().addAll(programTitle, programList, buttonProgram);
+        programList.setCellFactory(lv -> new ListCell<Instruction>() {
+            @Override
+            protected void updateItem(Instruction item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item.toString()); // or item.getLabel()
+
+                    switch (item.getType()) {
+                        case MOVE_FORWARD:
+                            setStyle("-fx-text-fill: blue;");
+                            break;
+
+                        case TURN_LEFT, TURN_RIGHT:
+                            setStyle("-fx-text-fill: red;");
+                            break;
+
+                        case PEN_UP, PEN_DOWN:
+                            setStyle("-fx-text-fill: green;");
+                            break;
+
+                        default:
+                            setStyle("-fx-text-fill: black;");
+                    }
+                }
+            }
+        });
         detailsAction.setText("Détails de l'action");
         program.getChildren().add(detailsAction);
 
@@ -267,7 +329,30 @@ public class ScratchView extends BorderPane {
 
         this.content.setSpacing(5);
 
+
+        /*this.paletteList.setCellFactory(new Callback<ListView<Instruction>, ListCell<Instruction>>() {
+            @Override
+            public ListCell<Instruction> call(ListView<Instruction> instructionListView) {
+                return new ColorTextCell();
+            }
+        });*/
+
     }
+
+    /*static class ColorTextCell extends ListCell<Instruction> {
+        @Override
+        protected void updateItem(Instruction instr, boolean b) {
+            super.updateItem(instr, b);
+            Label label = new Label(instr.toString());
+            switch (instr) {
+                case Translation translation -> label.setTextFill(Color.BLUE);
+                case PenAction penAction -> label.setTextFill(Color.GREEN);
+                case Rotation rotation -> label.setTextFill(Color.RED);
+                default -> {
+                }
+            }
+        }
+    }*/
 
 
     private void updateCanvas() {
