@@ -11,18 +11,12 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
-import javafx.scene.text.Text;
-import javafx.util.Callback;
 import scratch.model.Instruction;
-import scratch.model.PenAction;
-import scratch.model.Rotation;
-import scratch.model.Translation;
 import scratch.viewmodel.ScratchViewModel;
 
 
 public class ScratchView extends BorderPane {
 
-    private static final double TURTLE_HEAD_SIZE = 5;
     private ScratchViewModel scratchViewModel;
 
     private final VBox palette = new VBox(8);

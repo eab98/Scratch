@@ -25,8 +25,6 @@ public class ScratchViewModel {
 
     private final IntegerProperty amount = new SimpleIntegerProperty(0);
 
-    private Error errorAmount = new Error();
-
     private final StringProperty errorMessage = new SimpleStringProperty("");
 
     // état pour les boutons charger et executer
@@ -67,8 +65,6 @@ public class ScratchViewModel {
     }
 
     public StringProperty getErrorMessage() {return errorMessage;}
-
-    public String getErrorAmount(){ return errorAmount.getMessage(); }
 
     public DoubleProperty coordXProperty() { return coordX; }
 
