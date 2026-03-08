@@ -15,6 +15,7 @@ import javafx.scene.shape.Polygon;
 import scratch.model.Instruction;
 import scratch.viewmodel.ScratchViewModel;
 
+import javax.swing.*;
 
 
 public class ScratchView extends BorderPane {
@@ -242,6 +243,12 @@ public class ScratchView extends BorderPane {
         BorderPane.setMargin(program, new Insets(2));
         BorderPane.setMargin(scene, new Insets(2));
 
+        input.setMaxWidth(50);
+        input.setPrefColumnCount(3);
+        input.setAlignment(Pos.CENTER);
+
+        this.content.setSpacing(5);
+
     }
 
 
@@ -275,7 +282,7 @@ public class ScratchView extends BorderPane {
             detailsAction.setContent(empty);
 
         }else{
-            HBox box = new HBox();
+            //HBox box = new HBox();
             Label text = new Label(scratchViewModel.getNameInstruParIndex());
             Label text2 = new Label("pixels");
 
@@ -286,11 +293,11 @@ public class ScratchView extends BorderPane {
             input.textProperty().removeListener(inputListener);
             input.setText(Integer.toString(param));
             input.textProperty().addListener(inputListener);
-
-            box.getChildren().addAll(text, input, text2);
+            content.getChildren().clear();
+            content.getChildren().addAll(text, input, text2);
 
             contentPlusError.getChildren().clear();
-            contentPlusError.getChildren().addAll(box, errorMessage);
+            contentPlusError.getChildren().addAll(content, errorMessage);
             detailsAction.setContent(contentPlusError);
         }
     }
