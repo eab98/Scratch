@@ -291,24 +291,37 @@ public class ScratchView extends BorderPane {
             Label empty = new Label("(aucune action selectionnée)");
             detailsAction.setContent(empty);
 
-        }else{
-            //HBox box = new HBox();
+        }else {
             Label text = new Label(scratchViewModel.getNameInstruParIndex());
-            Label text2 = new Label("pixels");
 
-            int param = scratchViewModel.getParameterInstru();
+            //si l'instruction est un pen_up ou un pen_down le textfield doit etre desactive et pas d'erreur possible
+            if (scratchViewModel.isPenAction()) {
+                input.setText("0");
+                input.setDisable(true);
+                content.getChildren().clear();
+                content.getChildren().addAll(text, input);
+                detailsAction.setContent(content);
+            }
 
-            //on enleve le listener, on attend que l'user introduise l'input, on remet le listener pour notifier le vm
+            //pour les autres instructions
+            else {
+                Label text2 = new Label("pixels");
 
-            input.textProperty().removeListener(inputListener);
-            input.setText(Integer.toString(param));
-            input.textProperty().addListener(inputListener);
-            content.getChildren().clear();
-            content.getChildren().addAll(text, input, text2);
+                int param = scratchViewModel.getParameterInstru();
 
-            contentPlusError.getChildren().clear();
-            contentPlusError.getChildren().addAll(content, errorMessage);
-            detailsAction.setContent(contentPlusError);
+                input.setDisable(false);
+
+                //on enleve le listener, on attend que l'user introduise l'input, on remet le listener pour notifier le vm
+                input.textProperty().removeListener(inputListener);
+                input.setText(Integer.toString(param));
+                input.textProperty().addListener(inputListener);
+                content.getChildren().clear();
+                content.getChildren().addAll(text, input, text2);
+
+                contentPlusError.getChildren().clear();
+                contentPlusError.getChildren().addAll(content, errorMessage);
+                detailsAction.setContent(contentPlusError);
+            }
         }
     }
 

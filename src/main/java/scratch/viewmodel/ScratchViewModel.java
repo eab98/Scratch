@@ -188,4 +188,11 @@ public class ScratchViewModel {
         return instru.getParameter();
     }
 
+    public boolean isPenAction() {
+        int index = getIndexProperty().get();
+        Instruction instru = instructions.get(index);
+
+        return instru.getType() == InstructionType.PEN_UP || instru.getType() == InstructionType.PEN_DOWN;
+    }
+
 }
