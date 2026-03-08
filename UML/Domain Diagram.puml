@@ -1,0 +1,62 @@
+@startuml
+
+class Program {
+        - penDown : boolean
+}
+
+class Character {
+        - degrees : integer
+
+    }
+class Coordinates {
+    - x: double
+    - y: double
+}
+
+abstract class Instruction {
+    - Name : string
+}
+
+
+abstract class Movement extends Instruction {
+     - direction : integer
+     }
+
+
+class Rotation extends Movement
+
+class Translation extends Movement {
+    - distance : integer
+    }
+
+class Line {
+}
+
+class Shape {
+
+}
+
+class PenAction extends Instruction {
+
+}
+
+enum InstructionType {
+    MOVE_FORWARD
+    MOVE_BACKWARD
+    TURN_LEFT
+    TURN_RIGHT
+    PEN_UP
+    PEN_DOWN
+}
+
+' --- RELATIONS --- '
+
+InstructionType -- Instruction
+Character "1" --> "1" Coordinate : has
+Program --> Character :  moves
+Program "1" --> "*" Instruction : executes
+Shape "1" --> "*" Line : contains
+Program "1" --> "*" Line : draws
+Line "1" --> "2" Coordinate : has
+
+@end

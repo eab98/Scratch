@@ -1,0 +1,42 @@
+package scratch.model;
+
+public abstract class Instruction {
+    private final String name;
+    private final InstructionType type;
+
+    public Instruction(String name, InstructionType type) {
+        this.name = name;
+        this.type = type;
+    }
+
+    public InstructionType getType() {
+        return this.type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void execute(Character pen) {
+    }
+
+    @Override
+    public String toString() {
+        return this.getName() + " ";
+    }
+
+    public Instruction newInstruction() {
+        return this;
+    }
+
+    public Instruction duplicate() {
+        return this;
+    }
+
+    public void setParameter(int value) {
+    }
+
+    public int getParameter() {
+        return 0;
+    }
+}
