@@ -144,8 +144,6 @@ public class ScratchView extends BorderPane {
 
         gc.fillRect(0, 0, w, h);
 
-        System.out.println(getWidth() + ", " + getHeight());
-
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(0.2);
 
@@ -186,6 +184,10 @@ public class ScratchView extends BorderPane {
 
     private void configActions(){
         addToProgramButton.setOnAction(e -> scratchViewModel.addInstruction());
+        this.paletteList.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2)
+                scratchViewModel.addInstruction();
+        });
         upButton.setOnAction(e -> scratchViewModel.up());
         downButton.setOnAction(e -> scratchViewModel.down());
         duplicateButton.setOnAction(e-> scratchViewModel.duplicate());

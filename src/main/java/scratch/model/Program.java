@@ -19,7 +19,6 @@ public class Program {
             );
 
     private static final ObservableList<Instruction> instructions = FXCollections.observableArrayList();
-    //private int instructionIndex = 0;
     private boolean penDown = true;   //true si PEN_DOWN, false si PEN_UP
 
     public Program(Character pen) {
