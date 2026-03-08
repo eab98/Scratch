@@ -137,11 +137,6 @@ public class Program {
     }
 
 
-
-//    public ObservableList<Instruction> getCatalogue() {
-//        return catalogue;
-//    }
-
     public static ObservableList<Instruction> getCatalogue() {
         return FXCollections.unmodifiableObservableList(catalogue);
     }
@@ -149,5 +144,9 @@ public class Program {
     public static ObservableList<Instruction> getInstructions() {
         return FXCollections.unmodifiableObservableList(instructions);
 
+    }
+
+    public void changeAmount(Instruction instru, int amount) {
+        instru.setParameter(amount);
     }
 }

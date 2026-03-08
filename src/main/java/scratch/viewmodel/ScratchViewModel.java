@@ -23,6 +23,12 @@ public class ScratchViewModel {
     private final DoubleProperty coordX = new SimpleDoubleProperty(0);
     private final DoubleProperty coordY = new SimpleDoubleProperty(0);
 
+    private final IntegerProperty amount = new SimpleIntegerProperty(0);
+
+    private Error errorAmount = new Error();
+
+    private final StringProperty errorMessage = new SimpleStringProperty("");
+
     // état pour les boutons charger et executer
     private boolean isLoaded = false;
     private boolean isRunning = false;
@@ -44,7 +50,8 @@ public class ScratchViewModel {
     public IntegerProperty getCatalogIndexProperty(){
         return catalogIndex;
     }
-    public IntegerProperty getIndexExec() { return indexExec; }
+
+    public IntegerProperty getAmountProperty() { return amount; }
 
     public ScratchViewModel(Program program) {
         this.program = program;
@@ -58,6 +65,10 @@ public class ScratchViewModel {
     public ObservableList<Instruction> getInstru() {
         return Program.getInstructions();
     }
+
+    public StringProperty getErrorMessage() {return errorMessage;}
+
+    public String getErrorAmount(){ return errorAmount.getMessage(); }
 
     public DoubleProperty coordXProperty() { return coordX; }
 
@@ -238,6 +249,37 @@ public class ScratchViewModel {
         isRunning = false;
         resetExecution();
         updateState();
+    }
+
+    public String getNameInstruParIndex() {
+        int index = getIndexProperty().get();
+        return instructions.get(index).getName();
+    }
+
+    public void changeAmount() {
+        int index = getIndexProperty().get();
+        Instruction instru = instructions.get(index);
+
+        try {
+            program.changeAmount(instru, amount.get());
+            errorMessage.set("");
+        } catch(RuntimeException e) {
+            errorMessage.set(e.getMessage());
+        }
+    }
+
+    public int getParameterInstru() {
+        int index = getIndexProperty().get();
+        Instruction instru = instructions.get(index);
+
+        return instru.getParameter();
+    }
+
+    public boolean isPenAction() {
+        int index = getIndexProperty().get();
+        Instruction instru = instructions.get(index);
+
+        return instru.getType() == InstructionType.PEN_UP || instru.getType() == InstructionType.PEN_DOWN;
     }
 
 }
