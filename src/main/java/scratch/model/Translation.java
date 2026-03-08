@@ -21,6 +21,8 @@ public class Translation extends Movement{
     public void setDistance(int distance) {
         if(distance>0 && distance<=100) {
             this.distance = distance;
+        }else{
+            throw new RuntimeException("Erreur: La distance doit être comprise entre 1 et 100.");
         }
     }
 

@@ -53,7 +53,9 @@ public class ScratchView extends BorderPane {
 
     private final TitledPane detailsAction = new TitledPane();
     private final HBox content = new HBox();
+    private final VBox contentPlusError = new VBox();
     private final TextField input = new TextField();
+    private final Label errorMessage = new Label();
 
     //on initialise le listener ici pour pouvoir l'ajouter/l'enlever plus facilement
     private ChangeListener<String> inputListener;
@@ -91,6 +93,7 @@ public class ScratchView extends BorderPane {
         detailsAction.setText("Détails de l'action");
         program.getChildren().add(detailsAction);
 
+        errorMessage.setTextFill(Color.RED);
         updateDetails();
         configInputAmount();
     }
@@ -204,6 +207,7 @@ public class ScratchView extends BorderPane {
     }
 
     private void configInputAmount() {
+        errorMessage.textProperty().bind(scratchViewModel.getErrorMessage());
         inputListener = (observable, oldValue, newValue)
               -> {
             this.scratchViewModel.getAmountProperty().set(Integer.parseInt(newValue));
@@ -284,7 +288,10 @@ public class ScratchView extends BorderPane {
             input.textProperty().addListener(inputListener);
 
             box.getChildren().addAll(text, input, text2);
-            detailsAction.setContent(box);
+
+            contentPlusError.getChildren().clear();
+            contentPlusError.getChildren().addAll(box, errorMessage);
+            detailsAction.setContent(contentPlusError);
         }
     }
 

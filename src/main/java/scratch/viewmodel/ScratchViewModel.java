@@ -27,6 +27,8 @@ public class ScratchViewModel {
 
     private Error errorAmount = new Error();
 
+    private final StringProperty errorMessage = new SimpleStringProperty("");
+
     public IntegerProperty getIndexProperty(){
         return index;
     }
@@ -47,6 +49,8 @@ public class ScratchViewModel {
     public ObservableList<Instruction> getInstru() {
         return Program.getInstructions();
     }
+
+    public StringProperty getErrorMessage() {return errorMessage;}
 
     public String getErrorAmount(){ return errorAmount.getMessage(); }
 
@@ -171,8 +175,9 @@ public class ScratchViewModel {
 
         try {
             program.changeAmount(instru, amount.get());
+            errorMessage.set("");
         } catch(RuntimeException e) {
-            errorAmount = new Error(e.getMessage());
+            errorMessage.set(e.getMessage());
         }
     }
 
