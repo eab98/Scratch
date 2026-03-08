@@ -328,31 +328,7 @@ public class ScratchView extends BorderPane {
         input.setAlignment(Pos.CENTER);
 
         this.content.setSpacing(5);
-
-
-        /*this.paletteList.setCellFactory(new Callback<ListView<Instruction>, ListCell<Instruction>>() {
-            @Override
-            public ListCell<Instruction> call(ListView<Instruction> instructionListView) {
-                return new ColorTextCell();
-            }
-        });*/
-
     }
-
-    /*static class ColorTextCell extends ListCell<Instruction> {
-        @Override
-        protected void updateItem(Instruction instr, boolean b) {
-            super.updateItem(instr, b);
-            Label label = new Label(instr.toString());
-            switch (instr) {
-                case Translation translation -> label.setTextFill(Color.BLUE);
-                case PenAction penAction -> label.setTextFill(Color.GREEN);
-                case Rotation rotation -> label.setTextFill(Color.RED);
-                default -> {
-                }
-            }
-        }
-    }*/
 
 
     private void updateCanvas() {
