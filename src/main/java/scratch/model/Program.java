@@ -19,7 +19,6 @@ public class Program {
             );
 
     private static final ObservableList<Instruction> instructions = FXCollections.observableArrayList();
-    //private int instructionIndex = 0;
     private boolean penDown = true;   //true si PEN_DOWN, false si PEN_UP
 
     public Program(Character pen) {
@@ -38,10 +37,13 @@ public class Program {
         this.penDown = penDown;
     }
 
-    public void addInstruction(int idx) {
+    public void addInstruction(int idx, int insertIndex) {
 
         Instruction instru = catalogue.get(idx);
-        instructions.add(instru.newInstruction());
+        if (insertIndex >=0 && insertIndex < instructions.size())
+            instructions.add(insertIndex + 1, instru.newInstruction());
+        else
+            instructions.add(instru.newInstruction());
     }
 
     public void up(int idx) {
@@ -112,7 +114,7 @@ public class Program {
                         Instruction modele = catalogue.get(i);
 
                         if (modele.getType().toString().equals(typeAction)) {
-                            this.addInstruction(i);
+                            this.addInstruction(i, -1);
 
                             // on ajoute à la fin de notre liste d'instruction
                             Instruction nouvelleAction = instructions.get(instructions.size() - 1);

@@ -26,6 +26,7 @@ public class MainViewModel {
     public void loadProgram(File file) {
         if (file != null) {
             program.loadFromFile(file);
+            scratchViewModel.notifyProgramChanged();
         }
     }
 }

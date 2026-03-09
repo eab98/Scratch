@@ -4,9 +4,7 @@
 
 ### Liste des bugs connus
 
-* bug 1
-* bug 2
-* ...
+* Dans "Details de l'action", on affiche "pixels" au lieu de "degrés" pour les instructions de type TURN, mais le programme s'exécute correctement.
 
 ### Liste des fonctionnalités supplémentaires
 

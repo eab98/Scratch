@@ -1,6 +1,5 @@
 package scratch.view;
 
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -15,12 +14,9 @@ import javafx.scene.shape.Polygon;
 import scratch.model.Instruction;
 import scratch.viewmodel.ScratchViewModel;
 
-import javax.swing.*;
-
 
 public class ScratchView extends BorderPane {
 
-    private static final double TURTLE_HEAD_SIZE = 5;
     private ScratchViewModel scratchViewModel;
 
     private final VBox palette = new VBox(8);
@@ -82,6 +78,36 @@ public class ScratchView extends BorderPane {
     
     private void configPaletteBox() {
         palette.getChildren().addAll(paletteTitle, paletteList, addToProgramButton);
+        paletteList.setCellFactory(lv -> new ListCell<Instruction>() {
+            @Override
+            protected void updateItem(Instruction item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item.toString()); // or item.getLabel()
+
+                    switch (item.getType()) {
+                        case MOVE_FORWARD:
+                            setStyle("-fx-text-fill: blue;");
+                            break;
+
+                        case TURN_LEFT, TURN_RIGHT:
+                            setStyle("-fx-text-fill: red;");
+                            break;
+
+                        case PEN_UP, PEN_DOWN:
+                            setStyle("-fx-text-fill: green;");
+                            break;
+
+                        default:
+                            setStyle("-fx-text-fill: black;");
+                    }
+                }
+            }
+        });
     }
     
     private void configButtonsProg() {
@@ -91,6 +117,36 @@ public class ScratchView extends BorderPane {
     private void configProgramBox(){
         configButtonsProg();
         program.getChildren().addAll(programTitle, programList, buttonProgram);
+        programList.setCellFactory(lv -> new ListCell<Instruction>() {
+            @Override
+            protected void updateItem(Instruction item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item.toString()); // or item.getLabel()
+
+                    switch (item.getType()) {
+                        case MOVE_FORWARD:
+                            setStyle("-fx-text-fill: blue;");
+                            break;
+
+                        case TURN_LEFT, TURN_RIGHT:
+                            setStyle("-fx-text-fill: red;");
+                            break;
+
+                        case PEN_UP, PEN_DOWN:
+                            setStyle("-fx-text-fill: green;");
+                            break;
+
+                        default:
+                            setStyle("-fx-text-fill: black;");
+                    }
+                }
+            }
+        });
         detailsAction.setText("Détails de l'action");
         program.getChildren().add(detailsAction);
 
@@ -144,8 +200,6 @@ public class ScratchView extends BorderPane {
 
         gc.fillRect(0, 0, w, h);
 
-        System.out.println(getWidth() + ", " + getHeight());
-
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(0.2);
 
@@ -186,6 +240,10 @@ public class ScratchView extends BorderPane {
 
     private void configActions(){
         addToProgramButton.setOnAction(e -> scratchViewModel.addInstruction());
+        this.paletteList.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2)
+                scratchViewModel.addInstruction();
+        });
         upButton.setOnAction(e -> scratchViewModel.up());
         downButton.setOnAction(e -> scratchViewModel.down());
         duplicateButton.setOnAction(e-> scratchViewModel.duplicate());
@@ -264,7 +322,6 @@ public class ScratchView extends BorderPane {
         input.setAlignment(Pos.CENTER);
 
         this.content.setSpacing(5);
-
     }
 
 

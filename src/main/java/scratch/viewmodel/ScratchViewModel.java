@@ -25,8 +25,6 @@ public class ScratchViewModel {
 
     private final IntegerProperty amount = new SimpleIntegerProperty(0);
 
-    private Error errorAmount = new Error();
-
     private final StringProperty errorMessage = new SimpleStringProperty("");
 
     // état pour les boutons charger et executer
@@ -68,8 +66,6 @@ public class ScratchViewModel {
 
     public StringProperty getErrorMessage() {return errorMessage;}
 
-    public String getErrorAmount(){ return errorAmount.getMessage(); }
-
     public DoubleProperty coordXProperty() { return coordX; }
 
     public DoubleProperty coordYProperty() { return coordY; }
@@ -98,8 +94,9 @@ public class ScratchViewModel {
 
     public void addInstruction() {
         int idx = catalogIndex.get();
+        int insertIndex = index.get();
         if (idx >= 0 && idx < getCatalogue().size()) {
-            program.addInstruction(idx);
+            program.addInstruction(idx, insertIndex);
         }
         notifyProgramChanged();
     }
@@ -263,6 +260,10 @@ public class ScratchViewModel {
         try {
             program.changeAmount(instru, amount.get());
             errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+            resetExecution();
         } catch(RuntimeException e) {
             errorMessage.set(e.getMessage());
         }

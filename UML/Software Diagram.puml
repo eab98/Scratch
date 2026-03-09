@@ -1,0 +1,162 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+package scratch {
+    package scratch.model {
+        class Character {
+          - orientation : integer
+        }
+
+        class Coordinates {
+            - x : double
+            - y : double
+        }
+
+        abstract class Instruction {
+            - name : String
+            + execute(pen : Character) : void
+            + newInstruction() : Instruction
+            + duplicate() : Instruction
+        }
+
+        enum InstructionType {
+            - MOVE_FORWARD
+            - MOVE_BACKWARD
+            - TURN_LEFT
+            - TURN_RIGHT
+            - PEN_UP
+            - PEN_DOWN
+        }
+
+        class Line {
+
+        }
+
+        abstract class Movement extends Instruction {
+            - direction : integer
+
+        }
+
+        class PenAction extends Instruction {
+            + changePenStatus(status : boolean) : boolean
+            + newInstruction() : Instruction
+            + duplicate() : Instruction
+        }
+
+        class Program {
+            - penDown : boolean
+            - catalogue : List<Instruction>
+            - instructions : List<Instruction>
+            + addInstruction(idx : integer) : void
+            + up(idx : integer) : void
+            + down(idx : integer) : void
+            + empty() : void
+            + deleteInstruction(index : integer) : void
+            + duplicate(idx : integer) : void
+            + execute(instr : Instruction) : void
+            + saveToFile(file : File) : void
+            + loadFromFile(file : File) : void
+            + changeAmount(instru : Instruction, amount : integer) : void
+        }
+
+        class Rotation extends Movement {
+            + execute(pen : Character) : void
+            + newInstruction() : Instruction
+            + duplicate() : Instruction
+        }
+
+        class Shape {
+            - lines : Set<Line>
+            + addLine(line : Line) : void
+        }
+
+        class Translation extends Movement {
+            - distance : integer
+            + execute(pen : Character) : void
+            + newInstruction() : Instruction
+            + duplicate() : Instruction
+        }
+    }
+
+    package scratch.viewModel {
+        class MainViewModel {
+            + saveProgram(file : File) : void
+            + loadProgram(file : File) : void
+        }
+
+        class ScratchViewModel {
+            - instructions : List<Instruction>
+            - index : integer
+            - catalogIndex : integer
+            - indexExec : integer
+            - coordX : double
+            - coordY : double
+            - amount : integer
+            - errorMessage : string
+            - isLoaded : boolean
+            - isRunning : boolean
+            - leftBtnText : string
+            - leftBtnDisabled : boolean
+            - rightBtnText : string
+            - rightBtnDisabled : boolean
+            + getCatalogue() : List<Instruction>
+            + getInstru() : List<Instruction>
+            + canUp() : boolean
+            + canDown() : boolean
+            + canEmpty() : boolean
+            + canDuplicateOrDelete() : boolean
+            + addInstruction() : void
+            + up() : void
+            + down() : void
+            + removeInstru() : void
+            + duplicate() : void
+            + empty() : void
+            + execute() : void
+            + isPenDown() : boolean
+            + resetExecution() : void
+            + getOrientation() : integer
+            + updateState() : void
+            + clickLeftButton() : void
+            + clickRightButton() : void
+            + notifyProgramChanged() : void
+            + getNameInstruParIndex() : string
+            + changeAmount() : void
+            + getParameterInstru() : integer
+            + isPenAction() : boolean
+        }
+
+    }
+    package scratch.view {
+        class MainView {
+
+        }
+
+        class ScratchView {
+            - headTurtle : Group
+            - canvas : Canvas
+            - paletteList : List<Instruction>
+            - programList : List<Instruction>
+            - updateCanvas() : void
+            - updateDetails() : void
+            - loadData() : void
+        }
+    }
+}
+
+' --- RELATIONS --- '
+Character  -->  Coordinates : has
+Instruction  --  InstructionType
+Line "1" --> "2" Coordinates : has
+Program "1" --> "1" Character : has
+Program "1" --> "*" Instruction : contains
+Shape "1" --> "*" Line : contains
+MainViewModel --> Program : has
+MainViewModel --> ScratchViewModel : has
+ScratchViewModel --> Program : has
+ScratchViewModel --> Shape : creates
+ScratchViewModel "1" --> "*" Instruction : contains
+MainView --> ScratchView : has
+ScratchView --> ScratchViewModel : has
+ScratchView "1" --> "*" Instruction : contains
+
+@enduml
