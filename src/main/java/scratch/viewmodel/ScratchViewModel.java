@@ -94,8 +94,9 @@ public class ScratchViewModel {
 
     public void addInstruction() {
         int idx = catalogIndex.get();
+        int insertIndex = index.get();
         if (idx >= 0 && idx < getCatalogue().size()) {
-            program.addInstruction(idx);
+            program.addInstruction(idx, insertIndex);
         }
         notifyProgramChanged();
     }
