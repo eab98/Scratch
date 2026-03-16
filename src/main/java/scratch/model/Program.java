@@ -73,7 +73,7 @@ public class Program {
     }
 
     public void execute(Instruction instr) {
-        if (instr instanceof PenAction)
+        if (instr.getType() == InstructionType.PEN_DOWN ||  instr.getType() == InstructionType.PEN_UP)
             setPenDown(((PenAction) instr).changePenStatus(this.penDown));
         else
             instr.execute(getPen());
