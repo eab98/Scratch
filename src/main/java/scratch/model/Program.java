@@ -40,7 +40,7 @@ public class Program {
     public void addInstruction(int idx, int insertIndex) {
 
         Instruction instru = catalogue.get(idx);
-        if (insertIndex >=0 && insertIndex < instructions.size())
+        if (insertIndex >= 0 && insertIndex < instructions.size())
             instructions.add(insertIndex + 1, instru.newInstruction());
         else
             instructions.add(instru.newInstruction());
@@ -73,7 +73,7 @@ public class Program {
     }
 
     public void execute(Instruction instr) {
-        if (instr instanceof PenAction)
+        if (instr.getType() == InstructionType.PEN_DOWN ||  instr.getType() == InstructionType.PEN_UP)
             setPenDown(((PenAction) instr).changePenStatus(this.penDown));
         else
             instr.execute(getPen());
