@@ -192,13 +192,24 @@ public class ScratchViewModel {
             leftBtnDisabled.set(true);
             rightBtnText.set("Exécuter");
             rightBtnDisabled.set(true);
-        } else if (!isLoaded) {
+        }
+
+        else if(!program.isRunnable()){
+            System.out.println(program.isRunnable());
+            //programme incorrect : plusieurs lever/abaisser d'affilée
+            leftBtnText.set("Charger");
+            leftBtnDisabled.set(true);
+            rightBtnText.set("Exécuter");
+            rightBtnDisabled.set(true);
+        }
+        else if (!isLoaded) {
             // état 2 : charger actif et exec desact
             leftBtnText.set("Charger");
             leftBtnDisabled.set(false);
             rightBtnText.set("Exécuter");
             rightBtnDisabled.set(true);
-        } else if (isLoaded && !isRunning) {
+        }
+        else if (isLoaded && !isRunning) {
             // état 3 : charger devient ré-initialiser et executer s'active
             leftBtnText.set("Ré-initialiser");
             leftBtnDisabled.set(false);

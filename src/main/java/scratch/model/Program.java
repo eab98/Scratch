@@ -151,4 +151,34 @@ public class Program {
     public void changeAmount(Instruction instru, int amount) {
         instru.setParameter(amount);
     }
+
+    //vérifie si le programme est correct (pas de PenActions de même type qui se suivent)
+    public boolean isRunnable(){
+        boolean state = true; //etat fictif du pen sans execution
+        for(int i = 0; i < instructions.size(); i++) {
+            Instruction current = instructions.get(i);
+            if((current.getType() == InstructionType.PEN_DOWN && state) ||
+                    (current.getType() == InstructionType.PEN_UP && !state)){
+                return false;
+            }else{
+                state = !state;
+            }
+
+        }
+        return true;
+    }
+
+//    public boolean isRunnable(){
+//
+//        boolean check = true;
+//        for(Instruction instru : instructions){
+//            int count = 0;
+//            if((instru.getType() == InstructionType.PEN_DOWN && isPenDown()) || (instru.getType() == InstructionType.PEN_UP && !isPenDown())){
+//                check = false;
+//            }
+//        }
+//        System.out.println("c est ok" + check);
+//        return check;
+//    }
+
 }
