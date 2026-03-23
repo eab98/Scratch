@@ -144,6 +144,7 @@ public class ScratchViewModel {
 
         if (nextIndex < instructions.size()) {
             indexExec.set(nextIndex); // On passe à l'instruction suivante
+//            index.set(nextIndex);
             Instruction instru = instructions.get(nextIndex);
 
             // Position de départ
@@ -170,6 +171,7 @@ public class ScratchViewModel {
 
     public void resetExecution() {
         indexExec.set(-1); // remet le compteur à zéro
+//        index.set(-1);
         program.getPen().setCoord(new Coordinates(195, 195)); // Retour au centre
         program.getPen().setOrientation(-90); // Regarde vers le haut
         program.setPenDown(true);
