@@ -20,8 +20,7 @@ public class Program {
 
     private static final ObservableList<Instruction> instructions = FXCollections.observableArrayList();
     private boolean penDown = true;   //true si PEN_DOWN, false si PEN_UP
-
-    private boolean possiblePenStatus = true; //pen_down par défaut, regarde l'état possible du pen selon la liste d'intrsuctions mais sans exécuter
+    private final Shape shape = new Shape();
 
     public Program(Character pen) {
         this.pen = pen;
@@ -29,6 +28,10 @@ public class Program {
 
     public Character getPen() {
         return pen;
+    }
+
+    public Shape getShape() {
+        return shape;
     }
 
     public boolean isPenDown() {
@@ -80,10 +83,21 @@ public class Program {
     }
 
     public void execute(Instruction instr) {
-        if (instr.getType() == InstructionType.PEN_DOWN ||  instr.getType() == InstructionType.PEN_UP)
+        if (instr.getType() == InstructionType.PEN_DOWN || instr.getType() == InstructionType.PEN_UP) {
             setPenDown(((PenAction) instr).changePenStatus(this.penDown));
-        else
+        } else {
+            // sauvegarde la position de départ
+            Coordinates initial = new Coordinates(pen.getCoord().getX(), pen.getCoord().getY());
+
+            // déplace la tortue
             instr.execute(getPen());
+
+            // sauvegarde la position d'arrivée et on trace la ligne si le pen est baissé
+            if (isPenDown()) {
+                Coordinates end = new Coordinates(pen.getCoord().getX(), pen.getCoord().getY());
+                shape.addLine(new Line(initial, end));
+            }
+        }
     }
 
 
@@ -194,5 +208,11 @@ public class Program {
 //        System.out.println("c est ok : " + check);
 //        return check;
 //    }
+
+
+    public void reset() {
+        this.pen.reset();
+        this.penDown = true;
+    }
 
 }

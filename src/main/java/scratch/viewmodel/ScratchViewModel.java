@@ -97,8 +97,11 @@ public class ScratchViewModel {
         int insertIndex = index.get();
         if (idx >= 0 && idx < getCatalogue().size()) {
             program.addInstruction(idx, insertIndex);
+
+            notifyProgramChanged();
+
+            index.set(insertIndex + 1);
         }
-        notifyProgramChanged();
     }
 
     public void up() {
@@ -106,16 +109,22 @@ public class ScratchViewModel {
         if (idx > 0 && idx < getInstru().size()) {
             program.up(idx);
             index.setValue(idx - 1);
+
+            notifyProgramChanged();
+
+            index.set(idx - 1);
         }
-        notifyProgramChanged();
     }
     public void down() {
         int idx = index.get();
         if(idx >= 0 && idx < getInstru().size() - 1 ) {
             program.down(idx);
             index.setValue(idx + 1);
+
+            notifyProgramChanged();
+
+            index.set(idx + 1);
         }
-        notifyProgramChanged();
     }
 
     public void removeInstru(){
@@ -144,7 +153,7 @@ public class ScratchViewModel {
 
         if (nextIndex < instructions.size()) {
             indexExec.set(nextIndex); // On passe à l'instruction suivante
-//            index.set(nextIndex);
+            index.set(nextIndex); // Synchronise la sélection visuelle
             Instruction instru = instructions.get(nextIndex);
 
             // Position de départ
@@ -171,14 +180,12 @@ public class ScratchViewModel {
 
     public void resetExecution() {
         indexExec.set(-1); // remet le compteur à zéro
-//        index.set(-1);
-        program.getPen().setCoord(new Coordinates(195, 195)); // Retour au centre
-        program.getPen().setOrientation(-90); // Regarde vers le haut
-        program.setPenDown(true);
+        index.set(-1);
+        program.reset();
 
         // màj sur la Vue
-        coordX.set(195);
-        coordY.set(195);
+        coordX.set(program.getPen().getCoord().getX());
+        coordY.set(program.getPen().getCoord().getY());
     }
 
     public int getOrientation() {
