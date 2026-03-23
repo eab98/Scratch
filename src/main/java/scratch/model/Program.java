@@ -21,6 +21,8 @@ public class Program {
     private static final ObservableList<Instruction> instructions = FXCollections.observableArrayList();
     private boolean penDown = true;   //true si PEN_DOWN, false si PEN_UP
 
+    private boolean possiblePenStatus = true; //pen_down par défaut, regarde l'état possible du pen selon la liste d'intrsuctions mais sans exécuter
+
     public Program(Character pen) {
         this.pen = pen;
     }
@@ -44,12 +46,14 @@ public class Program {
             instructions.add(insertIndex + 1, instru.newInstruction());
         else
             instructions.add(instru.newInstruction());
+        checkProgramValidity();
     }
 
     public void up(int idx) {
         if(idx > 0 && idx < instructions.size()) {
             Instruction instru = instructions.set(idx, instructions.get(idx - 1));
             instructions.set(idx-1, instru);
+            checkProgramValidity();
         }
     }
 
@@ -57,11 +61,13 @@ public class Program {
         if(idx>=0 && idx < instructions.size() - 1) {
             Instruction instru = instructions.set(idx, instructions.get(idx + 1));
             instructions.set(idx + 1, instru);
+            checkProgramValidity();
         }
     }
 
     public void deleteInstruction(int index) {
         instructions.remove(index);
+        checkProgramValidity();
 
     }
 
@@ -69,6 +75,7 @@ public class Program {
         if(idx >= 0 && idx < instructions.size()) {
             Instruction instru = instructions.get(idx);
             instructions.add(instru.duplicate());
+            checkProgramValidity();
         }
     }
 
@@ -153,31 +160,38 @@ public class Program {
     }
 
     //vérifie si le programme est correct (pas de PenActions de même type qui se suivent)
-    public boolean isRunnable(){
+    public boolean checkProgramValidity(){
         boolean state = true; //etat fictif du pen sans execution
         for(int i = 0; i < instructions.size(); i++) {
             Instruction current = instructions.get(i);
             if((current.getType() == InstructionType.PEN_DOWN && state) ||
                     (current.getType() == InstructionType.PEN_UP && !state)){
                 return false;
-            }else{
+            }else if((current.getType() == InstructionType.PEN_DOWN && !state) || (current.getType() == InstructionType.PEN_UP && state)){
                 state = !state;
             }
-
         }
         return true;
     }
 
-//    public boolean isRunnable(){
-//
+
+//    public boolean checkProgramValidity() {
 //        boolean check = true;
+//        boolean currentStatus = isPenDown();
+//
 //        for(Instruction instru : instructions){
-//            int count = 0;
-//            if((instru.getType() == InstructionType.PEN_DOWN && isPenDown()) || (instru.getType() == InstructionType.PEN_UP && !isPenDown())){
+//            if ((instru.getType() == InstructionType.PEN_DOWN && currentStatus) || (instru.getType() == InstructionType.PEN_UP && !currentStatus)) {
 //                check = false;
+//                currentStatus = false;
+//                break;
+//            }
+//
+//            else if((instru.getType() == InstructionType.PEN_DOWN && !isPenDown()) || (instru.getType() == InstructionType.PEN_UP && isPenDown())){
+//                check = true;
 //            }
 //        }
-//        System.out.println("c est ok" + check);
+//
+//        System.out.println("c est ok : " + check);
 //        return check;
 //    }
 

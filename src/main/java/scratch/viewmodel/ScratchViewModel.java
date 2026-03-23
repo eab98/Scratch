@@ -194,11 +194,7 @@ public class ScratchViewModel {
             leftBtnDisabled.set(true);
             rightBtnText.set("Exécuter");
             rightBtnDisabled.set(true);
-        }
-
-        else if(!program.isRunnable()){
-            System.out.println(program.isRunnable());
-            //programme incorrect : plusieurs lever/abaisser d'affilée
+        }else if(!program.checkProgramValidity()){
             leftBtnText.set("Charger");
             leftBtnDisabled.set(true);
             rightBtnText.set("Exécuter");
