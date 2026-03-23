@@ -178,11 +178,11 @@ public class ScratchView extends BorderPane {
     private void configSelection() {
         this.paletteList.getSelectionModel().selectedIndexProperty()
                 .addListener((observable, oldValue, newValue) -> {
-                    this.scratchViewModel.getCatalogIndexProperty().setValue(newValue.intValue());
+                    this.scratchViewModel.getCatalogIndexProperty().set(newValue.intValue());
                 } );
         this.programList.getSelectionModel().selectedIndexProperty()
                 .addListener((observable, oldValue, newValue) -> {
-                    this.scratchViewModel.getIndexProperty().setValue(newValue.intValue());
+                    this.scratchViewModel.getIndexProperty().set(newValue.intValue());
                     updateDetails();
                 } );
         this.scratchViewModel.getIndexProperty().addListener((observable, oldValue, newValue) -> {
@@ -359,7 +359,9 @@ public class ScratchView extends BorderPane {
 
             //si l'instruction est un pen_up ou un pen_down le textfield doit etre desactive et pas d'erreur possible
             if (scratchViewModel.isPenAction()) {
+                input.textProperty().removeListener(inputListener);
                 input.setText("0");
+                input.textProperty().addListener(inputListener);
                 input.setDisable(true);
                 content.getChildren().clear();
                 content.getChildren().addAll(text, input);
