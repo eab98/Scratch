@@ -161,7 +161,9 @@ public class ScratchView extends BorderPane {
         Pane canvasContainer = new Pane();
         canvasContainer.getChildren().addAll(canvas, headTurtle);
 
-        scene.getChildren().addAll(sceneTitle, canvasContainer, buttonScene);
+        VariablesView variablesView = new VariablesView(scratchViewModel);
+
+        scene.getChildren().addAll(sceneTitle, canvasContainer, variablesView, buttonScene);
         configCanvas();
     }
 

@@ -3,6 +3,7 @@ package scratch.viewmodel;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.*;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scratch.model.*;
 
@@ -41,6 +42,11 @@ public class ScratchViewModel {
     public BooleanProperty leftBtnDisabledProperty() { return leftBtnDisabled; }
     public StringProperty rightBtnTextProperty() { return rightBtnText; }
     public BooleanProperty rightBtnDisabledProperty() { return rightBtnDisabled; }
+    private final ObservableList<Variable> variables = FXCollections.observableArrayList();
+
+    public ObservableList<Variable> getVariables() {
+        return variables;
+    }
 
     public IntegerProperty getIndexProperty(){
         return index;
