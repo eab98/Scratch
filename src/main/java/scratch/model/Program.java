@@ -49,12 +49,14 @@ public class Program {
             instructions.add(insertIndex + 1, instru.newInstruction());
         else
             instructions.add(instru.newInstruction());
+        checkProgramValidity();
     }
 
     public void up(int idx) {
         if(idx > 0 && idx < instructions.size()) {
             Instruction instru = instructions.set(idx, instructions.get(idx - 1));
             instructions.set(idx-1, instru);
+            checkProgramValidity();
         }
     }
 
@@ -62,11 +64,13 @@ public class Program {
         if(idx>=0 && idx < instructions.size() - 1) {
             Instruction instru = instructions.set(idx, instructions.get(idx + 1));
             instructions.set(idx + 1, instru);
+            checkProgramValidity();
         }
     }
 
     public void deleteInstruction(int index) {
         instructions.remove(index);
+        checkProgramValidity();
 
     }
 
@@ -74,6 +78,7 @@ public class Program {
         if(idx >= 0 && idx < instructions.size()) {
             Instruction instru = instructions.get(idx);
             instructions.add(instru.duplicate());
+            checkProgramValidity();
         }
     }
 
@@ -167,6 +172,43 @@ public class Program {
     public void changeAmount(Instruction instru, int amount) {
         instru.setParameter(amount);
     }
+
+    //vérifie si le programme est correct (pas de PenActions de même type qui se suivent)
+    public boolean checkProgramValidity(){
+        boolean state = true; //etat fictif du pen sans execution
+        for(int i = 0; i < instructions.size(); i++) {
+            Instruction current = instructions.get(i);
+            if((current.getType() == InstructionType.PEN_DOWN && state) ||
+                    (current.getType() == InstructionType.PEN_UP && !state)){
+                return false;
+            }else if((current.getType() == InstructionType.PEN_DOWN && !state) || (current.getType() == InstructionType.PEN_UP && state)){
+                state = !state;
+            }
+        }
+        return true;
+    }
+
+
+//    public boolean checkProgramValidity() {
+//        boolean check = true;
+//        boolean currentStatus = isPenDown();
+//
+//        for(Instruction instru : instructions){
+//            if ((instru.getType() == InstructionType.PEN_DOWN && currentStatus) || (instru.getType() == InstructionType.PEN_UP && !currentStatus)) {
+//                check = false;
+//                currentStatus = false;
+//                break;
+//            }
+//
+//            else if((instru.getType() == InstructionType.PEN_DOWN && !isPenDown()) || (instru.getType() == InstructionType.PEN_UP && isPenDown())){
+//                check = true;
+//            }
+//        }
+//
+//        System.out.println("c est ok : " + check);
+//        return check;
+//    }
+
 
     public void reset() {
         this.pen.reset();

@@ -1,6 +1,4 @@
-/*
-package scratch.model;
-
-abstract class VarAction extends Instruction {
-}
-*/
+//package scratch.model;
+//
+//abstract class VarAction extends Instruction {
+//}

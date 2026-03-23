@@ -1,6 +1,4 @@
-/*
-package scratch.model;
-
-public class VarDeclaration extends VarAction {
-}
-*/
+//package scratch.model;
+//
+//public class VarDeclaration extends VarAction {
+//}
