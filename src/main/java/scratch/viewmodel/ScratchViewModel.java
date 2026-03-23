@@ -11,6 +11,8 @@ import java.util.List;
 public class ScratchViewModel {
     private final Program program;
 
+    private final Shape shape = new Shape();
+
     private List<Instruction> instructions = getInstru();
 
     private final IntegerProperty index = new SimpleIntegerProperty(-1),
@@ -142,15 +144,24 @@ public class ScratchViewModel {
 
         if (nextIndex < instructions.size()) {
             indexExec.set(nextIndex); // On passe à l'instruction suivante
-            index.set(nextIndex);     // Synchronise la sélection visuelle
-
+            // index.set(nextIndex); Synchronise la sélection visuelle
             Instruction instru = instructions.get(nextIndex);
 
+            // Position de départ
+            Coordinates initial = new Coordinates(program.getPen().getCoord().getX(), program.getPen().getCoord().getY());
+
+            // le modèle exécute l'action
             program.execute(instru);
 
+            // Position d'arrivée
             Coordinates end = program.getPen().getCoord();
             coordX.set(end.getX());
             coordY.set(end.getY());
+
+            // Si le stylo est baissé, on mémorise le trait à dessiner
+            if (program.isPenDown()) {
+                shape.addLine(new Line(initial, end));
+            }
         }
     }
 
@@ -160,7 +171,7 @@ public class ScratchViewModel {
 
     public void resetExecution() {
         indexExec.set(-1); // remet le compteur à zéro
-        index.set(-1);
+        // index.set(-1);
         program.reset();
 
         // màj sur la Vue
