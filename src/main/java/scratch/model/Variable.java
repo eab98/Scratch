@@ -1,13 +1,11 @@
 package scratch.model;
 
-public class Variable {
+public class Variable extends Value{
     private String name;
-    private Integer value;
-
 
     public Variable(String name) {
+        super(0);
         this.name = name;
-        this.value = 0;
     }
 
     public String getName() {

@@ -56,7 +56,7 @@ enum InstructionType {
 }
 
 class Variable extends Value {
-    - nameVar : string
+    - name : string
 }
 
 abstract class VarAction extends Instruction {
