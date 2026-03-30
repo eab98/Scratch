@@ -3,7 +3,7 @@ package scratch.model;
 public class PenAction extends Instruction {
 
     public PenAction(String name, InstructionType type) {
-        super(name, type);
+        super(name, type, null);
     }
 
     @Override

@@ -4,9 +4,12 @@ public abstract class Instruction {
     private final String name;
     private final InstructionType type;
 
-    public Instruction(String name, InstructionType type) {
+    private final Variable variable;
+
+    public Instruction(String name, InstructionType type, Variable variable) {
         this.name = name;
         this.type = type;
+        this.variable = variable;
     }
 
     public InstructionType getType() {
@@ -38,5 +41,9 @@ public abstract class Instruction {
 
     public int getParameter() {
         return 0;
+    }
+
+    public Variable getVariable() {
+        return variable;
     }
 }

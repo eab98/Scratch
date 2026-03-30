@@ -176,10 +176,20 @@ public class Program {
     //vérifie si le programme est correct (pas de PenActions de même type qui se suivent)
     public boolean checkProgramValidity(){
         boolean state = true; //etat fictif du pen sans execution
-        for(int i = 0; i < instructions.size(); i++) {
-            Instruction current = instructions.get(i);
+
+        //on délimite la zone de déclaration de variables
+        int indexFirstinstruction = 0;
+        int i = 0;
+        while(i < instructions.size() && instructions.get(i).getType() == InstructionType.VAR_DECLARATION ){
+            indexFirstinstruction = i;
+            i++;
+        }
+
+        for(int j = indexFirstinstruction; j < instructions.size(); j++) {
+            Instruction current = instructions.get(j);
             if((current.getType() == InstructionType.PEN_DOWN && state) ||
-                    (current.getType() == InstructionType.PEN_UP && !state)){
+                    (current.getType() == InstructionType.PEN_UP && !state)
+            || instructions.get(j).getType() == InstructionType.VAR_DECLARATION){
                 return false;
             }else if((current.getType() == InstructionType.PEN_DOWN && !state) || (current.getType() == InstructionType.PEN_UP && state)){
                 state = !state;
