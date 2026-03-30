@@ -11,6 +11,7 @@ import javafx.collections.ObservableList;
 public class Program {
     private final Character pen;
     private static final ObservableList<Instruction> catalogue = FXCollections.observableArrayList(
+            new VarDeclaration("Déclaration variable", InstructionType.VAR_DECLARATION),
             new Translation("Avancer de", InstructionType.MOVE_FORWARD, 0, 0),
             new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  0),
             new Rotation("Tourner à droite de", InstructionType.TURN_RIGHT,  0),
@@ -22,6 +23,8 @@ public class Program {
     private boolean penDown = true;   //true si PEN_DOWN, false si PEN_UP
     private final Shape shape = new Shape();
 
+    private final Map<String, Variable> variables = new HashMap<>();
+
     public Program(Character pen) {
         this.pen = pen;
     }
@@ -32,6 +35,10 @@ public class Program {
 
     public Shape getShape() {
         return shape;
+    }
+
+    public Map<String, Variable> getVariables() {
+        return variables;
     }
 
     public boolean isPenDown() {
@@ -90,7 +97,7 @@ public class Program {
             Coordinates initial = new Coordinates(pen.getCoord().getX(), pen.getCoord().getY());
 
             // déplace la tortue
-            instr.execute(getPen());
+            instr.execute(this);
 
             // sauvegarde la position d'arrivée et on trace la ligne si le pen est baissé
             if (isPenDown()) {
@@ -128,7 +135,7 @@ public class Program {
 
                 if (morceaux.length == 2) {
                     String typeAction = morceaux[0];
-                    int valeur = Integer.parseInt(morceaux[1]);
+                    String valeur = morceaux[1].trim();
 
                     // crée la bonne instruction en fonction du texte (ON CHERCHE L'INDEX DANS LE CATALOGUE)
                     for (int i = 0; i < catalogue.size(); i++) {
@@ -157,6 +164,7 @@ public class Program {
 
     public void empty(){
         instructions.clear();
+        variables.clear();
     }
 
 
@@ -169,7 +177,7 @@ public class Program {
 
     }
 
-    public void changeAmount(Instruction instru, int amount) {
+    public void changeAmount(Instruction instru, String amount) {
         instru.setParameter(amount);
     }
 
@@ -181,7 +189,7 @@ public class Program {
         int indexFirstinstruction = 0;
         int i = 0;
         while(i < instructions.size() && instructions.get(i).getType() == InstructionType.VAR_DECLARATION ){
-            indexFirstinstruction = i;
+            indexFirstinstruction = i + 1; // + 1 car on veut verifier apres les variables
             i++;
         }
 
@@ -223,6 +231,21 @@ public class Program {
     public void reset() {
         this.pen.reset();
         this.penDown = true;
+    }
+
+    // traduit un texte en nombre
+    public int evaluate(String param) {
+        if (param == null || param.trim().isEmpty()) return 0;
+        try {
+            // essaie de voir si c'est un simple nombre
+            return Integer.parseInt(param.trim());
+        } catch (NumberFormatException e) {
+            // si ça plante, c'est que c'est du texte
+            if (variables.containsKey(param.trim())) {
+                return variables.get(param.trim()).getValue();
+            }
+            return 0; // si la variable n'existe pas, on renvoie 0 par sécurité
+        }
     }
 
 }

@@ -22,7 +22,7 @@ public class ScratchViewModel {
     private final DoubleProperty coordX = new SimpleDoubleProperty(0);
     private final DoubleProperty coordY = new SimpleDoubleProperty(0);
 
-    private final IntegerProperty amount = new SimpleIntegerProperty(0);
+    private final StringProperty amount = new SimpleStringProperty("");
 
     private final StringProperty errorMessage = new SimpleStringProperty("");
 
@@ -53,7 +53,7 @@ public class ScratchViewModel {
         return catalogIndex;
     }
 
-    public IntegerProperty getAmountProperty() { return amount; }
+    public StringProperty getAmountProperty() { return amount; }
 
     public ScratchViewModel(Program program) {
         this.program = program;
@@ -265,18 +265,29 @@ public class ScratchViewModel {
         Instruction instru = instructions.get(index);
 
         try {
+            // recup le texte envoyé par la vue
+            String val = amount.get();
+
+            if (val == null || val.trim().isEmpty()) {
+                throw new RuntimeException("Erreur valeur");
+            }
+
             program.changeAmount(instru, amount.get());
             errorMessage.set("");
             isRunning = false;
             isLoaded = false;
             updateState();
-            resetExecution();
+
+            indexExec.set(-1); // remet l'exécution à zéro
+            program.reset(); // replace la tortue
+            coordX.set(program.getPen().getCoord().getX());
+            coordY.set(program.getPen().getCoord().getY());
         } catch(RuntimeException e) {
             errorMessage.set(e.getMessage());
         }
     }
 
-    public int getParameterInstru() {
+    public String getParameterInstru() {
         int index = getIndexProperty().get();
         Instruction instru = instructions.get(index);
 

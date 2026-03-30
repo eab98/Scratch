@@ -12,6 +12,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import scratch.model.Instruction;
+import scratch.model.InstructionType;
 import scratch.viewmodel.ScratchViewModel;
 
 
@@ -102,6 +103,12 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: green;");
                             break;
 
+                        case VAR_DECLARATION:
+                        case VAR_ASSIGNEMENT:
+                        case INCREMENT_VARIABLE:
+                            setStyle("-fx-text-fill: lightseagreen;");
+                            break;
+
                         default:
                             setStyle("-fx-text-fill: black;");
                     }
@@ -139,6 +146,12 @@ public class ScratchView extends BorderPane {
 
                         case PEN_UP, PEN_DOWN:
                             setStyle("-fx-text-fill: green;");
+                            break;
+
+                        case VAR_DECLARATION:
+                        case VAR_ASSIGNEMENT:
+                        case INCREMENT_VARIABLE:
+                            setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
                         default:
@@ -275,20 +288,10 @@ public class ScratchView extends BorderPane {
 
     private void configInputAmount() {
         errorMessage.textProperty().bind(scratchViewModel.getErrorMessage());
-        inputListener = (observable, oldValue, newValue)
-              -> {
-
-            /*besoin du try/catch car si on vide l'input box et qu'on a donc un String vide, on a une erreur de type
-            NumberFormatException qui s'affiche dans la console */
-
-            try{
-                int value = newValue.isEmpty() ? 0 : Integer.parseInt(newValue);
-                this.scratchViewModel.getAmountProperty().set(value);
-                this.scratchViewModel.changeAmount();
-            }catch(NumberFormatException _){
-
-            }
-
+        inputListener = (observable, oldValue, newValue) -> {
+            // envoie le texte brut au ViewModel (meme si c'est une case vide)
+            this.scratchViewModel.getAmountProperty().set(newValue);
+            this.scratchViewModel.changeAmount();
         };
         input.textProperty().addListener(inputListener);
         input.setOnAction(e -> {
@@ -372,18 +375,32 @@ public class ScratchView extends BorderPane {
 
             //pour les autres instructions
             else {
+                // récupère l'instruction pour connaitre son type
+                int idx = scratchViewModel.getIndexProperty().get();
+                Instruction currentInstru = scratchViewModel.getInstru().get(idx);
+
                 Label text2 = new Label("pixels");
 
-                int param = scratchViewModel.getParameterInstru();
+                if (currentInstru.getType() == InstructionType.VAR_DECLARATION) {
+                    text.setText("Déclaration de la variable");
+                    text2.setText(""); // enlève le mot pixels a la fin
+                }
+
+                String param = scratchViewModel.getParameterInstru();
 
                 input.setDisable(false);
 
                 //on enleve le listener, on attend que l'user introduise l'input, on remet le listener pour notifier le vm
                 input.textProperty().removeListener(inputListener);
-                input.setText(Integer.toString(param));
+                input.setText(param);
                 input.textProperty().addListener(inputListener);
                 content.getChildren().clear();
-                content.getChildren().addAll(text, input, text2);
+
+                if (text2.getText().isEmpty()) {
+                    content.getChildren().addAll(text, input);
+                } else {
+                    content.getChildren().addAll(text, input, text2);
+                }
 
                 contentPlusError.getChildren().clear();
                 contentPlusError.getChildren().addAll(content, errorMessage);
