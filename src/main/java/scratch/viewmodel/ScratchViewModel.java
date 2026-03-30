@@ -12,8 +12,6 @@ import java.util.List;
 public class ScratchViewModel {
     private final Program program;
 
-    private final Shape shape = new Shape();
-
     private List<Instruction> instructions = getInstru();
 
     private final IntegerProperty index = new SimpleIntegerProperty(-1),
@@ -114,10 +112,7 @@ public class ScratchViewModel {
         int idx = index.get();
         if (idx > 0 && idx < getInstru().size()) {
             program.up(idx);
-            index.setValue(idx - 1);
-
             notifyProgramChanged();
-
             index.set(idx - 1);
         }
     }
@@ -125,10 +120,7 @@ public class ScratchViewModel {
         int idx = index.get();
         if(idx >= 0 && idx < getInstru().size() - 1 ) {
             program.down(idx);
-            index.setValue(idx + 1);
-
             notifyProgramChanged();
-
             index.set(idx + 1);
         }
     }
@@ -162,9 +154,6 @@ public class ScratchViewModel {
             index.set(nextIndex); // Synchronise la sélection visuelle
             Instruction instru = instructions.get(nextIndex);
 
-            // Position de départ
-            Coordinates initial = new Coordinates(program.getPen().getCoord().getX(), program.getPen().getCoord().getY());
-
             // le modèle exécute l'action
             program.execute(instru);
 
@@ -173,10 +162,6 @@ public class ScratchViewModel {
             coordX.set(end.getX());
             coordY.set(end.getY());
 
-            // Si le stylo est baissé, on mémorise le trait à dessiner
-            if (program.isPenDown()) {
-                shape.addLine(new Line(initial, end));
-            }
         }
     }
 
