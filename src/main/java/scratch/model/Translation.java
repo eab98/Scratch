@@ -15,7 +15,9 @@ public class Translation extends Movement{
 
     @Override
     public Instruction newInstruction() {
-        return new Translation("Avancer de", InstructionType.MOVE_FORWARD, 0, 30);
+        Translation t = new Translation("Avancer de", InstructionType.MOVE_FORWARD, 0, 30);
+        t.setParameter("30");
+        return t;
     }
 
     public void setDistance(int distance) {
@@ -27,11 +29,15 @@ public class Translation extends Movement{
     }
 
     @Override
-    public void execute(Character pen){
+    public void execute(Program program){
+        Character pen = program.getPen();
         int direction = pen.getOrientation();
         Coordinates origin = pen.getCoord();
-        double x = Math.cos(Math.toRadians(direction)) * distance;
-        double y = Math.sin(Math.toRadians(direction)) * distance;
+
+        int dist = program.evaluate(this.getParameter());
+
+        double x = Math.cos(Math.toRadians(direction)) * dist;
+        double y = Math.sin(Math.toRadians(direction)) * dist;
 
         double x_in = origin.getX();
         double y_in = origin.getY();
@@ -41,22 +47,14 @@ public class Translation extends Movement{
 
     @Override
     public String toString() {
-        String msg = this.distance == 0 ? "" : Integer.toString(this.distance);
-        return super.toString() + msg;
+        String param = this.getParameter();
+        return super.toString() + (param != null && !param.isEmpty() ? param : "");
     }
 
     @Override
     public Instruction duplicate() {
-        return new Translation(this.getName(), this.getType(), this.getDirection(), this.getDistance());
-    }
-
-    @Override
-    public void setParameter(int value) {
-        this.setDistance(value);
-    }
-
-    @Override
-    public int getParameter() {
-        return this.getDistance();
+        Translation clone = new Translation(this.getName(), this.getType(), this.getDirection(), this.getDistance());
+        clone.setParameter(this.getParameter());
+        return clone;
     }
 }

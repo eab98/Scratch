@@ -3,6 +3,7 @@ package scratch.viewmodel;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.*;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scratch.model.*;
 
@@ -10,8 +11,6 @@ import java.util.List;
 
 public class ScratchViewModel {
     private final Program program;
-
-    private final Shape shape = new Shape();
 
     private List<Instruction> instructions = getInstru();
 
@@ -23,9 +22,7 @@ public class ScratchViewModel {
     private final DoubleProperty coordX = new SimpleDoubleProperty(0);
     private final DoubleProperty coordY = new SimpleDoubleProperty(0);
 
-    private final IntegerProperty amount = new SimpleIntegerProperty(0);
-
-    private Error errorAmount = new Error();
+    private final StringProperty amount = new SimpleStringProperty("");
 
     private final StringProperty errorMessage = new SimpleStringProperty("");
 
@@ -43,6 +40,11 @@ public class ScratchViewModel {
     public BooleanProperty leftBtnDisabledProperty() { return leftBtnDisabled; }
     public StringProperty rightBtnTextProperty() { return rightBtnText; }
     public BooleanProperty rightBtnDisabledProperty() { return rightBtnDisabled; }
+    private final ObservableList<Variable> variables = FXCollections.observableArrayList();
+
+    public ObservableList<Variable> getVariables() {
+        return variables;
+    }
 
     public IntegerProperty getIndexProperty(){
         return index;
@@ -51,7 +53,7 @@ public class ScratchViewModel {
         return catalogIndex;
     }
 
-    public IntegerProperty getAmountProperty() { return amount; }
+    public StringProperty getAmountProperty() { return amount; }
 
     public ScratchViewModel(Program program) {
         this.program = program;
@@ -67,8 +69,6 @@ public class ScratchViewModel {
     }
 
     public StringProperty getErrorMessage() {return errorMessage;}
-
-    public String getErrorAmount(){ return errorAmount.getMessage(); }
 
     public DoubleProperty coordXProperty() { return coordX; }
 
@@ -98,27 +98,31 @@ public class ScratchViewModel {
 
     public void addInstruction() {
         int idx = catalogIndex.get();
+        int insertIndex = index.get();
         if (idx >= 0 && idx < getCatalogue().size()) {
-            program.addInstruction(idx);
+            program.addInstruction(idx, insertIndex);
+
+            notifyProgramChanged();
+
+            index.set(insertIndex + 1);
         }
-        notifyProgramChanged();
     }
 
     public void up() {
         int idx = index.get();
         if (idx > 0 && idx < getInstru().size()) {
             program.up(idx);
-            index.setValue(idx - 1);
+            notifyProgramChanged();
+            index.set(idx - 1);
         }
-        notifyProgramChanged();
     }
     public void down() {
         int idx = index.get();
         if(idx >= 0 && idx < getInstru().size() - 1 ) {
             program.down(idx);
-            index.setValue(idx + 1);
+            notifyProgramChanged();
+            index.set(idx + 1);
         }
-        notifyProgramChanged();
     }
 
     public void removeInstru(){
@@ -147,10 +151,8 @@ public class ScratchViewModel {
 
         if (nextIndex < instructions.size()) {
             indexExec.set(nextIndex); // On passe à l'instruction suivante
+            index.set(nextIndex); // Synchronise la sélection visuelle
             Instruction instru = instructions.get(nextIndex);
-
-            // Position de départ
-            Coordinates initial = new Coordinates(program.getPen().getCoord().getX(), program.getPen().getCoord().getY());
 
             // le modèle exécute l'action
             program.execute(instru);
@@ -160,10 +162,6 @@ public class ScratchViewModel {
             coordX.set(end.getX());
             coordY.set(end.getY());
 
-            // Si le stylo est baissé, on mémorise le trait à dessiner
-            if (program.isPenDown()) {
-                shape.addLine(new Line(initial, end));
-            }
         }
     }
 
@@ -173,13 +171,12 @@ public class ScratchViewModel {
 
     public void resetExecution() {
         indexExec.set(-1); // remet le compteur à zéro
-        program.getPen().setCoord(new Coordinates(195, 195)); // Retour au centre
-        program.getPen().setOrientation(-90); // Regarde vers le haut
-        program.setPenDown(true);
+        index.set(-1);
+        program.reset();
 
         // màj sur la Vue
-        coordX.set(195);
-        coordY.set(195);
+        coordX.set(program.getPen().getCoord().getX());
+        coordY.set(program.getPen().getCoord().getY());
     }
 
     public int getOrientation() {
@@ -195,13 +192,20 @@ public class ScratchViewModel {
             leftBtnDisabled.set(true);
             rightBtnText.set("Exécuter");
             rightBtnDisabled.set(true);
-        } else if (!isLoaded) {
+        }else if(!program.checkProgramValidity()){
+            leftBtnText.set("Charger");
+            leftBtnDisabled.set(true);
+            rightBtnText.set("Exécuter");
+            rightBtnDisabled.set(true);
+        }
+        else if (!isLoaded) {
             // état 2 : charger actif et exec desact
             leftBtnText.set("Charger");
             leftBtnDisabled.set(false);
             rightBtnText.set("Exécuter");
             rightBtnDisabled.set(true);
-        } else if (isLoaded && !isRunning) {
+        }
+        else if (isLoaded && !isRunning) {
             // état 3 : charger devient ré-initialiser et executer s'active
             leftBtnText.set("Ré-initialiser");
             leftBtnDisabled.set(false);
@@ -261,14 +265,29 @@ public class ScratchViewModel {
         Instruction instru = instructions.get(index);
 
         try {
+            // recup le texte envoyé par la vue
+            String val = amount.get();
+
+            if (val == null || val.trim().isEmpty()) {
+                throw new RuntimeException("Erreur valeur");
+            }
+
             program.changeAmount(instru, amount.get());
             errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+
+            indexExec.set(-1); // remet l'exécution à zéro
+            program.reset(); // replace la tortue
+            coordX.set(program.getPen().getCoord().getX());
+            coordY.set(program.getPen().getCoord().getY());
         } catch(RuntimeException e) {
             errorMessage.set(e.getMessage());
         }
     }
 
-    public int getParameterInstru() {
+    public String getParameterInstru() {
         int index = getIndexProperty().get();
         Instruction instru = instructions.get(index);
 

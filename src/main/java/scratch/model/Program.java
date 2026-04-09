@@ -11,6 +11,7 @@ import javafx.collections.ObservableList;
 public class Program {
     private final Character pen;
     private static final ObservableList<Instruction> catalogue = FXCollections.observableArrayList(
+            new VarDeclaration("Déclaration variable", InstructionType.VAR_DECLARATION),
             new Translation("Avancer de", InstructionType.MOVE_FORWARD, 0, 0),
             new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  0),
             new Rotation("Tourner à droite de", InstructionType.TURN_RIGHT,  0),
@@ -19,8 +20,10 @@ public class Program {
             );
 
     private static final ObservableList<Instruction> instructions = FXCollections.observableArrayList();
-    //private int instructionIndex = 0;
     private boolean penDown = true;   //true si PEN_DOWN, false si PEN_UP
+    private final Shape shape = new Shape();
+
+    private final Map<String, Variable> variables = new HashMap<>();
 
     public Program(Character pen) {
         this.pen = pen;
@@ -28,6 +31,14 @@ public class Program {
 
     public Character getPen() {
         return pen;
+    }
+
+    public Shape getShape() {
+        return shape;
+    }
+
+    public Map<String, Variable> getVariables() {
+        return variables;
     }
 
     public boolean isPenDown() {
@@ -38,16 +49,21 @@ public class Program {
         this.penDown = penDown;
     }
 
-    public void addInstruction(int idx) {
+    public void addInstruction(int idx, int insertIndex) {
 
         Instruction instru = catalogue.get(idx);
-        instructions.add(instru.newInstruction());
+        if (insertIndex >= 0 && insertIndex < instructions.size())
+            instructions.add(insertIndex + 1, instru.newInstruction());
+        else
+            instructions.add(instru.newInstruction());
+        checkProgramValidity();
     }
 
     public void up(int idx) {
         if(idx > 0 && idx < instructions.size()) {
             Instruction instru = instructions.set(idx, instructions.get(idx - 1));
             instructions.set(idx-1, instru);
+            checkProgramValidity();
         }
     }
 
@@ -55,11 +71,13 @@ public class Program {
         if(idx>=0 && idx < instructions.size() - 1) {
             Instruction instru = instructions.set(idx, instructions.get(idx + 1));
             instructions.set(idx + 1, instru);
+            checkProgramValidity();
         }
     }
 
     public void deleteInstruction(int index) {
         instructions.remove(index);
+        checkProgramValidity();
 
     }
 
@@ -67,14 +85,26 @@ public class Program {
         if(idx >= 0 && idx < instructions.size()) {
             Instruction instru = instructions.get(idx);
             instructions.add(instru.duplicate());
+            checkProgramValidity();
         }
     }
 
     public void execute(Instruction instr) {
-        if (instr instanceof PenAction)
+        if (instr.getType() == InstructionType.PEN_DOWN || instr.getType() == InstructionType.PEN_UP) {
             setPenDown(((PenAction) instr).changePenStatus(this.penDown));
-        else
-            instr.execute(getPen());
+        } else {
+            // sauvegarde la position de départ
+            Coordinates initial = new Coordinates(pen.getCoord().getX(), pen.getCoord().getY());
+
+            // déplace la tortue
+            instr.execute(this);
+
+            // sauvegarde la position d'arrivée et on trace la ligne si le pen est baissé
+            if (isPenDown()) {
+                Coordinates end = new Coordinates(pen.getCoord().getX(), pen.getCoord().getY());
+                shape.addLine(new Line(initial, end));
+            }
+        }
     }
 
 
@@ -105,14 +135,14 @@ public class Program {
 
                 if (morceaux.length == 2) {
                     String typeAction = morceaux[0];
-                    int valeur = Integer.parseInt(morceaux[1]);
+                    String valeur = morceaux[1].trim();
 
                     // crée la bonne instruction en fonction du texte (ON CHERCHE L'INDEX DANS LE CATALOGUE)
                     for (int i = 0; i < catalogue.size(); i++) {
                         Instruction modele = catalogue.get(i);
 
                         if (modele.getType().toString().equals(typeAction)) {
-                            this.addInstruction(i);
+                            this.addInstruction(i, -1);
 
                             // on ajoute à la fin de notre liste d'instruction
                             Instruction nouvelleAction = instructions.get(instructions.size() - 1);
@@ -134,6 +164,7 @@ public class Program {
 
     public void empty(){
         instructions.clear();
+        variables.clear();
     }
 
 
@@ -146,7 +177,75 @@ public class Program {
 
     }
 
-    public void changeAmount(Instruction instru, int amount) {
+    public void changeAmount(Instruction instru, String amount) {
         instru.setParameter(amount);
     }
+
+    //vérifie si le programme est correct (pas de PenActions de même type qui se suivent)
+    public boolean checkProgramValidity(){
+        boolean state = true; //etat fictif du pen sans execution
+
+        //on délimite la zone de déclaration de variables
+        int indexFirstinstruction = 0;
+        int i = 0;
+        while(i < instructions.size() && instructions.get(i).getType() == InstructionType.VAR_DECLARATION ){
+            indexFirstinstruction = i + 1; // + 1 car on veut verifier apres les variables
+            i++;
+        }
+
+        for(int j = indexFirstinstruction; j < instructions.size(); j++) {
+            Instruction current = instructions.get(j);
+            if((current.getType() == InstructionType.PEN_DOWN && state) ||
+                    (current.getType() == InstructionType.PEN_UP && !state)
+            || instructions.get(j).getType() == InstructionType.VAR_DECLARATION){
+                return false;
+            }else if((current.getType() == InstructionType.PEN_DOWN && !state) || (current.getType() == InstructionType.PEN_UP && state)){
+                state = !state;
+            }
+        }
+        return true;
+    }
+
+
+//    public boolean checkProgramValidity() {
+//        boolean check = true;
+//        boolean currentStatus = isPenDown();
+//
+//        for(Instruction instru : instructions){
+//            if ((instru.getType() == InstructionType.PEN_DOWN && currentStatus) || (instru.getType() == InstructionType.PEN_UP && !currentStatus)) {
+//                check = false;
+//                currentStatus = false;
+//                break;
+//            }
+//
+//            else if((instru.getType() == InstructionType.PEN_DOWN && !isPenDown()) || (instru.getType() == InstructionType.PEN_UP && isPenDown())){
+//                check = true;
+//            }
+//        }
+//
+//        System.out.println("c est ok : " + check);
+//        return check;
+//    }
+
+
+    public void reset() {
+        this.pen.reset();
+        this.penDown = true;
+    }
+
+    // traduit un texte en nombre
+    public int evaluate(String param) {
+        if (param == null || param.trim().isEmpty()) return 0;
+        try {
+            // essaie de voir si c'est un simple nombre
+            return Integer.parseInt(param.trim());
+        } catch (NumberFormatException e) {
+            // si ça plante, c'est que c'est du texte
+            if (variables.containsKey(param.trim())) {
+                return variables.get(param.trim()).getValue();
+            }
+            return 0; // si la variable n'existe pas, on renvoie 0 par sécurité
+        }
+    }
+
 }

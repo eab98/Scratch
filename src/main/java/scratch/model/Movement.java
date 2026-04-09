@@ -4,7 +4,7 @@ public abstract class Movement extends Instruction {
     private int direction;
 
     public Movement(String name, InstructionType type, int direction) {
-        super(name, type);
+        super(name, type, null);
         this.direction = direction;
     }
 

@@ -2,23 +2,20 @@
 
 class Program {
         - penDown : boolean
+        - variables : Map<String, Variable>
 }
 
 class Character {
         - degrees : integer
 
     }
-class Coordinate {
+class Coordinates {
     - x: double
     - y: double
 }
 
 abstract class Instruction {
     - Name : string
-}
-enum PenMovement {
-    PEN_UP
-    PEN_DOWN
 }
 
 
@@ -44,25 +41,65 @@ class PenAction extends Instruction {
 
 }
 
-
-enum MovementType {
-    FORWARD
-    BACKWARDS
-    LEFT
-    RIGHT
+enum InstructionType {
+    MOVE_FORWARD
+    MOVE_BACKWARD
+    TURN_LEFT
+    TURN_RIGHT
+    PEN_UP
+    PEN_DOWN
+    VAR_DECLARATION
+    VAR_ASSIGNMENT
+    INCREMENT_VARIABLE
+    REPEAT
+    END_REPEAT
 }
 
+class Variable extends Value {
+    - name : string
+}
 
+abstract class VarAction extends Instruction {
+
+}
+
+class VarDeclaration extends VarAction {
+
+}
+
+class VarAssignment extends VarAction {
+
+}
+
+class IncrementVar extends VarAction {
+    - amount : integer
+}
+
+abstract class Loop extends Instruction {
+
+}
+
+class Repeat extends Loop {
+
+}
+
+class Value {
+    - value : integer
+}
 
 ' --- RELATIONS --- '
 
-MovementType -- Movement
-Character "1" --> "1" Coordinate : has
+InstructionType -- Instruction
+Character -->  Coordinates : has
 Program --> Character :  moves
 Program "1" --> "*" Instruction : executes
 Shape "1" --> "*" Line : contains
 Program "1" --> "*" Line : draws
-Line "1" --> "2" Coordinate : has
-PenMovement -- PenAction
+Line "1" --> "2" Coordinates : has
+Instruction --> Variable : has
+VarAction --> Variable : defines
+Loop --> Value : uses
+Loop "1" *--> "*" Instruction : contains (Composite)
+Movement --> Value : has
 
 @end
