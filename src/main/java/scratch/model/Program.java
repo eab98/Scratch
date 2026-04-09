@@ -92,7 +92,11 @@ public class Program {
     public void execute(Instruction instr) {
         if (instr.getType() == InstructionType.PEN_DOWN || instr.getType() == InstructionType.PEN_UP) {
             setPenDown(((PenAction) instr).changePenStatus(this.penDown));
-        } else {
+        } else if (instr.getType() == InstructionType.VAR_DECLARATION) {
+
+        }
+
+        else {
             // sauvegarde la position de départ
             Coordinates initial = new Coordinates(pen.getCoord().getX(), pen.getCoord().getY());
 
@@ -177,8 +181,33 @@ public class Program {
 
     }
 
-    public void changeAmount(Instruction instru, String amount) {
-        instru.setParameter(amount);
+    public void changeAmount(Instruction instru, String param) {
+        //si on veut declarer alors l'input est le nom de la nouvelle variable
+        if(instru.getType() == InstructionType.VAR_DECLARATION){
+            ((VarDeclaration) instru).declare(param);
+        }
+        //sinon, on regarde si on donne à l'instru un entier -> on crée une value, si un string ->
+        else {
+            //on parse, si on réussit l'input est un entier donc on crée une variable avec
+            try {
+                int amount = Integer.parseInt(param);
+                instru.setParameter(new Value(amount));
+
+            //si erreur, l'input est un string donc on cherche la variable qui correspond à ce nom et on la donne en paramètre
+            //à l'instruction
+
+            } catch (NumberFormatException e){
+                Variable var = variables.get(param);
+
+                if (var == null ) {
+                    throw new RuntimeException(("Variable inexistente"));
+                }
+                instru.setParameter(var);
+            }
+
+        }
+
+
     }
 
     //vérifie si le programme est correct (pas de PenActions de même type qui se suivent)
@@ -246,6 +275,10 @@ public class Program {
             }
             return 0; // si la variable n'existe pas, on renvoie 0 par sécurité
         }
+    }
+
+    public void getNameToDeclare() {
+
     }
 
 }
