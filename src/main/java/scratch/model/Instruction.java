@@ -5,6 +5,7 @@ public abstract class Instruction {
     private final InstructionType type;
 
     private final Variable variable;
+    private String stringParameter = "";
 
     public Instruction(String name, InstructionType type, Variable variable) {
         this.name = name;
@@ -20,7 +21,7 @@ public abstract class Instruction {
         return name;
     }
 
-    public void execute(Character pen) {
+    public void execute(Program program) {
     }
 
     @Override
@@ -36,11 +37,12 @@ public abstract class Instruction {
         return this;
     }
 
-    public void setParameter(int value) {
+    public void setParameter(String value) {
+        this.stringParameter = value;
     }
 
-    public int getParameter() {
-        return 0;
+    public String getParameter() {
+        return this.stringParameter;
     }
 
     public Variable getVariable() {

@@ -3,6 +3,7 @@ package scratch.viewmodel;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.*;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scratch.model.*;
 
@@ -10,8 +11,6 @@ import java.util.List;
 
 public class ScratchViewModel {
     private final Program program;
-
-    private final Shape shape = new Shape();
 
     private List<Instruction> instructions = getInstru();
 
@@ -23,7 +22,7 @@ public class ScratchViewModel {
     private final DoubleProperty coordX = new SimpleDoubleProperty(0);
     private final DoubleProperty coordY = new SimpleDoubleProperty(0);
 
-    private final IntegerProperty amount = new SimpleIntegerProperty(0);
+    private final StringProperty amount = new SimpleStringProperty("");
 
     private final StringProperty errorMessage = new SimpleStringProperty("");
 
@@ -41,6 +40,11 @@ public class ScratchViewModel {
     public BooleanProperty leftBtnDisabledProperty() { return leftBtnDisabled; }
     public StringProperty rightBtnTextProperty() { return rightBtnText; }
     public BooleanProperty rightBtnDisabledProperty() { return rightBtnDisabled; }
+    private final ObservableList<Variable> variables = FXCollections.observableArrayList();
+
+    public ObservableList<Variable> getVariables() {
+        return variables;
+    }
 
     public IntegerProperty getIndexProperty(){
         return index;
@@ -49,7 +53,7 @@ public class ScratchViewModel {
         return catalogIndex;
     }
 
-    public IntegerProperty getAmountProperty() { return amount; }
+    public StringProperty getAmountProperty() { return amount; }
 
     public ScratchViewModel(Program program) {
         this.program = program;
@@ -108,10 +112,7 @@ public class ScratchViewModel {
         int idx = index.get();
         if (idx > 0 && idx < getInstru().size()) {
             program.up(idx);
-            index.setValue(idx - 1);
-
             notifyProgramChanged();
-
             index.set(idx - 1);
         }
     }
@@ -119,10 +120,7 @@ public class ScratchViewModel {
         int idx = index.get();
         if(idx >= 0 && idx < getInstru().size() - 1 ) {
             program.down(idx);
-            index.setValue(idx + 1);
-
             notifyProgramChanged();
-
             index.set(idx + 1);
         }
     }
@@ -156,9 +154,6 @@ public class ScratchViewModel {
             index.set(nextIndex); // Synchronise la sélection visuelle
             Instruction instru = instructions.get(nextIndex);
 
-            // Position de départ
-            Coordinates initial = new Coordinates(program.getPen().getCoord().getX(), program.getPen().getCoord().getY());
-
             // le modèle exécute l'action
             program.execute(instru);
 
@@ -167,10 +162,6 @@ public class ScratchViewModel {
             coordX.set(end.getX());
             coordY.set(end.getY());
 
-            // Si le stylo est baissé, on mémorise le trait à dessiner
-            if (program.isPenDown()) {
-                shape.addLine(new Line(initial, end));
-            }
         }
     }
 
@@ -274,18 +265,29 @@ public class ScratchViewModel {
         Instruction instru = instructions.get(index);
 
         try {
+            // recup le texte envoyé par la vue
+            String val = amount.get();
+
+            if (val == null || val.trim().isEmpty()) {
+                throw new RuntimeException("Erreur valeur");
+            }
+
             program.changeAmount(instru, amount.get());
             errorMessage.set("");
             isRunning = false;
             isLoaded = false;
             updateState();
-            resetExecution();
+
+            indexExec.set(-1); // remet l'exécution à zéro
+            program.reset(); // replace la tortue
+            coordX.set(program.getPen().getCoord().getX());
+            coordY.set(program.getPen().getCoord().getY());
         } catch(RuntimeException e) {
             errorMessage.set(e.getMessage());
         }
     }
 
-    public int getParameterInstru() {
+    public String getParameterInstru() {
         int index = getIndexProperty().get();
         Instruction instru = instructions.get(index);
 

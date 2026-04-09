@@ -15,9 +15,13 @@ public class Rotation extends Movement {
     }
 
     @Override
-    public void execute(Character pen) {
+    public void execute(Program program) {
+        Character pen = program.getPen();
         int initial_angle = pen.getOrientation();
-        int modif = getDirection();
+
+        // lit le texte (90 ou nb par exemple)
+        int modif = program.evaluate(this.getParameter());
+
         if (this.getType() == InstructionType.TURN_LEFT)
             modif = -modif;
         pen.setOrientation(initial_angle + modif);
@@ -26,27 +30,21 @@ public class Rotation extends Movement {
     @Override
     public Instruction newInstruction() {
         String name = "Tourner à " + (this.getType() == InstructionType.TURN_LEFT ? "gauche de" : "droite de");
-        return new Rotation(name, this.getType(), 90);
+        Rotation r = new Rotation(name, this.getType(), 90);
+        r.setParameter("90");
+        return r;
     }
 
     @Override
     public String toString() {
-        String msg = this.getDirection() == 0 ? "" : Integer.toString(this.getDirection());
-        return super.toString() + msg;
+        String param = this.getParameter();
+        return super.toString() + (param != null && !param.isEmpty() ? param : "");
     }
 
     @Override
     public Instruction duplicate() {
-        return new Rotation(this.getName(), this.getType(), this.getDirection());
-    }
-
-    @Override
-    public void setParameter(int value) {
-        this.setDirection(value);
-    }
-
-    @Override
-    public int getParameter() {
-        return this.getDirection();
+        Rotation clone = new Rotation(this.getName(), this.getType(), this.getDirection());
+        clone.setParameter(this.getParameter());
+        return clone;
     }
 }
