@@ -59,6 +59,8 @@ public class ScratchView extends BorderPane {
     //on initialise le listener ici pour pouvoir l'ajouter/l'enlever plus facilement
     private ChangeListener<String> inputListener;
 
+    private final Label infoTortue = new Label();
+
 
     public ScratchView(ScratchViewModel scratchViewModel) {
         this.scratchViewModel = scratchViewModel;
@@ -177,7 +179,12 @@ public class ScratchView extends BorderPane {
 
         VariablesView variablesView = new VariablesView(scratchViewModel);
 
-        scene.getChildren().addAll(sceneTitle, canvasContainer, variablesView, buttonScene);
+        infoTortue.textProperty().bind(scratchViewModel.turtleInfoTextProperty());
+
+        VBox infosVariablesBox = new VBox(5);
+        infosVariablesBox.getChildren().addAll(infoTortue, variablesView);
+
+        scene.getChildren().addAll(sceneTitle, canvasContainer, infosVariablesBox, buttonScene);
         configCanvas();
     }
 
