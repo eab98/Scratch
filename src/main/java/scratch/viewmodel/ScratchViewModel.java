@@ -308,7 +308,7 @@ public class ScratchViewModel {
         Instruction instru = instructions.get(index);
 
         if( instru.getType() == InstructionType.VAR_DECLARATION) {
-            return ((VarDeclaration) instru).getNewVarName();
+            return instru.getNewVarName();
         }
 
         Value param = instru.getParameter();

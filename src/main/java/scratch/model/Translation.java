@@ -15,7 +15,7 @@ public class Translation extends Movement{
 
     @Override
     public Instruction newInstruction() {
-        return new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(0), 30);
+        return new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(30), 30);
     }
 
     public void setDistance(Value value) {

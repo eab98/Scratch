@@ -22,10 +22,12 @@ public class VarDeclaration extends VarAction {
         return this.getName() + " : " + newVarName;
     }
 
+    @Override
     public String getNewVarName() {
         return newVarName;
     }
 
+    @Override
     public void setNewVarName(String newVarName) {
         this.newVarName = newVarName;
     }
