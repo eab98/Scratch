@@ -21,6 +21,7 @@ public class ScratchViewModel {
 
     private final DoubleProperty coordX = new SimpleDoubleProperty(0);
     private final DoubleProperty coordY = new SimpleDoubleProperty(0);
+    private final IntegerProperty direction = new SimpleIntegerProperty(0);
 
     private final StringProperty amount = new SimpleStringProperty("");
 
@@ -55,9 +56,18 @@ public class ScratchViewModel {
 
     public StringProperty getAmountProperty() { return amount; }
 
+    private final StringProperty turtleInfoText = new SimpleStringProperty("");
+    public StringProperty turtleInfoTextProperty() { return turtleInfoText; }
+
     public ScratchViewModel(Program program) {
         this.program = program;
         updateState();
+
+        updateTurtleInfoText();
+
+        coordX.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
+        coordY.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
+        direction.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
     }
 
     public ObservableList<Instruction> getCatalogue() {
@@ -161,6 +171,7 @@ public class ScratchViewModel {
             Coordinates end = program.getPen().getCoord();
             coordX.set(end.getX());
             coordY.set(end.getY());
+            direction.set(program.getPen().getOrientation());
 
         }
     }
@@ -177,6 +188,7 @@ public class ScratchViewModel {
         // màj sur la Vue
         coordX.set(program.getPen().getCoord().getX());
         coordY.set(program.getPen().getCoord().getY());
+        direction.set(program.getPen().getOrientation());
     }
 
     public int getOrientation() {
@@ -308,6 +320,22 @@ public class ScratchViewModel {
         Instruction instru = instructions.get(index);
 
         return instru.getType() == InstructionType.PEN_UP || instru.getType() == InstructionType.PEN_DOWN;
+    }
+
+    private void updateTurtleInfoText() {
+        double x = coordX.get();
+        double y = coordY.get();
+        int direction = getOrientation();
+
+        // On compense pour l'affichage (-90 + 90 = 0)
+        double displayDirection = direction + 90;
+
+        // Petite sécurité pour garder l'angle affiché entre -180° et 180°
+        if (displayDirection > 180) {
+            displayDirection -= 360;
+        }
+
+        turtleInfoText.set(String.format(java.util.Locale.FRENCH, "Tortue : x = %.1f, y = %.1f, direction = %.1f °", x, y, (double) displayDirection));
     }
 
 }
