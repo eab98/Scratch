@@ -12,9 +12,9 @@ public class Program {
     private final Character pen;
     private static final ObservableList<Instruction> catalogue = FXCollections.observableArrayList(
             new VarDeclaration("Déclaration variable", InstructionType.VAR_DECLARATION),
-            new Translation("Avancer de", InstructionType.MOVE_FORWARD, 0, 0),
-            new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  0),
-            new Rotation("Tourner à droite de", InstructionType.TURN_RIGHT,  0),
+            new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(0), 0),
+            new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  new Value(0)),
+            new Rotation("Tourner à droite de", InstructionType.TURN_RIGHT,  new Value(0)),
             new PenAction("Lever stylo", InstructionType.PEN_UP),
             new PenAction("Abaisser stylo", InstructionType.PEN_DOWN)
             );
@@ -196,36 +196,20 @@ public class Program {
 
             ((VarDeclaration) instru).setNewVarName(param);
             declaredVariablesBeforeExec.put(param, new Variable(param));
-        }
+
         //sinon, on regarde si on donne à l'instru un entier -> on crée une value, si un string ->
-        else {
-            //on parse, si on réussit l'input est un entier donc on crée une variable avec
-            try {
-                int amount = Integer.parseInt(param);
-                instru.setParameter(new Value(amount));
-
-            //si erreur, l'input est un string donc on cherche la variable qui correspond à ce nom et on la donne en paramètre
-            //à l'instruction
-
-            } catch (NumberFormatException e){
-                if(getVariableDeclared(param) == null){
-                    throw new RuntimeException(("Variable inexistente"));
-                }
-                instru.setParameter(declaredVariablesBeforeExec.get(param));
-
-
-//                Variable var = variables.get(param);
-//
-//                if (var == null ) {
-//                    throw new RuntimeException(("Variable inexistente"));
-//                }
-//                instru.setParameter(var);
+        } else {
+            Value evaluated = evaluate(param);  // Numbers → Value, vars → Variable
+            if (evaluated == null) {
+                throw new RuntimeException("Valeur ou variable invalide");
             }
+            instru.setParameter(evaluated);  // Pass Value/Variable object
+        }
 
         }
 
 
-    }
+
 
     //vérifie si le programme est correct (pas de PenActions de même type qui se suivent)
     public boolean checkProgramValidity(){
@@ -266,8 +250,8 @@ public class Program {
             return new Value(Integer.parseInt(param.trim()));
         } catch (NumberFormatException e) {
             // si ça plante, c'est que c'est du texte
-            if (variables.containsKey(param.trim())) {
-                return variables.get(param.trim());
+            if (declaredVariablesBeforeExec.containsKey(param.trim())) {
+                return declaredVariablesBeforeExec.get(param.trim());
             }
             return null;
         }

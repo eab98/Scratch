@@ -2,12 +2,14 @@ package scratch.model;
 
 public class Rotation extends Movement {
 
-    public Rotation(String name, InstructionType type, int direction) {
+
+    public Rotation(String name, InstructionType type, Value direction) {
         super(name, type, direction);
     }
 
-    @Override
-    public void setDirection(int newDirection) {
+
+    public void setDirection(Value value) {
+        int newDirection = value.getValue();
         if (newDirection < 1 || newDirection > 180)
             throw new RuntimeException("Erreur: L'angle doit être compris entre 1 et 180 degrés.");
 
@@ -28,23 +30,27 @@ public class Rotation extends Movement {
     @Override
     public Instruction newInstruction() {
         String name = "Tourner à " + (this.getType() == InstructionType.TURN_LEFT ? "gauche de" : "droite de");
-        return new Rotation(name, this.getType(), 90);
+        return new Rotation(name, this.getType(), new Value(90));
 
     }
 
     @Override
     public String toString() {
-        String msg = this.getDirection() == 0 ? "" : Integer.toString(this.getDirection());
+        Value p = getParameter();
+        String msg = (p == null) ? "" : p.toString();
         return super.toString() + msg;
     }
 
     @Override
     public Instruction duplicate() {
-        return new Rotation(this.getName(), this.getType(), this.getDirection());
+        return new Rotation(this.getName(), this.getType(), this.getValue());
     }
 
 
-    public void setParameter(int value) {
-        this.setDirection(value);
+    public void setParameter(Value value) {
+        super.setParameter(value);
+        if (value != null) {
+            setDirection(value.getValue());
+        }
     }
 }
