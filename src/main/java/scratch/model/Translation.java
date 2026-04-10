@@ -18,9 +18,10 @@ public class Translation extends Movement{
         return new Translation("Avancer de", InstructionType.MOVE_FORWARD, 0, 30);
     }
 
-    public void setDistance(int distance) {
-        if(distance>0 && distance<=100) {
-            this.distance = distance;
+    public void setDistance(Value value) {
+        int amount = value.getValue();
+        if(amount>0 && amount<=100) {
+            this.distance = amount;
         }else{
             throw new RuntimeException("Erreur: La distance doit être comprise entre 1 et 100.");
         }
@@ -43,7 +44,8 @@ public class Translation extends Movement{
 
     @Override
     public String toString() {
-        String msg = this.distance == 0 ? "" : Integer.toString(this.distance);
+        Value p = getParameter();
+        String msg = (p == null) ? "" : p.toString();
         return super.toString() + msg;
     }
 
@@ -51,6 +53,14 @@ public class Translation extends Movement{
     public Instruction duplicate() {
         return new Translation(this.getName(), this.getType(), this.getDirection(), this.getDistance());
 
+    }
+
+    @Override
+    public void setParameter(Value value) {
+        super.setParameter(value);
+        if (value != null) {
+            setDistance(value);
+        }
     }
 
 }

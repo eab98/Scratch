@@ -1,6 +1,6 @@
 package scratch.model;
 
-abstract class VarAction extends Instruction {
+class VarAction extends Instruction {
 
     private final Variable variable;
 

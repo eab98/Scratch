@@ -24,6 +24,7 @@ public class Program {
     private final Shape shape = new Shape();
 
     private final Map<String, Variable> variables = new HashMap<>();
+    private final Map<String, Variable> declaredVariablesBeforeExec = new HashMap<>();
 
     public Program(Character pen) {
         this.pen = pen;
@@ -94,8 +95,14 @@ public class Program {
             setPenDown(((PenAction) instr).changePenStatus(this.penDown));
 
         } else if (instr.getType() == InstructionType.VAR_DECLARATION) {
-            Variable newVar = ((VarDeclaration) instr).declare(((VarDeclaration) instr).getNewVarName());
-            variables.put(newVar.getName(), newVar);
+            String name = ((VarDeclaration) instr).getNewVarName();
+            Variable declaredVariable = declaredVariablesBeforeExec.get(name);
+
+            if(declaredVariable != null){
+
+                variables.put(name, declaredVariable);
+            }
+
         }
 
         else {
@@ -186,7 +193,9 @@ public class Program {
     public void changeAmount(Instruction instru, String param) {
         //si on veut declarer alors l'input est le nom de la nouvelle variable
         if(instru.getType() == InstructionType.VAR_DECLARATION){
+
             ((VarDeclaration) instru).setNewVarName(param);
+            declaredVariablesBeforeExec.put(param, new Variable(param));
         }
         //sinon, on regarde si on donne à l'instru un entier -> on crée une value, si un string ->
         else {
@@ -199,12 +208,18 @@ public class Program {
             //à l'instruction
 
             } catch (NumberFormatException e){
-                Variable var = variables.get(param);
-
-                if (var == null ) {
+                if(getVariableDeclared(param) == null){
                     throw new RuntimeException(("Variable inexistente"));
                 }
-                instru.setParameter(var);
+                instru.setParameter(declaredVariablesBeforeExec.get(param));
+
+
+//                Variable var = variables.get(param);
+//
+//                if (var == null ) {
+//                    throw new RuntimeException(("Variable inexistente"));
+//                }
+//                instru.setParameter(var);
             }
 
         }
@@ -238,49 +253,33 @@ public class Program {
     }
 
 
-//    public boolean checkProgramValidity() {
-//        boolean check = true;
-//        boolean currentStatus = isPenDown();
-//
-//        for(Instruction instru : instructions){
-//            if ((instru.getType() == InstructionType.PEN_DOWN && currentStatus) || (instru.getType() == InstructionType.PEN_UP && !currentStatus)) {
-//                check = false;
-//                currentStatus = false;
-//                break;
-//            }
-//
-//            else if((instru.getType() == InstructionType.PEN_DOWN && !isPenDown()) || (instru.getType() == InstructionType.PEN_UP && isPenDown())){
-//                check = true;
-//            }
-//        }
-//
-//        System.out.println("c est ok : " + check);
-//        return check;
-//    }
-
-
     public void reset() {
         this.pen.reset();
         this.penDown = true;
     }
 
-    // traduit un texte en nombre
-    public int evaluate(String param) {
-        if (param == null || param.trim().isEmpty()) return 0;
+    // traduit un texte en value
+    public Value evaluate(String param) {
+        if (param == null || param.trim().isEmpty()) return null;
         try {
             // essaie de voir si c'est un simple nombre
-            return Integer.parseInt(param.trim());
+            return new Value(Integer.parseInt(param.trim()));
         } catch (NumberFormatException e) {
             // si ça plante, c'est que c'est du texte
             if (variables.containsKey(param.trim())) {
-                return variables.get(param.trim()).getValue();
+                return variables.get(param.trim());
             }
-            return 0; // si la variable n'existe pas, on renvoie 0 par sécurité
+            return null;
         }
     }
 
-    public void getNameToDeclare() {
+    /*
+    On vérifie si la variable qu'on veut donner en paramètre à une instruction a déjà été déclarée dans la zone de déclaration
+    sans devoir passer par l'exécution du programme (vu que la variable n'est rééllement ajoutée au map qu'à l'exécution)
+     */
 
+    public Variable getVariableDeclared(String name) {
+        return declaredVariablesBeforeExec.get(name);
     }
 
 }

@@ -42,4 +42,9 @@ public class Rotation extends Movement {
     public Instruction duplicate() {
         return new Rotation(this.getName(), this.getType(), this.getDirection());
     }
+
+
+    public void setParameter(int value) {
+        this.setDirection(value);
+    }
 }
