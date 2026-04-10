@@ -13,6 +13,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import scratch.model.Instruction;
 import scratch.model.InstructionType;
+import scratch.model.Value;
 import scratch.viewmodel.ScratchViewModel;
 
 
@@ -289,9 +290,11 @@ public class ScratchView extends BorderPane {
     private void configInputAmount() {
         errorMessage.textProperty().bind(scratchViewModel.getErrorMessage());
         inputListener = (observable, oldValue, newValue) -> {
+
             // envoie le texte brut au ViewModel (meme si c'est une case vide)
             this.scratchViewModel.getAmountProperty().set(newValue);
             this.scratchViewModel.changeAmount();
+            this.programList.refresh();
         };
         input.textProperty().addListener(inputListener);
         input.setOnAction(e -> {
