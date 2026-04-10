@@ -92,10 +92,10 @@ public class Program {
 
     public void execute(Instruction instr) {
         if (instr.getType() == InstructionType.PEN_DOWN || instr.getType() == InstructionType.PEN_UP) {
-            setPenDown(((PenAction) instr).changePenStatus(this.penDown));
+            setPenDown(instr.changePenStatus(this.penDown));
 
         } else if (instr.getType() == InstructionType.VAR_DECLARATION) {
-            String name = ((VarDeclaration) instr).getNewVarName();
+            String name = instr.getNewVarName();
             Variable declaredVariable = declaredVariablesBeforeExec.get(name);
 
             if(declaredVariable != null){
@@ -194,16 +194,16 @@ public class Program {
         //si on veut declarer alors l'input est le nom de la nouvelle variable
         if(instru.getType() == InstructionType.VAR_DECLARATION){
 
-            ((VarDeclaration) instru).setNewVarName(param);
+            instru.setNewVarName(param);
             declaredVariablesBeforeExec.put(param, new Variable(param));
 
         //sinon, on regarde si on donne à l'instru un entier -> on crée une value, si un string ->
         } else {
-            Value evaluated = evaluate(param);  // Numbers → Value, vars → Variable
+            Value evaluated = evaluate(param);
             if (evaluated == null) {
                 throw new RuntimeException("Valeur ou variable invalide");
             }
-            instru.setParameter(evaluated);  // Pass Value/Variable object
+            instru.setParameter(evaluated);
         }
 
         }
