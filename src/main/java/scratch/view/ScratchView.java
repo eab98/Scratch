@@ -13,6 +13,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import scratch.model.Instruction;
 import scratch.model.InstructionType;
+import scratch.model.Value;
 import scratch.viewmodel.ScratchViewModel;
 
 

@@ -92,8 +92,10 @@ public class Program {
     public void execute(Instruction instr) {
         if (instr.getType() == InstructionType.PEN_DOWN || instr.getType() == InstructionType.PEN_UP) {
             setPenDown(((PenAction) instr).changePenStatus(this.penDown));
-        } else if (instr.getType() == InstructionType.VAR_DECLARATION) {
 
+        } else if (instr.getType() == InstructionType.VAR_DECLARATION) {
+            Variable newVar = ((VarDeclaration) instr).declare(((VarDeclaration) instr).getNewVarName());
+            variables.put(newVar.getName(), newVar);
         }
 
         else {
@@ -101,7 +103,7 @@ public class Program {
             Coordinates initial = new Coordinates(pen.getCoord().getX(), pen.getCoord().getY());
 
             // déplace la tortue
-            instr.execute(this);
+            instr.execute(this.getPen());
 
             // sauvegarde la position d'arrivée et on trace la ligne si le pen est baissé
             if (isPenDown()) {
@@ -152,7 +154,7 @@ public class Program {
                             Instruction nouvelleAction = instructions.get(instructions.size() - 1);
 
                             // on injecte la valeur
-                            nouvelleAction.setParameter(valeur);
+                            //nouvelleAction.setParameter(valeur);
 
                             break; // on a trouvé, on passe à la prochaine ligne
                         }
@@ -184,7 +186,7 @@ public class Program {
     public void changeAmount(Instruction instru, String param) {
         //si on veut declarer alors l'input est le nom de la nouvelle variable
         if(instru.getType() == InstructionType.VAR_DECLARATION){
-            ((VarDeclaration) instru).declare(param);
+            ((VarDeclaration) instru).setNewVarName(param);
         }
         //sinon, on regarde si on donne à l'instru un entier -> on crée une value, si un string ->
         else {

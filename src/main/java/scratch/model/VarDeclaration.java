@@ -2,6 +2,7 @@ package scratch.model;
 
 public class VarDeclaration extends VarAction {
 
+    private String newVarName = "";
     public VarDeclaration(String name, InstructionType type) {
         super(name, type);
     }
@@ -18,8 +19,14 @@ public class VarDeclaration extends VarAction {
 
     @Override
     public String toString() {
-        String param = this.getValue().toString();
-        return this.getName() + (param != null && !param.isEmpty() ? " " + param : "");
+        return this.getName() + " : " + newVarName;
     }
 
+    public String getNewVarName() {
+        return newVarName;
+    }
+
+    public void setNewVarName(String newVarName) {
+        this.newVarName = newVarName;
+    }
 }

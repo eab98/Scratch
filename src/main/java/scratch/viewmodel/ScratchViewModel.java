@@ -287,11 +287,20 @@ public class ScratchViewModel {
         }
     }
 
+    /*
+    si c'est une declaration on affiche le nom de la nouvelle variable (newVarName)
+    si c'est une autre instruction, on affiche le parametre (soit nom de la variable soit un entier) sousforme de string
+     */
     public String getParameterInstru() {
         int index = getIndexProperty().get();
         Instruction instru = instructions.get(index);
 
-        return instru.getParameter();
+        if( instru.getType() == InstructionType.VAR_DECLARATION) {
+            return ((VarDeclaration) instru).getNewVarName();
+        }
+
+        Value param = instru.getParameter();
+        return param == null ? "" : param.toString();
     }
 
     public boolean isPenAction() {
