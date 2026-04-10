@@ -2,12 +2,14 @@ package scratch.model;
 
 public class Rotation extends Movement {
 
-    public Rotation(String name, InstructionType type, int direction) {
+
+    public Rotation(String name, InstructionType type, Value direction) {
         super(name, type, direction);
     }
 
-    @Override
-    public void setDirection(int newDirection) {
+
+    public void setDirection(Value value) {
+        int newDirection = value.getValue();
         if (newDirection < 1 || newDirection > 180)
             throw new RuntimeException("Erreur: L'angle doit être compris entre 1 et 180 degrés.");
 
@@ -15,12 +17,10 @@ public class Rotation extends Movement {
     }
 
     @Override
-    public void execute(Program program) {
-        Character pen = program.getPen();
+    public void execute(Character pen) {
         int initial_angle = pen.getOrientation();
 
-        // lit le texte (90 ou nb par exemple)
-        int modif = program.evaluate(this.getParameter());
+        int modif = getDirection();
 
         if (this.getType() == InstructionType.TURN_LEFT)
             modif = -modif;
@@ -30,21 +30,27 @@ public class Rotation extends Movement {
     @Override
     public Instruction newInstruction() {
         String name = "Tourner à " + (this.getType() == InstructionType.TURN_LEFT ? "gauche de" : "droite de");
-        Rotation r = new Rotation(name, this.getType(), 90);
-        r.setParameter("90");
-        return r;
+        return new Rotation(name, this.getType(), new Value(90));
+
     }
 
     @Override
     public String toString() {
-        String param = this.getParameter();
-        return super.toString() + (param != null && !param.isEmpty() ? param : "");
+        Value p = getParameter();
+        String msg = (p == null) ? "" : p.toString();
+        return super.toString() + msg;
     }
 
     @Override
     public Instruction duplicate() {
-        Rotation clone = new Rotation(this.getName(), this.getType(), this.getDirection());
-        clone.setParameter(this.getParameter());
-        return clone;
+        return new Rotation(this.getName(), this.getType(), this.getValue());
+    }
+
+
+    public void setParameter(Value value) {
+        super.setParameter(value);
+        if (value != null) {
+            setDirection(value.getValue());
+        }
     }
 }

@@ -12,9 +12,9 @@ public class Program {
     private final Character pen;
     private static final ObservableList<Instruction> catalogue = FXCollections.observableArrayList(
             new VarDeclaration("Déclaration variable", InstructionType.VAR_DECLARATION),
-            new Translation("Avancer de", InstructionType.MOVE_FORWARD, 0, 0),
-            new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  0),
-            new Rotation("Tourner à droite de", InstructionType.TURN_RIGHT,  0),
+            new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(0), 0),
+            new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  new Value(0)),
+            new Rotation("Tourner à droite de", InstructionType.TURN_RIGHT,  new Value(0)),
             new PenAction("Lever stylo", InstructionType.PEN_UP),
             new PenAction("Abaisser stylo", InstructionType.PEN_DOWN)
             );
@@ -24,6 +24,7 @@ public class Program {
     private final Shape shape = new Shape();
 
     private final Map<String, Variable> variables = new HashMap<>();
+    private final Map<String, Variable> declaredVariablesBeforeExec = new HashMap<>();
 
     public Program(Character pen) {
         this.pen = pen;
@@ -92,12 +93,24 @@ public class Program {
     public void execute(Instruction instr) {
         if (instr.getType() == InstructionType.PEN_DOWN || instr.getType() == InstructionType.PEN_UP) {
             setPenDown(((PenAction) instr).changePenStatus(this.penDown));
-        } else {
+
+        } else if (instr.getType() == InstructionType.VAR_DECLARATION) {
+            String name = ((VarDeclaration) instr).getNewVarName();
+            Variable declaredVariable = declaredVariablesBeforeExec.get(name);
+
+            if(declaredVariable != null){
+
+                variables.put(name, declaredVariable);
+            }
+
+        }
+
+        else {
             // sauvegarde la position de départ
             Coordinates initial = new Coordinates(pen.getCoord().getX(), pen.getCoord().getY());
 
             // déplace la tortue
-            instr.execute(this);
+            instr.execute(this.getPen());
 
             // sauvegarde la position d'arrivée et on trace la ligne si le pen est baissé
             if (isPenDown()) {
@@ -148,7 +161,7 @@ public class Program {
                             Instruction nouvelleAction = instructions.get(instructions.size() - 1);
 
                             // on injecte la valeur
-                            nouvelleAction.setParameter(valeur);
+                            //nouvelleAction.setParameter(valeur);
 
                             break; // on a trouvé, on passe à la prochaine ligne
                         }
@@ -177,9 +190,26 @@ public class Program {
 
     }
 
-    public void changeAmount(Instruction instru, String amount) {
-        instru.setParameter(amount);
-    }
+    public void changeAmount(Instruction instru, String param) {
+        //si on veut declarer alors l'input est le nom de la nouvelle variable
+        if(instru.getType() == InstructionType.VAR_DECLARATION){
+
+            ((VarDeclaration) instru).setNewVarName(param);
+            declaredVariablesBeforeExec.put(param, new Variable(param));
+
+        //sinon, on regarde si on donne à l'instru un entier -> on crée une value, si un string ->
+        } else {
+            Value evaluated = evaluate(param);  // Numbers → Value, vars → Variable
+            if (evaluated == null) {
+                throw new RuntimeException("Valeur ou variable invalide");
+            }
+            instru.setParameter(evaluated);  // Pass Value/Variable object
+        }
+
+        }
+
+
+
 
     //vérifie si le programme est correct (pas de PenActions de même type qui se suivent)
     public boolean checkProgramValidity(){
@@ -207,45 +237,33 @@ public class Program {
     }
 
 
-//    public boolean checkProgramValidity() {
-//        boolean check = true;
-//        boolean currentStatus = isPenDown();
-//
-//        for(Instruction instru : instructions){
-//            if ((instru.getType() == InstructionType.PEN_DOWN && currentStatus) || (instru.getType() == InstructionType.PEN_UP && !currentStatus)) {
-//                check = false;
-//                currentStatus = false;
-//                break;
-//            }
-//
-//            else if((instru.getType() == InstructionType.PEN_DOWN && !isPenDown()) || (instru.getType() == InstructionType.PEN_UP && isPenDown())){
-//                check = true;
-//            }
-//        }
-//
-//        System.out.println("c est ok : " + check);
-//        return check;
-//    }
-
-
     public void reset() {
         this.pen.reset();
         this.penDown = true;
     }
 
-    // traduit un texte en nombre
-    public int evaluate(String param) {
-        if (param == null || param.trim().isEmpty()) return 0;
+    // traduit un texte en value
+    public Value evaluate(String param) {
+        if (param == null || param.trim().isEmpty()) return null;
         try {
             // essaie de voir si c'est un simple nombre
-            return Integer.parseInt(param.trim());
+            return new Value(Integer.parseInt(param.trim()));
         } catch (NumberFormatException e) {
             // si ça plante, c'est que c'est du texte
-            if (variables.containsKey(param.trim())) {
-                return variables.get(param.trim()).getValue();
+            if (declaredVariablesBeforeExec.containsKey(param.trim())) {
+                return declaredVariablesBeforeExec.get(param.trim());
             }
-            return 0; // si la variable n'existe pas, on renvoie 0 par sécurité
+            return null;
         }
+    }
+
+    /*
+    On vérifie si la variable qu'on veut donner en paramètre à une instruction a déjà été déclarée dans la zone de déclaration
+    sans devoir passer par l'exécution du programme (vu que la variable n'est rééllement ajoutée au map qu'à l'exécution)
+     */
+
+    public Variable getVariableDeclared(String name) {
+        return declaredVariablesBeforeExec.get(name);
     }
 
 }

@@ -4,13 +4,12 @@ public abstract class Instruction {
     private final String name;
     private final InstructionType type;
 
-    private final Variable variable;
-    private String stringParameter = "";
+    private Value value;
 
-    public Instruction(String name, InstructionType type, Variable variable) {
+    public Instruction(String name, InstructionType type, Value value) {
         this.name = name;
         this.type = type;
-        this.variable = variable;
+        this.value = value;
     }
 
     public InstructionType getType() {
@@ -21,7 +20,7 @@ public abstract class Instruction {
         return name;
     }
 
-    public void execute(Program program) {
+    public void execute(Character character) {
     }
 
     @Override
@@ -37,15 +36,15 @@ public abstract class Instruction {
         return this;
     }
 
-    public void setParameter(String value) {
-        this.stringParameter = value;
+    public void setParameter(Value value) {
+        this.value = value;
     }
 
-    public String getParameter() {
-        return this.stringParameter;
+    public Value getParameter() {
+        return this.value;
     }
 
-    public Variable getVariable() {
-        return variable;
+    public Value getValue() {
+        return value;
     }
 }

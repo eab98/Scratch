@@ -4,7 +4,7 @@ public class Translation extends Movement{
     private int distance;
 
 
-    public Translation(String name, InstructionType type, int direction, int distance) {
+    public Translation(String name, InstructionType type, Value direction, int distance) {
         super(name, type, direction);
         this.distance = distance;
     }
@@ -15,29 +15,28 @@ public class Translation extends Movement{
 
     @Override
     public Instruction newInstruction() {
-        Translation t = new Translation("Avancer de", InstructionType.MOVE_FORWARD, 0, 30);
-        t.setParameter("30");
-        return t;
+        return new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(0), 30);
     }
 
-    public void setDistance(int distance) {
-        if(distance>0 && distance<=100) {
-            this.distance = distance;
+    public void setDistance(Value value) {
+        int amount = value.getValue();
+        this.distance = amount;
+
+        /*if(amount>0 && amount<=100) {
+            this.distance = amount;
         }else{
             throw new RuntimeException("Erreur: La distance doit être comprise entre 1 et 100.");
-        }
+        }*/
     }
 
     @Override
-    public void execute(Program program){
-        Character pen = program.getPen();
+    public void execute(Character pen){
         int direction = pen.getOrientation();
         Coordinates origin = pen.getCoord();
 
-        int dist = program.evaluate(this.getParameter());
 
-        double x = Math.cos(Math.toRadians(direction)) * dist;
-        double y = Math.sin(Math.toRadians(direction)) * dist;
+        double x = Math.cos(Math.toRadians(direction)) * distance;
+        double y = Math.sin(Math.toRadians(direction)) * distance;
 
         double x_in = origin.getX();
         double y_in = origin.getY();
@@ -47,14 +46,23 @@ public class Translation extends Movement{
 
     @Override
     public String toString() {
-        String param = this.getParameter();
-        return super.toString() + (param != null && !param.isEmpty() ? param : "");
+        Value p = getParameter();
+        String msg = (p == null) ? "" : p.toString();
+        return super.toString() + msg;
     }
 
     @Override
     public Instruction duplicate() {
-        Translation clone = new Translation(this.getName(), this.getType(), this.getDirection(), this.getDistance());
-        clone.setParameter(this.getParameter());
-        return clone;
+        return new Translation(this.getName(), this.getType(), this.getValue(), this.getDistance());
+
     }
+
+    @Override
+    public void setParameter(Value value) {
+        super.setParameter(value);
+        if (value != null) {
+            setDistance(value);
+        }
+    }
+
 }
