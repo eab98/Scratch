@@ -93,10 +93,30 @@ public class Program {
         }
     }
 
+    /*on part du end pour retrouver le start et recommencer la boucle
+    mais pour les boucles imbriquees, on peut trouver des start qui ne serait pas le start correspondant à notre end
+    logique par niveau -> a chaque fois qu'on rencontre un end autre que celui en parametre, on increment le niveau car il
+    s'agit d'une autre boucle
+    */
+
     public int getLoopStart(int end) {
-        while (end-- > 0) {
-            if (instructions.get(end).getType() == InstructionType.REPEAT)
-                return end;
+        int level = 0;
+
+        for (int i = end - 1; i >= 0; i--) {
+            Instruction instr = instructions.get(i);
+
+            if (instr.getType() == InstructionType.END_REPEAT) {
+                level++;
+            } else if (instr.getType() == InstructionType.REPEAT) {
+                //c'est le start qui correspond au end en param
+                if (level == 0) {
+                    return i;
+                }
+                //c'est un start d'une boucle imbriquee donc tout ce qui se trouve au-delà apartient à un niveau inférieur
+                else {
+                    level--;
+                }
+            }
         }
         return 0;
     }
