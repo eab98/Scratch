@@ -50,12 +50,17 @@ public class ScratchView extends BorderPane {
     private final HBox content = new HBox();
     private final VBox contentPlusError = new VBox();
     private final TextField input = new TextField();
+    private final TextField inputAssign1 = new TextField();
+    private final TextField inputAssign2 = new TextField();
+
     private final Label errorMessage = new Label();
 
     //on initialise le listener ici pour pouvoir l'ajouter/l'enlever plus facilement
     private ChangeListener<String> inputListener;
 
     private final Label infoTortue = new Label();
+
+    private ChangeListener<String> inputAssignListener;
 
 
     public ScratchView(ScratchViewModel scratchViewModel) {
@@ -166,6 +171,7 @@ public class ScratchView extends BorderPane {
         errorMessage.setTextFill(Color.RED);
         updateDetails();
         configInputAmount();
+        configInputAssign();
     }
 
     private void configSceneBox() {
@@ -293,6 +299,19 @@ public class ScratchView extends BorderPane {
         });
     }
 
+    private void configInputAssign() {
+        inputAssignListener = (observable, oldValue, newValue) -> {
+            scratchViewModel.changeAssignment(
+                    inputAssign1.getText(),
+                    inputAssign2.getText()
+            );
+            programList.refresh();
+        };
+        inputAssign1.textProperty().addListener(inputAssignListener);
+        inputAssign2.textProperty().addListener(inputAssignListener);
+
+    }
+
     private void loadData() {
         paletteList.setItems(scratchViewModel.getCatalogue());
         programList.setItems(scratchViewModel.getInstru());
@@ -367,6 +386,7 @@ public class ScratchView extends BorderPane {
                 detailsAction.setContent(content);
             }
 
+
             //pour les autres instructions
             else {
                 // récupère l'instruction pour connaitre son type
@@ -378,6 +398,11 @@ public class ScratchView extends BorderPane {
                 if (currentInstru.getType() == InstructionType.VAR_DECLARATION) {
                     text.setText("Déclaration de la variable");
                     text2.setText(""); // enlève le mot pixels a la fin
+                }
+
+                if (currentInstru.getType() == InstructionType.VAR_ASSIGNEMENT) {
+                    text.setText("Assignation de la variable ");
+                    text2.setText(" valeur : ");
                 }
 
                 String param = scratchViewModel.getParameterInstru();
@@ -392,9 +417,13 @@ public class ScratchView extends BorderPane {
 
                 if (text2.getText().isEmpty()) {
                     content.getChildren().addAll(text, input);
-                } else {
+                }else  if(currentInstru.getType() == InstructionType.VAR_ASSIGNEMENT){
+                    content.getChildren().addAll(text, inputAssign1, text2, inputAssign2);
+
+                }else {
                     content.getChildren().addAll(text, input, text2);
                 }
+
 
                 contentPlusError.getChildren().clear();
                 contentPlusError.getChildren().addAll(content, errorMessage);

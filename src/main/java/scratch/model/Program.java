@@ -12,6 +12,7 @@ public class Program {
     private final Character pen;
     private static final ObservableList<Instruction> catalogue = FXCollections.observableArrayList(
             new VarDeclaration("Déclaration variable", InstructionType.VAR_DECLARATION),
+            new VarAssignment("Assignation", InstructionType.VAR_ASSIGNEMENT),
             new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(0), 0),
             new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  new Value(0)),
             new Rotation("Tourner à droite de", InstructionType.TURN_RIGHT,  new Value(0)),
@@ -99,11 +100,15 @@ public class Program {
             Variable declaredVariable = declaredVariablesBeforeExec.get(name);
 
             if(declaredVariable != null){
-
                 variables.put(name, declaredVariable);
             }
 
-        }
+        } /*else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {
+            String name = ((VarAssignment)instr).getVarName();
+            Variable varToAssign = variables.get(name);
+            if (varToAssign != null)
+                ((VarAssignment) instr).assign(varToAssign, instr.getValue());
+        }*/
 
         else {
             // sauvegarde la position de départ
@@ -264,6 +269,12 @@ public class Program {
 
     public Variable getVariableDeclared(String name) {
         return declaredVariablesBeforeExec.get(name);
+    }
+
+    public void assignVariable(Instruction instru, String variable, String value){
+        Variable var = declaredVariablesBeforeExec.get(variable);
+        ((VarAssignment) instru).assign(var, new Value(Integer.parseInt(value)));
+
     }
 
 }
