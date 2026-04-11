@@ -16,6 +16,8 @@ public class Program {
             new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(0), 0),
             new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  new Value(0)),
             new Rotation("Tourner à droite de", InstructionType.TURN_RIGHT,  new Value(0)),
+            new Repeat("Répéter", InstructionType.REPEAT, new Value(0)),
+            new Repeat("Fin Répéter", InstructionType.END_REPEAT, new Value(0)),
             new PenAction("Lever stylo", InstructionType.PEN_UP),
             new PenAction("Abaisser stylo", InstructionType.PEN_DOWN)
             );
@@ -89,6 +91,19 @@ public class Program {
             instructions.add(instru.duplicate());
             checkProgramValidity();
         }
+    }
+
+    public int getLoopStart(int end) {
+        while (end-- > 0) {
+            if (instructions.get(end).getType() == InstructionType.REPEAT)
+                return end;
+        }
+        return 0;
+    }
+
+    public boolean loopEnded(int idx) {
+        Instruction loop = instructions.get(idx);
+        return loop.getType() == InstructionType.REPEAT && loop.getValue().getValue() <= 0;
     }
 
     public void execute(Instruction instr) {
