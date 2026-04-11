@@ -172,6 +172,7 @@ public class ScratchView extends BorderPane {
         errorMessage.setTextFill(Color.RED);
         updateDetails();
         configInputAmount();
+        configInputAssign();
     }
 
     private void configSceneBox() {

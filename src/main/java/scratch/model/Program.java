@@ -103,13 +103,12 @@ public class Program {
                 variables.put(name, declaredVariable);
             }
 
-        } else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {
+        } /*else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {
             String name = ((VarAssignment)instr).getVarName();
             Variable varToAssign = variables.get(name);
             if (varToAssign != null)
                 ((VarAssignment) instr).assign(varToAssign, instr.getValue());
-
-        }
+        }*/
 
         else {
             // sauvegarde la position de départ
