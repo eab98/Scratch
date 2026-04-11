@@ -31,6 +31,8 @@ public class ScratchViewModel {
     private boolean isLoaded = false;
     private boolean isRunning = false;
 
+    private Runnable onStepExecuted;
+
     private final StringProperty leftBtnText = new SimpleStringProperty("Charger");
     private final BooleanProperty leftBtnDisabled = new SimpleBooleanProperty(true);
 
@@ -58,6 +60,9 @@ public class ScratchViewModel {
 
     private final StringProperty turtleInfoText = new SimpleStringProperty("");
     public StringProperty turtleInfoTextProperty() { return turtleInfoText; }
+
+    private final ExecutionViewModel executionVM = new ExecutionViewModel(this);
+    public ExecutionViewModel getExecutionVM() { return executionVM; }
 
     public ScratchViewModel(Program program) {
         this.program = program;
@@ -167,12 +172,15 @@ public class ScratchViewModel {
             // le modèle exécute l'action
             program.execute(instru);
 
-            // Position d'arrivée
+            // Position et direction d'arrivée
             Coordinates end = program.getPen().getCoord();
             coordX.set(end.getX());
             coordY.set(end.getY());
             direction.set(program.getPen().getOrientation());
 
+            if (onStepExecuted != null) {
+                onStepExecuted.run();
+            }
         }
     }
 
@@ -245,16 +253,22 @@ public class ScratchViewModel {
         } else {
             // On clic sur reset
             isRunning = false;
+            executionVM.stopAuto();
             resetExecution();
         }
         updateState(); // update le visuel
     }
 
     public void clickRightButton() {
-        if (!isRunning) {
-            isRunning = true; // bouton exec qui devient suivant
+        if (executionVM.isAutoModeProperty().get()) {
+            executionVM.playAuto(); // lance l'auto
+            isRunning = true;
         } else {
-            execute(); // on avance d'un step
+            if (!isRunning) {
+                isRunning = true; // bouton exec qui devient suivant
+            } else {
+                execute(); // on avance d'un step
+            }
         }
         updateState();
     }
@@ -263,6 +277,7 @@ public class ScratchViewModel {
         // dès qu'on modifie dans programme, on annule et on doit recharger à nouveau
         isLoaded = false;
         isRunning = false;
+        executionVM.stopAuto();
         resetExecution();
         updateState();
     }
@@ -336,6 +351,19 @@ public class ScratchViewModel {
         }
 
         turtleInfoText.set(String.format(java.util.Locale.FRENCH, "Tortue : x = %.1f, y = %.1f, direction = %.1f °", x, y, (double) displayDirection));
+    }
+
+    public boolean executeStep() {
+        if (indexExec.get() < getInstru().size() - 1) {
+            execute();
+            updateState();
+            return true; // le programme continue
+        }
+        return false; // le programme est fini
+    }
+
+    public void setOnStepExecuted(Runnable onStepExecuted) {
+        this.onStepExecuted = onStepExecuted;
     }
 
 }
