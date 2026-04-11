@@ -308,7 +308,13 @@ public class ScratchView extends BorderPane {
             programList.refresh();
         };
         inputAssign1.textProperty().addListener(inputAssignListener);
+        inputAssign1.setOnAction(e -> {
+            this.programList.refresh();
+        });
         inputAssign2.textProperty().addListener(inputAssignListener);
+        inputAssign2.setOnAction(e -> {
+            this.programList.refresh();
+        });
 
     }
 
