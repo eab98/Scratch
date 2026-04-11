@@ -366,4 +366,36 @@ public class ScratchViewModel {
         this.onStepExecuted = onStepExecuted;
     }
 
+    public void changeAssignment(String input1, String input2){
+        int index = getIndexProperty().get();
+        if (index < 0 || index >= getInstru().size()) {
+            return;
+        }
+
+        Instruction instru = getInstru().get(index);
+
+        try {
+            if (input1 == null || input1.isEmpty()) {
+                throw  new RuntimeException("Nom de variable invalide");
+            }
+            if( input2 == null || input2.isEmpty()) {
+                throw new RuntimeException("Valeur invalide");
+            }
+
+            program.assignVariable(instru, input1, input2);
+
+            errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+
+            indexExec.set(-1); // remet l'exécution à zéro
+            program.reset(); // replace la tortue
+            coordX.set(program.getPen().getCoord().getX());
+            coordY.set(program.getPen().getCoord().getY());
+        } catch (RuntimeException e){
+            errorMessage.set(e.getMessage());
+        }
+    }
+
 }
