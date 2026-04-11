@@ -1,6 +1,7 @@
 package scratch.model;
 
 public class VarAssignment extends VarAction {
+    private String varName = "";
 
     public VarAssignment(String name, InstructionType type) {
         super(name, type);
@@ -14,4 +15,11 @@ public class VarAssignment extends VarAction {
         var.setValue(value.getValue());
     }
 
+    public String getVarName() {
+        return varName;
+    }
+
+    public void setVarName(String varName) {
+        this.varName = varName;
+    }
 }

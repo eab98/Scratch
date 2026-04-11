@@ -100,12 +100,15 @@ public class Program {
             Variable declaredVariable = declaredVariablesBeforeExec.get(name);
 
             if(declaredVariable != null){
-
                 variables.put(name, declaredVariable);
             }
 
         } else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {
-            variables.
+            String name = ((VarAssignment)instr).getVarName();
+            Variable varToAssign = variables.get(name);
+            if (varToAssign != null)
+                ((VarAssignment) instr).assign(varToAssign, instr.getValue());
+
         }
 
         else {
