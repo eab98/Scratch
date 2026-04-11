@@ -11,6 +11,7 @@ public class PenAction extends Instruction {
         return new PenAction(this.getName(), this.getType());
     }
 
+    @Override
     public boolean changePenStatus(boolean status) {
         if (status && this.getType() == InstructionType.PEN_DOWN || !status && this.getType() == InstructionType.PEN_UP)
             return status;

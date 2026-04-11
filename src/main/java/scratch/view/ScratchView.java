@@ -32,7 +32,6 @@ public class ScratchView extends BorderPane {
     private final Label sceneTitle = new Label("Scène");
     
     private final HBox buttonProgram = new HBox(8);
-    private final HBox buttonScene = new HBox(10);
 
     private final ListView<Instruction> paletteList = new ListView<>();
     private final ListView<Instruction> programList = new ListView<>();
@@ -47,9 +46,6 @@ public class ScratchView extends BorderPane {
     private final Button deleteButton = new Button("Supprimer");
     private final Button emptyButton = new Button("Vider tout");
 
-    private final Button reinitButton = new Button("Ré-initiliaser");
-    private final Button nextButton = new Button("Suivant");
-
     private final TitledPane detailsAction = new TitledPane();
     private final HBox content = new HBox();
     private final VBox contentPlusError = new VBox();
@@ -61,6 +57,8 @@ public class ScratchView extends BorderPane {
 
     //on initialise le listener ici pour pouvoir l'ajouter/l'enlever plus facilement
     private ChangeListener<String> inputListener;
+
+    private final Label infoTortue = new Label();
 
     private ChangeListener<String> inputAssignListener;
 
@@ -81,6 +79,7 @@ public class ScratchView extends BorderPane {
         configButtonsDisabling();
         beautify();
 
+        this.scratchViewModel.setOnStepExecuted(() -> updateCanvas());
     }
     
     private void configPaletteBox() {
@@ -94,7 +93,7 @@ public class ScratchView extends BorderPane {
                     setText(null);
                     setStyle("");
                 } else {
-                    setText(item.toString()); // or item.getLabel()
+                    setText(item.getName()); // or item.getLabel()
 
                     switch (item.getType()) {
                         case MOVE_FORWARD:
@@ -176,25 +175,27 @@ public class ScratchView extends BorderPane {
     }
 
     private void configSceneBox() {
-        configButtonsScene();
-
         Pane canvasContainer = new Pane();
         canvasContainer.getChildren().addAll(canvas, headTurtle);
 
         VariablesView variablesView = new VariablesView(scratchViewModel);
+        infoTortue.textProperty().bind(scratchViewModel.turtleInfoTextProperty());
 
-        scene.getChildren().addAll(sceneTitle, canvasContainer, variablesView, buttonScene);
+        VBox infosVariablesBox = new VBox(5);
+        infosVariablesBox.getChildren().addAll(infoTortue, variablesView);
+
+        // on lui dit quoi faire avec le canvas quand on clique sur "Ré-initialiser"
+        ExecutionView executionView = new ExecutionView(scratchViewModel, () -> {
+            GraphicsContext gc = canvas.getGraphicsContext2D();
+            gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+            configCanvas();
+        });
+
+        // on rassemble la zone du bas (Infos tortue, Variables, et notre bloc d'Exécution)
+        VBox bottomControls = new VBox(10, infosVariablesBox, executionView);
+
+        scene.getChildren().addAll(sceneTitle, canvasContainer, bottomControls);
         configCanvas();
-    }
-
-    private void configButtonsScene() {
-        buttonScene.getChildren().addAll(reinitButton, nextButton);
-
-        reinitButton.textProperty().bind(scratchViewModel.leftBtnTextProperty());
-        reinitButton.disableProperty().bind(scratchViewModel.leftBtnDisabledProperty());
-
-        nextButton.textProperty().bind(scratchViewModel.rightBtnTextProperty());
-        nextButton.disableProperty().bind(scratchViewModel.rightBtnDisabledProperty());
     }
 
     private void configSelection() {
@@ -260,29 +261,19 @@ public class ScratchView extends BorderPane {
         headTurtle.setRotate(scratchViewModel.getOrientation());
     }
 
-    private void configActions(){
+    private void configActions() {
         addToProgramButton.setOnAction(e -> scratchViewModel.addInstruction());
+
         this.paletteList.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2)
                 scratchViewModel.addInstruction();
         });
+
         upButton.setOnAction(e -> scratchViewModel.up());
         downButton.setOnAction(e -> scratchViewModel.down());
-        duplicateButton.setOnAction(e-> scratchViewModel.duplicate());
-        deleteButton.setOnAction(e-> scratchViewModel.removeInstru());
-        emptyButton.setOnAction(e-> scratchViewModel.empty());
-        nextButton.setOnAction(e -> {
-            scratchViewModel.clickRightButton();
-            updateCanvas();
-        });
-        reinitButton.setOnAction(e -> {
-            scratchViewModel.clickLeftButton();
-            //efface le canvas
-            GraphicsContext gc = canvas.getGraphicsContext2D();
-            gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-            // redessine la grille
-            configCanvas();
-        });
+        duplicateButton.setOnAction(e -> scratchViewModel.duplicate());
+        deleteButton.setOnAction(e -> scratchViewModel.removeInstru());
+        emptyButton.setOnAction(e -> scratchViewModel.empty());
     }
 
     private void configButtonsDisabling() {

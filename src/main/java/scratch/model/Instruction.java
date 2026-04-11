@@ -47,4 +47,19 @@ public abstract class Instruction {
     public Value getValue() {
         return value;
     }
+
+
+    //Transtypage
+
+    public boolean changePenStatus(boolean currentStatus){
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public String getNewVarName() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setNewVarName(String newVarName) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
 }
