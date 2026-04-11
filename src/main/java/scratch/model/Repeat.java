@@ -16,11 +16,16 @@ public class Repeat extends Instruction {
     }
 
     @Override
-    public Instruction duplicate() {
+    public Instruction newInstruction() {
         Value def = new Value(4);
         if (this.getType() == InstructionType.END_REPEAT)
             def.setValue(0);
         return new Repeat(this.getName(), this.getType(), def);
+    }
+
+    @Override
+    public Instruction duplicate() {
+        return new Repeat(this.getName(), this.getType(), this.getValue());
     }
 
     @Override
