@@ -274,7 +274,6 @@ public class Program {
     public void assignVariable(Instruction instru, String variable, String value){
         Variable var = declaredVariablesBeforeExec.get(variable);
         ((VarAssignment) instru).assign(var, new Value(Integer.parseInt(value)));
-
     }
 
 }
