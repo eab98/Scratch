@@ -4,9 +4,12 @@ public abstract class Instruction {
     private final String name;
     private final InstructionType type;
 
-    public Instruction(String name, InstructionType type) {
+    private Value value;
+
+    public Instruction(String name, InstructionType type, Value value) {
         this.name = name;
         this.type = type;
+        this.value = value;
     }
 
     public InstructionType getType() {
@@ -17,7 +20,7 @@ public abstract class Instruction {
         return name;
     }
 
-    public void execute(Character pen) {
+    public void execute(Character character) {
     }
 
     @Override
@@ -33,10 +36,30 @@ public abstract class Instruction {
         return this;
     }
 
-    public void setParameter(int value) {
+    public void setParameter(Value value) {
+        this.value = value;
     }
 
-    public int getParameter() {
-        return 0;
+    public Value getParameter() {
+        return this.value;
+    }
+
+    public Value getValue() {
+        return value;
+    }
+
+
+    //Transtypage
+
+    public boolean changePenStatus(boolean currentStatus){
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public String getNewVarName() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setNewVarName(String newVarName) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
     }
 }

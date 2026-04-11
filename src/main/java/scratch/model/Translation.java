@@ -4,7 +4,7 @@ public class Translation extends Movement{
     private int distance;
 
 
-    public Translation(String name, InstructionType type, int direction, int distance) {
+    public Translation(String name, InstructionType type, Value direction, int distance) {
         super(name, type, direction);
         this.distance = distance;
     }
@@ -15,21 +15,26 @@ public class Translation extends Movement{
 
     @Override
     public Instruction newInstruction() {
-        return new Translation("Avancer de", InstructionType.MOVE_FORWARD, 0, 30);
+        return new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(30), 30);
     }
 
-    public void setDistance(int distance) {
-        if(distance>0 && distance<=100) {
-            this.distance = distance;
+    public void setDistance(Value value) {
+        int amount = value.getValue();
+        this.distance = amount;
+
+        /*if(amount>0 && amount<=100) {
+            this.distance = amount;
         }else{
             throw new RuntimeException("Erreur: La distance doit être comprise entre 1 et 100.");
-        }
+        }*/
     }
 
     @Override
     public void execute(Character pen){
         int direction = pen.getOrientation();
         Coordinates origin = pen.getCoord();
+
+
         double x = Math.cos(Math.toRadians(direction)) * distance;
         double y = Math.sin(Math.toRadians(direction)) * distance;
 
@@ -41,22 +46,23 @@ public class Translation extends Movement{
 
     @Override
     public String toString() {
-        String msg = this.distance == 0 ? "" : Integer.toString(this.distance);
+        Value p = getParameter();
+        String msg = (p == null) ? "" : p.toString();
         return super.toString() + msg;
     }
 
     @Override
     public Instruction duplicate() {
-        return new Translation(this.getName(), this.getType(), this.getDirection(), this.getDistance());
+        return new Translation(this.getName(), this.getType(), this.getValue(), this.getDistance());
+
     }
 
     @Override
-    public void setParameter(int value) {
-        this.setDistance(value);
+    public void setParameter(Value value) {
+        super.setParameter(value);
+        if (value != null) {
+            setDistance(value);
+        }
     }
 
-    @Override
-    public int getParameter() {
-        return this.getDistance();
-    }
 }
