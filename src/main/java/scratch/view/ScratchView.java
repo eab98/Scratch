@@ -13,7 +13,6 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import scratch.model.Instruction;
 import scratch.model.InstructionType;
-import scratch.model.Value;
 import scratch.viewmodel.ScratchViewModel;
 
 
@@ -284,8 +283,8 @@ public class ScratchView extends BorderPane {
     private void configButtonsDisabling() {
         upButton.disableProperty().bind(scratchViewModel.canUp().not());
         downButton.disableProperty().bind(scratchViewModel.canDown().not());
-        duplicateButton.disableProperty().bind(scratchViewModel.canDuplicateOrDelete().not());
-        deleteButton.disableProperty().bind(scratchViewModel.canDuplicateOrDelete().not());
+        duplicateButton.disableProperty().bind(scratchViewModel.canDuplicate().not());
+        deleteButton.disableProperty().bind(scratchViewModel.canDelete().not());
         emptyButton.disableProperty().bind(scratchViewModel.canEmpty().not());
     }
 
