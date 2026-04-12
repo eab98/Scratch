@@ -165,6 +165,11 @@ public class ScratchViewModel {
         int nextIndex = indexExec.get() + 1;
 
         if (nextIndex < instructions.size()) {
+            if (instructions.get(nextIndex).getType() == InstructionType.END_REPEAT) {
+                int loopStart = program.getLoopStart(nextIndex);
+                if (!program.loopEnded(loopStart))
+                    nextIndex = loopStart;
+            }
             indexExec.set(nextIndex); // On passe à l'instruction suivante
             index.set(nextIndex); // Synchronise la sélection visuelle
             Instruction instru = instructions.get(nextIndex);
@@ -432,7 +437,7 @@ public class ScratchViewModel {
     public String getIncrementStep() {
         Instruction instru = instructions.get(getIndexProperty().get());
         if (instru.getType() == InstructionType.INCREMENT_VARIABLE) {
-            int step = ((VarAssignment) instru).getDifference();
+            int step = instru.getDifference();
             return step == 0 ? "" : String.valueOf(step);
         }
         return "";
