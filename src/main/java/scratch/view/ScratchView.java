@@ -389,9 +389,10 @@ public class ScratchView extends BorderPane {
 
         }else {
             Label text = new Label(scratchViewModel.getNameInstruParIndex());
+            Instruction currentInstru = scratchViewModel.getInstru().get(index);
 
             //si l'instruction est un pen_up ou un pen_down le textfield doit etre desactive et pas d'erreur possible
-            if (scratchViewModel.isPenAction()) {
+            if (scratchViewModel.isPenAction() || currentInstru.getType() == InstructionType.END_REPEAT) {
                 input.textProperty().removeListener(inputListener);
                 input.setText("0");
                 input.textProperty().addListener(inputListener);
@@ -405,10 +406,11 @@ public class ScratchView extends BorderPane {
             //pour les autres instructions
             else {
                 // récupère l'instruction pour connaitre son type
-                int idx = scratchViewModel.getIndexProperty().get();
-                Instruction currentInstru = scratchViewModel.getInstru().get(idx);
 
                 Label text2 = new Label("pixels");
+
+                if (currentInstru.getType() == InstructionType.REPEAT)
+                    text2.setText("fois");
 
                 if (currentInstru.getType() == InstructionType.VAR_DECLARATION) {
                     text.setText("Déclaration de la variable");
