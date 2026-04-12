@@ -61,6 +61,10 @@ public class VarAssignment extends VarAction {
 
     public int getAssignedValue() { return assignedValue; }
 
+    public void setAssignedValue(int assignedValue) {
+        this.assignedValue = assignedValue;
+    }
+
     @Override
     public String toString() {
         /*return this.getName() + " : " + this.getVarName();*//*(this.getVariable() == null ? "" : this.getVariable().getName()
