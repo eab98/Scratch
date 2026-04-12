@@ -34,6 +34,9 @@ public class VarDeclaration extends VarAction {
 
     @Override
     public void setNewVarName(String newVarName) {
+        if(!newVarName.matches("^[a-zA-Z_][a-zA-Z0-9_]*$")) {
+            throw new RuntimeException("Format invalide");
+        }
         this.newVarName = newVarName;
     }
 }

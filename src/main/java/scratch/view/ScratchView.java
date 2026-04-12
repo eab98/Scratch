@@ -13,7 +13,6 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import scratch.model.Instruction;
 import scratch.model.InstructionType;
-import scratch.model.Value;
 import scratch.viewmodel.ScratchViewModel;
 
 
@@ -99,7 +98,7 @@ public class ScratchView extends BorderPane {
                     setText(null);
                     setStyle("");
                 } else {
-                    setText(item.getName()); // or item.getLabel()
+                    setText("● " + item.getName()); // or item.getLabel()
 
                     switch (item.getType()) {
                         case MOVE_FORWARD:
@@ -142,7 +141,12 @@ public class ScratchView extends BorderPane {
                     setText(null);
                     setStyle("");
                 } else {
-                    setText(item.toString()); // or item.getLabel()
+                    //setText(item.toString()); // or item.getLabel()
+
+                    int index = getIndex();
+                    int tabAmount = scratchViewModel.getTabLevel(index);
+                    String spaces = "      ".repeat(tabAmount);
+                    setText(spaces + "● " + item.toString());
 
                     switch (item.getType()) {
                         case MOVE_FORWARD:
@@ -284,8 +288,8 @@ public class ScratchView extends BorderPane {
     private void configButtonsDisabling() {
         upButton.disableProperty().bind(scratchViewModel.canUp().not());
         downButton.disableProperty().bind(scratchViewModel.canDown().not());
-        duplicateButton.disableProperty().bind(scratchViewModel.canDuplicateOrDelete().not());
-        deleteButton.disableProperty().bind(scratchViewModel.canDuplicateOrDelete().not());
+        duplicateButton.disableProperty().bind(scratchViewModel.canDuplicate().not());
+        deleteButton.disableProperty().bind(scratchViewModel.canDelete().not());
         emptyButton.disableProperty().bind(scratchViewModel.canEmpty().not());
     }
 
@@ -390,9 +394,10 @@ public class ScratchView extends BorderPane {
 
         }else {
             Label text = new Label(scratchViewModel.getNameInstruParIndex());
+            Instruction currentInstru = scratchViewModel.getInstru().get(index);
 
             //si l'instruction est un pen_up ou un pen_down le textfield doit etre desactive et pas d'erreur possible
-            if (scratchViewModel.isPenAction()) {
+            if (scratchViewModel.isPenAction() || currentInstru.getType() == InstructionType.END_REPEAT) {
                 input.textProperty().removeListener(inputListener);
                 input.setText("0");
                 input.textProperty().addListener(inputListener);
@@ -406,10 +411,11 @@ public class ScratchView extends BorderPane {
             //pour les autres instructions
             else {
                 // récupère l'instruction pour connaitre son type
-                int idx = scratchViewModel.getIndexProperty().get();
-                Instruction currentInstru = scratchViewModel.getInstru().get(idx);
 
                 Label text2 = new Label("pixels");
+
+                if (currentInstru.getType() == InstructionType.REPEAT)
+                    text2.setText("fois");
 
                 if (currentInstru.getType() == InstructionType.VAR_DECLARATION) {
                     text.setText("Déclaration de la variable");
@@ -449,7 +455,7 @@ public class ScratchView extends BorderPane {
                     inputIncVar.textProperty().addListener(inputIncListener);
                     inputIncStep.textProperty().addListener(inputIncListener);
 
-                    content.getChildren().addAll(text, inputIncVar, text2, inputIncStep, plusButton, minusButton);
+                    content.getChildren().addAll(text, inputIncVar, text2, inputIncStep);
 
                 } else {
                     content.getChildren().addAll(text, input, text2);
@@ -467,6 +473,7 @@ public class ScratchView extends BorderPane {
         inputIncListener = (observable, oldValue, newValue) -> {
             scratchViewModel.changeIncrement(inputIncVar.getText(), inputIncStep.getText());
             programList.refresh();
+            canShowPlusMinusButtons(inputIncStep.getText());
         };
         inputIncVar.textProperty().addListener(inputIncListener);
         inputIncVar.setOnAction(e -> programList.refresh());
@@ -493,6 +500,15 @@ public class ScratchView extends BorderPane {
                 inputIncStep.setText("-1"); // valeur par défaut si c'était vide
             }
         });
+    }
+
+    public void canShowPlusMinusButtons(String input){
+        try {
+            Integer.parseInt(input);
+            content.getChildren().addAll(minusButton, plusButton);
+        } catch (NumberFormatException _){
+
+        }
     }
 
 }

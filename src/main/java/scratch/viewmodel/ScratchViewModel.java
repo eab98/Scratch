@@ -107,7 +107,20 @@ public class ScratchViewModel {
         }, getInstru());
     }
 
-    public BooleanBinding canDuplicateOrDelete() {
+    public BooleanBinding canDuplicate() {
+        return Bindings.createBooleanBinding(() -> {
+            int idx = index.get();
+            if (idx > -1) {
+                List<Instruction> instructions = getInstru();
+                Instruction instr = instructions.get(idx);
+                return instr.getType() != InstructionType.VAR_DECLARATION
+                        && instr.getType() != InstructionType.VAR_ASSIGNEMENT;
+            }
+            return false;
+        }, index, getInstru());
+    }
+
+    public BooleanBinding canDelete() {
         return index.greaterThan(-1);
     }
 
@@ -165,29 +178,35 @@ public class ScratchViewModel {
         int nextIndex = indexExec.get() + 1;
 
         if (nextIndex < instructions.size()) {
-            if (instructions.get(nextIndex).getType() == InstructionType.END_REPEAT) {
-                int loopStart = program.getLoopStart(nextIndex);
-                if (!program.loopEnded(loopStart))
-                    nextIndex = loopStart;
-            }
-            indexExec.set(nextIndex); // On passe à l'instruction suivante
-            index.set(nextIndex); // Synchronise la sélection visuelle
-            Instruction instru = instructions.get(nextIndex);
+            try {
+                if (instructions.get(nextIndex).getType() == InstructionType.END_REPEAT) {
+                    int loopStart = program.getLoopStart(nextIndex);
+                    if (!program.loopEnded(loopStart))
+                        nextIndex = loopStart;
+                }
+                indexExec.set(nextIndex); // On passe à l'instruction suivante
+                index.set(nextIndex); // Synchronise la sélection visuelle
+                Instruction instru = instructions.get(nextIndex);
 
-            // le modèle exécute l'action
-            program.execute(instru);
+                // le modèle exécute l'action
+                program.execute(instru);
 
-            // Position et direction d'arrivée
-            Coordinates end = program.getPen().getCoord();
-            coordX.set(end.getX());
-            coordY.set(end.getY());
-            direction.set(program.getPen().getOrientation());
+                // Position et direction d'arrivée
+                Coordinates end = program.getPen().getCoord();
+                coordX.set(end.getX());
+                coordY.set(end.getY());
+                direction.set(program.getPen().getOrientation());
 
-            // on synchronise le tableau après chaque action
-            syncVariables();
+                // on synchronise le tableau après chaque action
+                syncVariables();
 
-            if (onStepExecuted != null) {
-                onStepExecuted.run();
+                if (onStepExecuted != null) {
+                    onStepExecuted.run();
+                }
+            } catch (RuntimeException e) {
+                 errorMessage.set(e.getMessage());
+                 isRunning = false;
+                 updateState();
             }
         }
     }
@@ -206,6 +225,7 @@ public class ScratchViewModel {
         program.reset();
 
         program.getVariables().clear();
+        errorMessage.set("");
 
         // màj sur la Vue
         coordX.set(program.getPen().getCoord().getX());
@@ -282,6 +302,7 @@ public class ScratchViewModel {
         } else {
             if (!isRunning) {
                 isRunning = true; // bouton exec qui devient suivant
+                errorMessage.set("");
             } else {
                 execute(); // on avance d'un step
             }
@@ -441,7 +462,7 @@ public class ScratchViewModel {
 
     public String getIncrementVarName() {
         Instruction instru = instructions.get(getIndexProperty().get());
-        if (instru.getType() == InstructionType.INCREMENT_VARIABLE) return ((VarAssignment) instru).getVarName();
+        if (instru.getType() == InstructionType.INCREMENT_VARIABLE) return instru.getVarName();
         return "";
     }
 
@@ -459,6 +480,35 @@ public class ScratchViewModel {
         variables.clear();
         // on récupère toutes les variables stockées dans la Map du Program
         variables.addAll(program.getVariables().values());
+    }
+
+    public int getTabLevel(int index){
+        int level = 0;
+
+        if (index < 0 || index >= instructions.size()) {
+            return 0;
+        }
+
+        /*
+        On regarde le nombre de boucles ouvertes avant l'instruction courante
+         */
+        for(int i = 0; i<index; i++){
+            if(instructions.get(i).getType() == InstructionType.REPEAT){
+                level++;
+            }else if(instructions.get(i).getType() == InstructionType.END_REPEAT){
+                level--;
+            }
+        }
+
+        //On verifie si l'instru courante est une end_repeat, sinon le end_repeat est indente comme le reste des instructions dans le repeat
+        Instruction current = instructions.get(index);
+        if(current.getType() == InstructionType.END_REPEAT){
+            level--;
+        }
+
+        //si jamais le level descend en dessous de 0, on return 0 donc on prend le max entre le level et 0
+        return Math.max(level, 0);
+
     }
 
 }

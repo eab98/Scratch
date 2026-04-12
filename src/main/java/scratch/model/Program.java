@@ -127,6 +127,18 @@ public class Program {
         return loop.getType() == InstructionType.REPEAT && loop.getValue().getValue() <= 0;
     }
 
+    public boolean allLoopsClosed() {
+        int level = 0;
+        //int end = 0;
+        for (Instruction instr: instructions) {
+            if (instr.getType() == InstructionType.REPEAT && level >= 0)
+                ++level;
+            else if (instr.getType() == InstructionType.END_REPEAT)
+                --level;
+        }
+        return level == 0;
+    }
+
     public void execute(Instruction instr) {
         if (instr.getType() == InstructionType.PEN_DOWN || instr.getType() == InstructionType.PEN_UP) {
             setPenDown(instr.changePenStatus(this.penDown));
@@ -140,9 +152,9 @@ public class Program {
             }
 
         } else if (instr.getType() == InstructionType.INCREMENT_VARIABLE) {
-            Variable varToInc = variables.get(((VarAssignment)instr).getVarName());
+            Variable varToInc = variables.get(instr.getVarName());
             if (varToInc != null) {
-                varToInc.setValue(varToInc.getValue() + ((VarAssignment) instr).getDifference());
+                varToInc.setValue(varToInc.getValue() + instr.getDifference());
             }
 
         } else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {
@@ -270,6 +282,9 @@ public class Program {
         //on délimite la zone de déclaration de variables
         int indexFirstinstruction = 0;
         int i = 0;
+
+        if (!allLoopsClosed())
+            return false;
         while(i < instructions.size() && instructions.get(i).getType() == InstructionType.VAR_DECLARATION ){
             indexFirstinstruction = i + 1; // + 1 car on veut verifier apres les variables
             i++;
