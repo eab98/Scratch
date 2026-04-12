@@ -38,12 +38,22 @@ public class Repeat extends Instruction {
     }
 
     @Override
+    public String getNewVarName() {
+        return super.getNewVarName();
+    }
+
+    @Override
     public Instruction duplicate() {
         return new Repeat(this.getName(), this.getType(), this.getValue());
     }
 
     @Override
     public String toString() {
-        return this.getName();
+        if (this.getType() == InstructionType.REPEAT)
+            return this.getName() + (this.getValue().getValue() == 0 ? (this.getParameter() == null ?
+                "" : " " + this.getParameter()) :
+                " " + this.getValue() ) + " fois";
+        else
+            return this.getName();
     }
 }
