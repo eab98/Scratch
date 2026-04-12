@@ -12,7 +12,7 @@ public class Program {
     private final Character pen;
     private static final ObservableList<Instruction> catalogue = FXCollections.observableArrayList(
             new VarDeclaration("Déclaration variable", InstructionType.VAR_DECLARATION),
-            new VarAssignment("Assignation", InstructionType.VAR_ASSIGNEMENT),
+            new VarAssignment("Assignation", InstructionType.VAR_ASSIGNMENT),
             new VarAssignment("Inc/Dec variable", InstructionType.INCREMENT_VARIABLE),
             new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(0), 0),
             new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  new Value(0)),
@@ -157,7 +157,7 @@ public class Program {
                 varToInc.setValue(varToInc.getValue() + instr.getDifference());
             }
 
-        } else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {
+        } else if (instr.getType() == InstructionType.VAR_ASSIGNMENT) {
             VarAssignment assignInstr = (VarAssignment) instr;
             Variable varToAssign = variables.get(assignInstr.getVarName());
             if (varToAssign != null) {
@@ -190,7 +190,7 @@ public class Program {
                     case VAR_DECLARATION:
                         writer.println(instr.getType() + ";" + instr.getNewVarName());
                         break;
-                    case VAR_ASSIGNEMENT:
+                    case VAR_ASSIGNMENT:
                         VarAssignment assign = (VarAssignment) instr;
                         writer.println(instr.getType() + ";" + assign.getVarName() + ";" + assign.getAssignedValue());
                         break;
@@ -251,7 +251,7 @@ public class Program {
                                     // On réenregistre la variable dans le moteur
                                     declaredVariablesBeforeExec.put(varName, new Variable(varName));
                                     break;
-                                case VAR_ASSIGNEMENT:
+                                case VAR_ASSIGNMENT:
                                     if (morceaux.length >= 3) {
                                         VarAssignment assignInstr = (VarAssignment) nouvelleAction;
                                         assignInstr.setVarName(morceaux[1].trim());
@@ -387,10 +387,23 @@ public class Program {
         return declaredVariablesBeforeExec.get(name);
     }
 
-    public void assignVariable(Instruction instru, String variable, String value){
-        Variable var = declaredVariablesBeforeExec.get(variable);
-        if(instru.getType()==InstructionType.VAR_ASSIGNEMENT) instru.assign(var, new Value(Integer.parseInt(value)));
-    }
+    public void assignVariable(Instruction instru, String variable, String valueText){
+            Variable var = declaredVariablesBeforeExec.get(variable);
+            if (var == null) {
+                throw new RuntimeException("Variable non déclarée");
+            }
+
+            Value evaluated = evaluate(valueText);
+            if (evaluated == null) {
+                throw new RuntimeException("Valeur invalide");
+            }
+
+            if (instru.getType() == InstructionType.VAR_ASSIGNMENT) {
+                instru.setParameter(evaluated);
+                instru.assign(var, evaluated);
+            }
+        }
+
 
     public void incrementVariable(Instruction instru, String variable, String stepStr){
         Variable var = declaredVariablesBeforeExec.get(variable);
