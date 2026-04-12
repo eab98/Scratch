@@ -11,8 +11,20 @@ public class VarAssignment extends VarAction {
         super(name, type);
     }
 
+    public VarAssignment(String name, InstructionType type, Value val) {
+        super(name, type);
+        this.setParameter(val);
+    }
+
     public Instruction newInstruction(){
         return new VarAssignment(this.getName(), this.getType());
+    }
+
+    @Override
+    public Instruction duplicate() {
+        if (this.getType() == InstructionType.INCREMENT_VARIABLE)
+            return new VarAssignment(this.getName(), this.getType(), this.getParameter());
+        return this;
     }
 
     @Override
