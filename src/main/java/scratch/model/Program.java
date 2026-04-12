@@ -124,7 +124,7 @@ public class Program {
 
     public boolean loopEnded(int idx) {
         Instruction loop = instructions.get(idx);
-        return loop.getType() == InstructionType.REPEAT && loop.getValue().getValue() <= 0;
+        return loop.getType() == InstructionType.REPEAT && loop.getLoop() <= 0;
     }
 
     public boolean allLoopsClosed() {
