@@ -56,6 +56,8 @@ public class ScratchView extends BorderPane {
     private final TextField inputIncStep = new TextField();
     private final Button plusButton = new Button("+");
     private final Button minusButton = new Button("-");
+    private final Button plusButtonAssign = new Button("+");
+    private final Button minusButtonAssign = new Button("-");
     private ChangeListener<String> inputIncListener;
 
     private final Label errorMessage = new Label();
@@ -315,6 +317,7 @@ public class ScratchView extends BorderPane {
                     inputAssign2.getText()
             );
             programList.refresh();
+            canShowPlusMinusButtonsAssign(inputAssign2.getText());
         };
         inputAssign1.textProperty().addListener(inputAssignListener);
         inputAssign1.setOnAction(e -> {
@@ -323,6 +326,25 @@ public class ScratchView extends BorderPane {
         inputAssign2.textProperty().addListener(inputAssignListener);
         inputAssign2.setOnAction(e -> {
             this.programList.refresh();
+        });
+        plusButtonAssign.setOnAction(e -> {
+            try {
+                // on récupère le nombre actuel et on fait +1
+                int val = Integer.parseInt(inputAssign2.getText());
+                inputAssign2.setText(String.valueOf(val + 1));
+            } catch (NumberFormatException ex) {
+                inputAssign2.setText("1"); // valeur par défaut si c'était vide
+            }
+        });
+
+        minusButtonAssign.setOnAction(e -> {
+            try {
+                // on récupère le nombre actuel et on fait +1
+                int val = Integer.parseInt(inputAssign2.getText());
+                inputAssign2.setText(String.valueOf(val - 1));
+            } catch (NumberFormatException ex) {
+                inputAssign2.setText("1"); // valeur par défaut si c'était vide
+            }
         });
 
     }
@@ -439,8 +461,19 @@ public class ScratchView extends BorderPane {
 
                 if (text2.getText().isEmpty()) {
                     content.getChildren().addAll(text, input);
+                } else if(currentInstru.getType() == InstructionType.VAR_ASSIGNEMENT){
+                    inputAssign1.textProperty().removeListener(inputAssignListener);
+                    inputAssign2.textProperty().removeListener(inputAssignListener);
+
+                    inputAssign1.setText(scratchViewModel.getAssignmentVar());
+                    inputAssign2.setText(scratchViewModel.getAssignmentValue());
+
+                    inputAssign1.textProperty().addListener(inputAssignListener);
+                    inputAssign2.textProperty().addListener(inputAssignListener);
+
                 } else if(currentInstru.getType() == InstructionType.VAR_ASSIGNMENT){
                     content.getChildren().addAll(text, inputAssign1, text2, inputAssign2);
+                    canShowPlusMinusButtonsAssign(inputAssign2.getText());
 
                 } else if(currentInstru.getType() == InstructionType.INCREMENT_VARIABLE) {
                     text.setText("Incrémentation de la variable");
@@ -456,6 +489,8 @@ public class ScratchView extends BorderPane {
                     inputIncStep.textProperty().addListener(inputIncListener);
 
                     content.getChildren().addAll(text, inputIncVar, text2, inputIncStep);
+
+                    canShowPlusMinusButtonsIncrement(inputIncStep.getText());
 
                 } else {
                     content.getChildren().addAll(text, input, text2);
@@ -473,7 +508,7 @@ public class ScratchView extends BorderPane {
         inputIncListener = (observable, oldValue, newValue) -> {
             scratchViewModel.changeIncrement(inputIncVar.getText(), inputIncStep.getText());
             programList.refresh();
-            canShowPlusMinusButtons(inputIncStep.getText());
+            canShowPlusMinusButtonsIncrement(inputIncStep.getText());
         };
         inputIncVar.textProperty().addListener(inputIncListener);
         inputIncVar.setOnAction(e -> programList.refresh());
@@ -502,10 +537,21 @@ public class ScratchView extends BorderPane {
         });
     }
 
-    public void canShowPlusMinusButtons(String input){
+    public void canShowPlusMinusButtonsIncrement(String input){
+        content.getChildren().removeAll(minusButton, plusButton);
         try {
             Integer.parseInt(input);
             content.getChildren().addAll(minusButton, plusButton);
+        } catch (NumberFormatException _){
+
+        }
+    }
+
+    public void canShowPlusMinusButtonsAssign(String input){
+        content.getChildren().removeAll(minusButtonAssign, plusButtonAssign);
+        try {
+            Integer.parseInt(input);
+            content.getChildren().addAll(minusButtonAssign, plusButtonAssign);
         } catch (NumberFormatException _){
 
         }
