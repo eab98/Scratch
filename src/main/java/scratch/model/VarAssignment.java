@@ -9,8 +9,20 @@ public class VarAssignment extends VarAction {
         super(name, type);
     }
 
+    public VarAssignment(String name, InstructionType type, Value val) {
+        super(name, type);
+        this.setParameter(val);
+    }
+
     public Instruction newInstruction(){
         return new VarAssignment(this.getName(), this.getType());
+    }
+
+    @Override
+    public Instruction duplicate() {
+        if (this.getType() == InstructionType.INCREMENT_VARIABLE)
+            return new VarAssignment(this.getName(), this.getType(), this.getParameter());
+        return this;
     }
 
     @Override
@@ -55,7 +67,7 @@ public class VarAssignment extends VarAction {
         String msg = "";
 
         if(this.getType() == InstructionType.VAR_ASSIGNEMENT){
-            msg = " : " + this.getVarName() + " = " + this.varValue;
+            msg = " : " + this.getVarName() + " = " + (this.varValue == null? "" : this.varValue);
         } else if (this.getType() == InstructionType.INCREMENT_VARIABLE){
             if(difference == 0){
                 msg = " : " + this.getVarName() + " de ";
