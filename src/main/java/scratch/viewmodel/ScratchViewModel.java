@@ -107,7 +107,20 @@ public class ScratchViewModel {
         }, getInstru());
     }
 
-    public BooleanBinding canDuplicateOrDelete() {
+    public BooleanBinding canDuplicate() {
+        return Bindings.createBooleanBinding(() -> {
+            int idx = index.get();
+            if (idx > -1) {
+                List<Instruction> instructions = getInstru();
+                Instruction instr = instructions.get(idx);
+                return instr.getType() != InstructionType.VAR_DECLARATION
+                        && instr.getType() != InstructionType.VAR_ASSIGNEMENT;
+            }
+            return false;
+        }, index, getInstru());
+    }
+
+    public BooleanBinding canDelete() {
         return index.greaterThan(-1);
     }
 
