@@ -511,4 +511,24 @@ public class ScratchViewModel {
 
     }
 
+    public String getAssignmentVar(){
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.VAR_ASSIGNEMENT) {
+            return instru.getVarName();
+        }
+        return "";
+    }
+
+    public String getAssignmentValue(){
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.VAR_ASSIGNEMENT) {
+            Value val = instru.getValue();
+            return val == null ? "" : val.toString();
+        }
+        return "";
+    }
+
+
+
+
 }
