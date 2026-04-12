@@ -53,6 +53,12 @@ public class ScratchView extends BorderPane {
     private final TextField inputAssign1 = new TextField();
     private final TextField inputAssign2 = new TextField();
 
+    private final TextField inputIncVar = new TextField();
+    private final TextField inputIncStep = new TextField();
+    private final Button plusButton = new Button("+");
+    private final Button minusButton = new Button("-");
+    private ChangeListener<String> inputIncListener;
+
     private final Label errorMessage = new Label();
 
     //on initialise le listener ici pour pouvoir l'ajouter/l'enlever plus facilement
@@ -169,6 +175,9 @@ public class ScratchView extends BorderPane {
         program.getChildren().add(detailsAction);
 
         errorMessage.setTextFill(Color.RED);
+
+        configInputIncrement();
+
         updateDetails();
         configInputAmount();
         configInputAssign();
@@ -346,6 +355,11 @@ public class ScratchView extends BorderPane {
         input.setAlignment(Pos.CENTER);
 
         this.content.setSpacing(5);
+
+        inputIncVar.setMaxWidth(50);
+        inputIncStep.setMaxWidth(50);
+        inputIncVar.setAlignment(Pos.CENTER);
+        inputIncStep.setAlignment(Pos.CENTER);
     }
 
 
@@ -423,10 +437,25 @@ public class ScratchView extends BorderPane {
 
                 if (text2.getText().isEmpty()) {
                     content.getChildren().addAll(text, input);
-                }else  if(currentInstru.getType() == InstructionType.VAR_ASSIGNEMENT){
+                } else if(currentInstru.getType() == InstructionType.VAR_ASSIGNEMENT){
                     content.getChildren().addAll(text, inputAssign1, text2, inputAssign2);
 
-                }else {
+                } else if(currentInstru.getType() == InstructionType.INCREMENT_VARIABLE) {
+                    text.setText("Incrémentation de la variable");
+                    text2.setText(" de ");
+
+                    inputIncVar.textProperty().removeListener(inputIncListener);
+                    inputIncStep.textProperty().removeListener(inputIncListener);
+
+                    inputIncVar.setText(scratchViewModel.getIncrementVarName());
+                    inputIncStep.setText(scratchViewModel.getIncrementStep());
+
+                    inputIncVar.textProperty().addListener(inputIncListener);
+                    inputIncStep.textProperty().addListener(inputIncListener);
+
+                    content.getChildren().addAll(text, inputIncVar, text2, inputIncStep, plusButton, minusButton);
+
+                } else {
                     content.getChildren().addAll(text, input, text2);
                 }
 
@@ -436,6 +465,38 @@ public class ScratchView extends BorderPane {
                 detailsAction.setContent(contentPlusError);
             }
         }
+    }
+
+    private void configInputIncrement() {
+        inputIncListener = (observable, oldValue, newValue) -> {
+            scratchViewModel.changeIncrement(inputIncVar.getText(), inputIncStep.getText());
+            programList.refresh();
+        };
+        inputIncVar.textProperty().addListener(inputIncListener);
+        inputIncVar.setOnAction(e -> programList.refresh());
+
+        inputIncStep.textProperty().addListener(inputIncListener);
+        inputIncStep.setOnAction(e -> programList.refresh());
+
+        plusButton.setOnAction(e -> {
+            try {
+                // on récupère le nombre actuel et on fait +1
+                int val = Integer.parseInt(inputIncStep.getText());
+                inputIncStep.setText(String.valueOf(val + 1));
+            } catch (NumberFormatException ex) {
+                inputIncStep.setText("1"); // valeur par défaut si c'était vide
+            }
+        });
+
+        minusButton.setOnAction(e -> {
+            try {
+                // on récupère le nombre actuel et on fait -1
+                int val = Integer.parseInt(inputIncStep.getText());
+                inputIncStep.setText(String.valueOf(val - 1));
+            } catch (NumberFormatException ex) {
+                inputIncStep.setText("-1"); // valeur par défaut si c'était vide
+            }
+        });
     }
 
 }
