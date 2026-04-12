@@ -225,6 +225,7 @@ public class ScratchViewModel {
         program.reset();
 
         program.getVariables().clear();
+        errorMessage.set("");
 
         // màj sur la Vue
         coordX.set(program.getPen().getCoord().getX());
@@ -301,6 +302,7 @@ public class ScratchViewModel {
         } else {
             if (!isRunning) {
                 isRunning = true; // bouton exec qui devient suivant
+                errorMessage.set("");
             } else {
                 execute(); // on avance d'un step
             }
