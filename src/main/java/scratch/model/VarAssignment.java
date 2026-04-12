@@ -73,7 +73,7 @@ public class VarAssignment extends VarAction {
         if(this.getType() == InstructionType.VAR_ASSIGNEMENT){
             msg = " : " + this.getVarName() + " = " + this.assignedValue;
         } else if (this.getType() == InstructionType.INCREMENT_VARIABLE){
-            if(difference == null || difference.getValue() == 0){
+            if(difference == null){
                 msg = " : " + this.getVarName() + " de ";
             }else {
                 msg = " : " + this.getVarName() + " de " + this.difference;
