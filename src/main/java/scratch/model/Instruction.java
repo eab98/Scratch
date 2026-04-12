@@ -4,9 +4,12 @@ public abstract class Instruction {
     private final String name;
     private final InstructionType type;
 
-    public Instruction(String name, InstructionType type) {
+    private Value value;
+
+    public Instruction(String name, InstructionType type, Value value) {
         this.name = name;
         this.type = type;
+        this.value = value;
     }
 
     public InstructionType getType() {
@@ -17,7 +20,7 @@ public abstract class Instruction {
         return name;
     }
 
-    public void execute(Character pen) {
+    public void execute(Character character) {
     }
 
     @Override
@@ -25,18 +28,55 @@ public abstract class Instruction {
         return this.getName() + " ";
     }
 
-    public Instruction newInstruction() {
-        return this;
+    public abstract Instruction newInstruction();
+
+    public abstract Instruction duplicate();
+
+    public void setParameter(Value value) {
+        this.value = value;
     }
 
-    public Instruction duplicate() {
-        return this;
+    public Value getParameter() {
+        return this.value;
     }
 
-    public void setParameter(int value) {
+    public Value getValue() {
+        return value;
     }
 
-    public int getParameter() {
-        return 0;
+
+    //Transtypage
+
+    public boolean changePenStatus(boolean currentStatus){
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public String getNewVarName() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setNewVarName(String newVarName) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void increment(Variable var, Value diff) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public int getLoop() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void assign(Variable var, Value value){
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public String getVarName(){
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+
+    }
+    public int getDifference() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+
     }
 }

@@ -6,5 +6,10 @@ public enum InstructionType {
     TURN_LEFT,
     TURN_RIGHT,
     PEN_UP,
-    PEN_DOWN
+    PEN_DOWN,
+    VAR_DECLARATION,
+    VAR_ASSIGNMENT,
+    REPEAT,
+    END_REPEAT,
+    INCREMENT_VARIABLE
 }

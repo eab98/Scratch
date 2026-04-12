@@ -12,6 +12,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import scratch.model.Instruction;
+import scratch.model.InstructionType;
 import scratch.viewmodel.ScratchViewModel;
 
 
@@ -30,7 +31,6 @@ public class ScratchView extends BorderPane {
     private final Label sceneTitle = new Label("Scène");
     
     private final HBox buttonProgram = new HBox(8);
-    private final HBox buttonScene = new HBox(10);
 
     private final ListView<Instruction> paletteList = new ListView<>();
     private final ListView<Instruction> programList = new ListView<>();
@@ -45,17 +45,29 @@ public class ScratchView extends BorderPane {
     private final Button deleteButton = new Button("Supprimer");
     private final Button emptyButton = new Button("Vider tout");
 
-    private final Button reinitButton = new Button("Ré-initiliaser");
-    private final Button nextButton = new Button("Suivant");
-
     private final TitledPane detailsAction = new TitledPane();
     private final HBox content = new HBox();
     private final VBox contentPlusError = new VBox();
     private final TextField input = new TextField();
+    private final TextField inputAssign1 = new TextField();
+    private final TextField inputAssign2 = new TextField();
+
+    private final TextField inputIncVar = new TextField();
+    private final TextField inputIncStep = new TextField();
+    private final Button plusButton = new Button("+");
+    private final Button minusButton = new Button("-");
+    private final Button plusButtonAssign = new Button("+");
+    private final Button minusButtonAssign = new Button("-");
+    private ChangeListener<String> inputIncListener;
+
     private final Label errorMessage = new Label();
 
     //on initialise le listener ici pour pouvoir l'ajouter/l'enlever plus facilement
     private ChangeListener<String> inputListener;
+
+    private final Label infoTortue = new Label();
+
+    private ChangeListener<String> inputAssignListener;
 
 
     public ScratchView(ScratchViewModel scratchViewModel) {
@@ -74,6 +86,7 @@ public class ScratchView extends BorderPane {
         configButtonsDisabling();
         beautify();
 
+        this.scratchViewModel.setOnStepExecuted(() -> updateCanvas());
     }
     
     private void configPaletteBox() {
@@ -87,7 +100,7 @@ public class ScratchView extends BorderPane {
                     setText(null);
                     setStyle("");
                 } else {
-                    setText(item.toString()); // or item.getLabel()
+                    setText("● " + item.getName()); // or item.getLabel()
 
                     switch (item.getType()) {
                         case MOVE_FORWARD:
@@ -100,6 +113,10 @@ public class ScratchView extends BorderPane {
 
                         case PEN_UP, PEN_DOWN:
                             setStyle("-fx-text-fill: green;");
+                            break;
+
+                        case VAR_DECLARATION, VAR_ASSIGNMENT, INCREMENT_VARIABLE, REPEAT, END_REPEAT:
+                            setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
                         default:
@@ -126,7 +143,12 @@ public class ScratchView extends BorderPane {
                     setText(null);
                     setStyle("");
                 } else {
-                    setText(item.toString()); // or item.getLabel()
+                    //setText(item.toString()); // or item.getLabel()
+
+                    int index = getIndex();
+                    int tabAmount = scratchViewModel.getTabLevel(index);
+                    String spaces = "      ".repeat(tabAmount);
+                    setText(spaces + "● " + item.toString());
 
                     switch (item.getType()) {
                         case MOVE_FORWARD:
@@ -141,6 +163,10 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: green;");
                             break;
 
+                        case VAR_DECLARATION, VAR_ASSIGNMENT, INCREMENT_VARIABLE, REPEAT, END_REPEAT:
+                            setStyle("-fx-text-fill: lightseagreen;");
+                            break;
+
                         default:
                             setStyle("-fx-text-fill: black;");
                     }
@@ -151,38 +177,46 @@ public class ScratchView extends BorderPane {
         program.getChildren().add(detailsAction);
 
         errorMessage.setTextFill(Color.RED);
+
+        configInputIncrement();
+
         updateDetails();
         configInputAmount();
+        configInputAssign();
     }
 
     private void configSceneBox() {
-        configButtonsScene();
-
         Pane canvasContainer = new Pane();
         canvasContainer.getChildren().addAll(canvas, headTurtle);
 
-        scene.getChildren().addAll(sceneTitle, canvasContainer, buttonScene);
+        VariablesView variablesView = new VariablesView(scratchViewModel);
+        infoTortue.textProperty().bind(scratchViewModel.turtleInfoTextProperty());
+
+        VBox infosVariablesBox = new VBox(5);
+        infosVariablesBox.getChildren().addAll(infoTortue, variablesView);
+
+        // on lui dit quoi faire avec le canvas quand on clique sur "Ré-initialiser"
+        ExecutionView executionView = new ExecutionView(scratchViewModel, () -> {
+            GraphicsContext gc = canvas.getGraphicsContext2D();
+            gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+            configCanvas();
+        });
+
+        // on rassemble la zone du bas (Infos tortue, Variables, et notre bloc d'Exécution)
+        VBox bottomControls = new VBox(10, infosVariablesBox, executionView);
+
+        scene.getChildren().addAll(sceneTitle, canvasContainer, bottomControls);
         configCanvas();
-    }
-
-    private void configButtonsScene() {
-        buttonScene.getChildren().addAll(reinitButton, nextButton);
-
-        reinitButton.textProperty().bind(scratchViewModel.leftBtnTextProperty());
-        reinitButton.disableProperty().bind(scratchViewModel.leftBtnDisabledProperty());
-
-        nextButton.textProperty().bind(scratchViewModel.rightBtnTextProperty());
-        nextButton.disableProperty().bind(scratchViewModel.rightBtnDisabledProperty());
     }
 
     private void configSelection() {
         this.paletteList.getSelectionModel().selectedIndexProperty()
                 .addListener((observable, oldValue, newValue) -> {
-                    this.scratchViewModel.getCatalogIndexProperty().setValue(newValue.intValue());
+                    this.scratchViewModel.getCatalogIndexProperty().set(newValue.intValue());
                 } );
         this.programList.getSelectionModel().selectedIndexProperty()
                 .addListener((observable, oldValue, newValue) -> {
-                    this.scratchViewModel.getIndexProperty().setValue(newValue.intValue());
+                    this.scratchViewModel.getIndexProperty().set(newValue.intValue());
                     updateDetails();
                 } );
         this.scratchViewModel.getIndexProperty().addListener((observable, oldValue, newValue) -> {
@@ -238,60 +272,81 @@ public class ScratchView extends BorderPane {
         headTurtle.setRotate(scratchViewModel.getOrientation());
     }
 
-    private void configActions(){
+    private void configActions() {
         addToProgramButton.setOnAction(e -> scratchViewModel.addInstruction());
+
         this.paletteList.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2)
                 scratchViewModel.addInstruction();
         });
+
         upButton.setOnAction(e -> scratchViewModel.up());
         downButton.setOnAction(e -> scratchViewModel.down());
-        duplicateButton.setOnAction(e-> scratchViewModel.duplicate());
-        deleteButton.setOnAction(e-> scratchViewModel.removeInstru());
-        emptyButton.setOnAction(e-> scratchViewModel.empty());
-        nextButton.setOnAction(e -> {
-            scratchViewModel.clickRightButton();
-            updateCanvas();
-        });
-        reinitButton.setOnAction(e -> {
-            scratchViewModel.clickLeftButton();
-            //efface le canvas
-            GraphicsContext gc = canvas.getGraphicsContext2D();
-            gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-            // redessine la grille
-            configCanvas();
-        });
+        duplicateButton.setOnAction(e -> scratchViewModel.duplicate());
+        deleteButton.setOnAction(e -> scratchViewModel.removeInstru());
+        emptyButton.setOnAction(e -> scratchViewModel.empty());
     }
 
     private void configButtonsDisabling() {
         upButton.disableProperty().bind(scratchViewModel.canUp().not());
         downButton.disableProperty().bind(scratchViewModel.canDown().not());
-        duplicateButton.disableProperty().bind(scratchViewModel.canDuplicateOrDelete().not());
-        deleteButton.disableProperty().bind(scratchViewModel.canDuplicateOrDelete().not());
+        duplicateButton.disableProperty().bind(scratchViewModel.canDuplicate().not());
+        deleteButton.disableProperty().bind(scratchViewModel.canDelete().not());
         emptyButton.disableProperty().bind(scratchViewModel.canEmpty().not());
     }
 
     private void configInputAmount() {
         errorMessage.textProperty().bind(scratchViewModel.getErrorMessage());
-        inputListener = (observable, oldValue, newValue)
-              -> {
+        inputListener = (observable, oldValue, newValue) -> {
 
-            /*besoin du try/catch car si on vide l'input box et qu'on a donc un String vide, on a une erreur de type
-            NumberFormatException qui s'affiche dans la console */
-
-            try{
-                int value = newValue.isEmpty() ? 0 : Integer.parseInt(newValue);
-                this.scratchViewModel.getAmountProperty().set(value);
-                this.scratchViewModel.changeAmount();
-            }catch(NumberFormatException _){
-
-            }
-
+            // envoie le texte brut au ViewModel (meme si c'est une case vide)
+            this.scratchViewModel.getAmountProperty().set(newValue);
+            this.scratchViewModel.changeAmount();
+            this.programList.refresh();
         };
         input.textProperty().addListener(inputListener);
         input.setOnAction(e -> {
             this.programList.refresh();
         });
+    }
+
+    private void configInputAssign() {
+        inputAssignListener = (observable, oldValue, newValue) -> {
+            scratchViewModel.changeAssignment(
+                    inputAssign1.getText(),
+                    inputAssign2.getText()
+            );
+            programList.refresh();
+            canShowPlusMinusButtonsAssign(inputAssign2.getText());
+        };
+        inputAssign1.textProperty().addListener(inputAssignListener);
+        inputAssign1.setOnAction(e -> {
+            this.programList.refresh();
+        });
+        inputAssign2.textProperty().addListener(inputAssignListener);
+        inputAssign2.setOnAction(e -> {
+            this.programList.refresh();
+        });
+        plusButtonAssign.setOnAction(e -> {
+            try {
+                // on récupère le nombre actuel et on fait +1
+                int val = Integer.parseInt(inputAssign2.getText());
+                inputAssign2.setText(String.valueOf(val + 1));
+            } catch (NumberFormatException ex) {
+                inputAssign2.setText("1"); // valeur par défaut si c'était vide
+            }
+        });
+
+        minusButtonAssign.setOnAction(e -> {
+            try {
+                // on récupère le nombre actuel et on fait +1
+                int val = Integer.parseInt(inputAssign2.getText());
+                inputAssign2.setText(String.valueOf(val - 1));
+            } catch (NumberFormatException ex) {
+                inputAssign2.setText("1"); // valeur par défaut si c'était vide
+            }
+        });
+
     }
 
     private void loadData() {
@@ -322,6 +377,11 @@ public class ScratchView extends BorderPane {
         input.setAlignment(Pos.CENTER);
 
         this.content.setSpacing(5);
+
+        inputIncVar.setMaxWidth(50);
+        inputIncStep.setMaxWidth(50);
+        inputIncVar.setAlignment(Pos.CENTER);
+        inputIncStep.setAlignment(Pos.CENTER);
     }
 
 
@@ -356,35 +416,144 @@ public class ScratchView extends BorderPane {
 
         }else {
             Label text = new Label(scratchViewModel.getNameInstruParIndex());
+            Instruction currentInstru = scratchViewModel.getInstru().get(index);
 
             //si l'instruction est un pen_up ou un pen_down le textfield doit etre desactive et pas d'erreur possible
-            if (scratchViewModel.isPenAction()) {
+            if (scratchViewModel.isPenAction() || currentInstru.getType() == InstructionType.END_REPEAT) {
+                input.textProperty().removeListener(inputListener);
                 input.setText("0");
+                input.textProperty().addListener(inputListener);
                 input.setDisable(true);
                 content.getChildren().clear();
                 content.getChildren().addAll(text, input);
                 detailsAction.setContent(content);
             }
 
+
             //pour les autres instructions
             else {
+                // récupère l'instruction pour connaitre son type
+
                 Label text2 = new Label("pixels");
 
-                int param = scratchViewModel.getParameterInstru();
+                if (currentInstru.getType() == InstructionType.REPEAT)
+                    text2.setText("fois");
+
+                if (currentInstru.getType() == InstructionType.VAR_DECLARATION) {
+                    text.setText("Déclaration de la variable");
+                    text2.setText(""); // enlève le mot pixels a la fin
+                }
+
+                if (currentInstru.getType() == InstructionType.VAR_ASSIGNMENT) {
+                    text.setText("Assignation de la variable ");
+                    text2.setText(" valeur : ");
+                }
+
+                String param = scratchViewModel.getParameterInstru();
 
                 input.setDisable(false);
 
                 //on enleve le listener, on attend que l'user introduise l'input, on remet le listener pour notifier le vm
                 input.textProperty().removeListener(inputListener);
-                input.setText(Integer.toString(param));
+                input.setText(param);
                 input.textProperty().addListener(inputListener);
                 content.getChildren().clear();
-                content.getChildren().addAll(text, input, text2);
+
+                if (text2.getText().isEmpty()) {
+                    content.getChildren().addAll(text, input);
+                } else if(currentInstru.getType() == InstructionType.VAR_ASSIGNMENT){
+                    inputAssign1.textProperty().removeListener(inputAssignListener);
+                    inputAssign2.textProperty().removeListener(inputAssignListener);
+
+                    inputAssign1.setText(scratchViewModel.getAssignmentVar());
+                    inputAssign2.setText(scratchViewModel.getAssignmentValue());
+
+                    inputAssign1.textProperty().addListener(inputAssignListener);
+                    inputAssign2.textProperty().addListener(inputAssignListener);
+
+
+                    content.getChildren().addAll(text, inputAssign1, text2, inputAssign2);
+                    canShowPlusMinusButtonsAssign(inputAssign2.getText());
+
+                } else if(currentInstru.getType() == InstructionType.INCREMENT_VARIABLE) {
+                    text.setText("Incrémentation de la variable");
+                    text2.setText(" de ");
+
+                    inputIncVar.textProperty().removeListener(inputIncListener);
+                    inputIncStep.textProperty().removeListener(inputIncListener);
+
+                    inputIncVar.setText(scratchViewModel.getIncrementVarName());
+                    inputIncStep.setText(scratchViewModel.getIncrementStep());
+
+                    inputIncVar.textProperty().addListener(inputIncListener);
+                    inputIncStep.textProperty().addListener(inputIncListener);
+
+                    content.getChildren().addAll(text, inputIncVar, text2, inputIncStep);
+
+                    canShowPlusMinusButtonsIncrement(inputIncStep.getText());
+
+                } else {
+                    content.getChildren().addAll(text, input, text2);
+                }
+
 
                 contentPlusError.getChildren().clear();
                 contentPlusError.getChildren().addAll(content, errorMessage);
                 detailsAction.setContent(contentPlusError);
             }
+        }
+    }
+
+    private void configInputIncrement() {
+        inputIncListener = (observable, oldValue, newValue) -> {
+            scratchViewModel.changeIncrement(inputIncVar.getText(), inputIncStep.getText());
+            programList.refresh();
+            canShowPlusMinusButtonsIncrement(inputIncStep.getText());
+        };
+        inputIncVar.textProperty().addListener(inputIncListener);
+        inputIncVar.setOnAction(e -> programList.refresh());
+
+        inputIncStep.textProperty().addListener(inputIncListener);
+        inputIncStep.setOnAction(e -> programList.refresh());
+
+        plusButton.setOnAction(e -> {
+            try {
+                // on récupère le nombre actuel et on fait +1
+                int val = Integer.parseInt(inputIncStep.getText());
+                inputIncStep.setText(String.valueOf(val + 1));
+            } catch (NumberFormatException ex) {
+                inputIncStep.setText("1"); // valeur par défaut si c'était vide
+            }
+        });
+
+        minusButton.setOnAction(e -> {
+            try {
+                // on récupère le nombre actuel et on fait -1
+                int val = Integer.parseInt(inputIncStep.getText());
+                inputIncStep.setText(String.valueOf(val - 1));
+            } catch (NumberFormatException ex) {
+                inputIncStep.setText("-1"); // valeur par défaut si c'était vide
+            }
+        });
+    }
+
+    public void canShowPlusMinusButtonsIncrement(String input){
+        content.getChildren().removeAll(minusButton, plusButton);
+        try {
+            Integer.parseInt(input);
+            content.getChildren().addAll(minusButton, plusButton);
+        } catch (NumberFormatException _){
+
+        }
+    }
+
+    public void canShowPlusMinusButtonsAssign(String input){
+        content.getChildren().removeAll(minusButtonAssign, plusButtonAssign);
+        try {
+            Integer.parseInt(input);
+            content.getChildren().addAll(minusButtonAssign, plusButtonAssign);
+        } catch (NumberFormatException _){
+
         }
     }
 

@@ -3,6 +3,7 @@ package scratch.viewmodel;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.*;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scratch.model.*;
 
@@ -10,8 +11,6 @@ import java.util.List;
 
 public class ScratchViewModel {
     private final Program program;
-
-    private final Shape shape = new Shape();
 
     private List<Instruction> instructions = getInstru();
 
@@ -22,14 +21,17 @@ public class ScratchViewModel {
 
     private final DoubleProperty coordX = new SimpleDoubleProperty(0);
     private final DoubleProperty coordY = new SimpleDoubleProperty(0);
+    private final IntegerProperty direction = new SimpleIntegerProperty(0);
 
-    private final IntegerProperty amount = new SimpleIntegerProperty(0);
+    private final StringProperty amount = new SimpleStringProperty("");
 
     private final StringProperty errorMessage = new SimpleStringProperty("");
 
     // état pour les boutons charger et executer
     private boolean isLoaded = false;
     private boolean isRunning = false;
+
+    private Runnable onStepExecuted;
 
     private final StringProperty leftBtnText = new SimpleStringProperty("Charger");
     private final BooleanProperty leftBtnDisabled = new SimpleBooleanProperty(true);
@@ -41,6 +43,11 @@ public class ScratchViewModel {
     public BooleanProperty leftBtnDisabledProperty() { return leftBtnDisabled; }
     public StringProperty rightBtnTextProperty() { return rightBtnText; }
     public BooleanProperty rightBtnDisabledProperty() { return rightBtnDisabled; }
+    private final ObservableList<Variable> variables = FXCollections.observableArrayList();
+
+    public ObservableList<Variable> getVariables() {
+        return variables;
+    }
 
     public IntegerProperty getIndexProperty(){
         return index;
@@ -49,11 +56,23 @@ public class ScratchViewModel {
         return catalogIndex;
     }
 
-    public IntegerProperty getAmountProperty() { return amount; }
+    public StringProperty getAmountProperty() { return amount; }
+
+    private final StringProperty turtleInfoText = new SimpleStringProperty("");
+    public StringProperty turtleInfoTextProperty() { return turtleInfoText; }
+
+    private final ExecutionViewModel executionVM = new ExecutionViewModel(this);
+    public ExecutionViewModel getExecutionVM() { return executionVM; }
 
     public ScratchViewModel(Program program) {
         this.program = program;
         updateState();
+
+        updateTurtleInfoText();
+
+        coordX.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
+        coordY.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
+        direction.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
     }
 
     public ObservableList<Instruction> getCatalogue() {
@@ -88,33 +107,50 @@ public class ScratchViewModel {
         }, getInstru());
     }
 
-    public BooleanBinding canDuplicateOrDelete() {
+    public BooleanBinding canDuplicate() {
+        return Bindings.createBooleanBinding(() -> {
+            int idx = index.get();
+            if (idx > -1) {
+                List<Instruction> instructions = getInstru();
+                Instruction instr = instructions.get(idx);
+                return instr.getType() != InstructionType.VAR_DECLARATION
+                        && instr.getType() != InstructionType.VAR_ASSIGNMENT;
+            }
+            return false;
+        }, index, getInstru());
+    }
+
+    public BooleanBinding canDelete() {
         return index.greaterThan(-1);
     }
 
     public void addInstruction() {
         int idx = catalogIndex.get();
+        int insertIndex = index.get();
         if (idx >= 0 && idx < getCatalogue().size()) {
-            program.addInstruction(idx);
+            program.addInstruction(idx, insertIndex);
+
+            notifyProgramChanged();
+
+            index.set(insertIndex + 1);
         }
-        notifyProgramChanged();
     }
 
     public void up() {
         int idx = index.get();
         if (idx > 0 && idx < getInstru().size()) {
             program.up(idx);
-            index.setValue(idx - 1);
+            notifyProgramChanged();
+            index.set(idx - 1);
         }
-        notifyProgramChanged();
     }
     public void down() {
         int idx = index.get();
         if(idx >= 0 && idx < getInstru().size() - 1 ) {
             program.down(idx);
-            index.setValue(idx + 1);
+            notifyProgramChanged();
+            index.set(idx + 1);
         }
-        notifyProgramChanged();
     }
 
     public void removeInstru(){
@@ -142,23 +178,35 @@ public class ScratchViewModel {
         int nextIndex = indexExec.get() + 1;
 
         if (nextIndex < instructions.size()) {
-            indexExec.set(nextIndex); // On passe à l'instruction suivante
-            Instruction instru = instructions.get(nextIndex);
+            try {
+                if (instructions.get(nextIndex).getType() == InstructionType.END_REPEAT) {
+                    int loopStart = program.getLoopStart(nextIndex);
+                    if (!program.loopEnded(loopStart))
+                        nextIndex = loopStart;
+                }
+                indexExec.set(nextIndex); // On passe à l'instruction suivante
+                index.set(nextIndex); // Synchronise la sélection visuelle
+                Instruction instru = instructions.get(nextIndex);
 
-            // Position de départ
-            Coordinates initial = new Coordinates(program.getPen().getCoord().getX(), program.getPen().getCoord().getY());
+                // le modèle exécute l'action
+                program.execute(instru);
 
-            // le modèle exécute l'action
-            program.execute(instru);
+                // Position et direction d'arrivée
+                Coordinates end = program.getPen().getCoord();
+                coordX.set(end.getX());
+                coordY.set(end.getY());
+                direction.set(program.getPen().getOrientation());
 
-            // Position d'arrivée
-            Coordinates end = program.getPen().getCoord();
-            coordX.set(end.getX());
-            coordY.set(end.getY());
+                // on synchronise le tableau après chaque action
+                syncVariables();
 
-            // Si le stylo est baissé, on mémorise le trait à dessiner
-            if (program.isPenDown()) {
-                shape.addLine(new Line(initial, end));
+                if (onStepExecuted != null) {
+                    onStepExecuted.run();
+                }
+            } catch (RuntimeException e) {
+                 errorMessage.set(e.getMessage());
+                 isRunning = false;
+                 updateState();
             }
         }
     }
@@ -169,13 +217,22 @@ public class ScratchViewModel {
 
     public void resetExecution() {
         indexExec.set(-1); // remet le compteur à zéro
-        program.getPen().setCoord(new Coordinates(195, 195)); // Retour au centre
-        program.getPen().setOrientation(-90); // Regarde vers le haut
-        program.setPenDown(true);
+        index.set(-1);
+
+        // remise à 0 des variables ici
+        program.resetVariables();
+
+        program.reset();
+
+        program.getVariables().clear();
+        errorMessage.set("");
 
         // màj sur la Vue
-        coordX.set(195);
-        coordY.set(195);
+        coordX.set(program.getPen().getCoord().getX());
+        coordY.set(program.getPen().getCoord().getY());
+        direction.set(program.getPen().getOrientation());
+
+        syncVariables();
     }
 
     public int getOrientation() {
@@ -191,13 +248,20 @@ public class ScratchViewModel {
             leftBtnDisabled.set(true);
             rightBtnText.set("Exécuter");
             rightBtnDisabled.set(true);
-        } else if (!isLoaded) {
+        }else if(!program.checkProgramValidity()){
+            leftBtnText.set("Charger");
+            leftBtnDisabled.set(true);
+            rightBtnText.set("Exécuter");
+            rightBtnDisabled.set(true);
+        }
+        else if (!isLoaded) {
             // état 2 : charger actif et exec desact
             leftBtnText.set("Charger");
             leftBtnDisabled.set(false);
             rightBtnText.set("Exécuter");
             rightBtnDisabled.set(true);
-        } else if (isLoaded && !isRunning) {
+        }
+        else if (isLoaded && !isRunning) {
             // état 3 : charger devient ré-initialiser et executer s'active
             leftBtnText.set("Ré-initialiser");
             leftBtnDisabled.set(false);
@@ -225,16 +289,23 @@ public class ScratchViewModel {
         } else {
             // On clic sur reset
             isRunning = false;
+            executionVM.stopAuto();
             resetExecution();
         }
         updateState(); // update le visuel
     }
 
     public void clickRightButton() {
-        if (!isRunning) {
-            isRunning = true; // bouton exec qui devient suivant
+        if (executionVM.isAutoModeProperty().get()) {
+            executionVM.playAuto(); // lance l'auto
+            isRunning = true;
         } else {
-            execute(); // on avance d'un step
+            if (!isRunning) {
+                isRunning = true; // bouton exec qui devient suivant
+                errorMessage.set("");
+            } else {
+                execute(); // on avance d'un step
+            }
         }
         updateState();
     }
@@ -243,6 +314,7 @@ public class ScratchViewModel {
         // dès qu'on modifie dans programme, on annule et on doit recharger à nouveau
         isLoaded = false;
         isRunning = false;
+        executionVM.stopAuto();
         resetExecution();
         updateState();
     }
@@ -257,22 +329,42 @@ public class ScratchViewModel {
         Instruction instru = instructions.get(index);
 
         try {
+            // recup le texte envoyé par la vue
+            String val = amount.get();
+
+            if (val == null || val.trim().isEmpty()) {
+                throw new RuntimeException("Erreur valeur");
+            }
+
             program.changeAmount(instru, amount.get());
             errorMessage.set("");
             isRunning = false;
             isLoaded = false;
             updateState();
-            resetExecution();
+
+            indexExec.set(-1); // remet l'exécution à zéro
+            program.reset(); // replace la tortue
+            coordX.set(program.getPen().getCoord().getX());
+            coordY.set(program.getPen().getCoord().getY());
         } catch(RuntimeException e) {
             errorMessage.set(e.getMessage());
         }
     }
 
-    public int getParameterInstru() {
+    /*
+    si c'est une declaration on affiche le nom de la nouvelle variable (newVarName)
+    si c'est une autre instruction, on affiche le parametre (soit nom de la variable soit un entier) sousforme de string
+     */
+    public String getParameterInstru() {
         int index = getIndexProperty().get();
         Instruction instru = instructions.get(index);
 
-        return instru.getParameter();
+        if( instru.getType() == InstructionType.VAR_DECLARATION) {
+            return instru.getNewVarName();
+        }
+
+        Value param = instru.getParameter();
+        return param == null ? "" : param.toString();
     }
 
     public boolean isPenAction() {
@@ -281,5 +373,162 @@ public class ScratchViewModel {
 
         return instru.getType() == InstructionType.PEN_UP || instru.getType() == InstructionType.PEN_DOWN;
     }
+
+    private void updateTurtleInfoText() {
+        double x = coordX.get();
+        double y = coordY.get();
+        int direction = getOrientation();
+
+        // On compense pour l'affichage (-90 + 90 = 0)
+        double displayDirection = direction + 90;
+
+        // Petite sécurité pour garder l'angle affiché entre -180° et 180°
+        if (displayDirection > 180) {
+            displayDirection -= 360;
+        }
+
+        turtleInfoText.set(String.format(java.util.Locale.FRENCH, "Tortue : x = %.1f, y = %.1f, direction = %.1f °", x, y, (double) displayDirection));
+    }
+
+    public boolean executeStep() {
+        if (indexExec.get() < getInstru().size() - 1) {
+            execute();
+            updateState();
+            return true; // le programme continue
+        }
+        return false; // le programme est fini
+    }
+
+    public void setOnStepExecuted(Runnable onStepExecuted) {
+        this.onStepExecuted = onStepExecuted;
+    }
+
+    public void changeAssignment(String input1, String input2){
+        int index = getIndexProperty().get();
+        if (index < 0 || index >= getInstru().size()) {
+            return;
+        }
+
+        Instruction instru = getInstru().get(index);
+
+        try {
+            if (input1 == null || input1.isEmpty()) {
+                throw  new RuntimeException("Nom de variable invalide");
+            }
+            if( input2 == null || input2.isEmpty()) {
+                throw new RuntimeException("Valeur invalide");
+            }
+
+            program.assignVariable(instru, input1, input2);
+
+            errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+
+            indexExec.set(-1); // remet l'exécution à zéro
+            program.reset(); // replace la tortue
+            coordX.set(program.getPen().getCoord().getX());
+            coordY.set(program.getPen().getCoord().getY());
+        } catch (RuntimeException e){
+            errorMessage.set(e.getMessage());
+        }
+    }
+
+    public void changeIncrement(String varName, String stepStr){
+        int index = getIndexProperty().get();
+        if (index < 0 || index >= getInstru().size()) return;
+
+        Instruction instru = getInstru().get(index);
+
+        try {
+            if (varName == null || varName.isEmpty()) throw new RuntimeException("Nom de variable invalide");
+            if (stepStr == null || stepStr.isEmpty()) throw new RuntimeException("Valeur invalide");
+
+            program.incrementVariable(instru, varName.trim(), stepStr.trim());
+
+            errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+            indexExec.set(-1);
+            program.reset();
+            coordX.set(program.getPen().getCoord().getX());
+            coordY.set(program.getPen().getCoord().getY());
+        } catch (RuntimeException e){
+            errorMessage.set(e.getMessage());
+        }
+    }
+
+    public String getIncrementVarName() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.INCREMENT_VARIABLE) return instru.getVarName();
+        return "";
+    }
+
+    public String getIncrementStep() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.INCREMENT_VARIABLE) {
+            int step = instru.getDifference();
+            return step == 0 ? "" : String.valueOf(step);
+        }
+        return "";
+    }
+
+    // synchronise le tableau avec les variables du programme
+    private void syncVariables() {
+        variables.clear();
+        // on récupère toutes les variables stockées dans la Map du Program
+        variables.addAll(program.getVariables().values());
+    }
+
+    public int getTabLevel(int index){
+        int level = 0;
+
+        if (index < 0 || index >= instructions.size()) {
+            return 0;
+        }
+
+        /*
+        On regarde le nombre de boucles ouvertes avant l'instruction courante
+         */
+        for(int i = 0; i<index; i++){
+            if(instructions.get(i).getType() == InstructionType.REPEAT){
+                level++;
+            }else if(instructions.get(i).getType() == InstructionType.END_REPEAT){
+                level--;
+            }
+        }
+
+        //On verifie si l'instru courante est une end_repeat, sinon le end_repeat est indente comme le reste des instructions dans le repeat
+        Instruction current = instructions.get(index);
+        if(current.getType() == InstructionType.END_REPEAT){
+            level--;
+        }
+
+        //si jamais le level descend en dessous de 0, on return 0 donc on prend le max entre le level et 0
+        return Math.max(level, 0);
+
+    }
+
+    public String getAssignmentVar(){
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.VAR_ASSIGNMENT) {
+            return instru.getVarName();
+        }
+        return "";
+    }
+
+    public String getAssignmentValue(){
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.VAR_ASSIGNMENT) {
+            Value val = instru.getValue();
+            return val == null ? "" : val.toString();
+        }
+        return "";
+    }
+
+
+
 
 }

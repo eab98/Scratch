@@ -2,6 +2,7 @@
 
 class Program {
         - penDown : boolean
+        - variables : Map<String, Variable>
 }
 
 class Character {
@@ -47,16 +48,58 @@ enum InstructionType {
     TURN_RIGHT
     PEN_UP
     PEN_DOWN
+    VAR_DECLARATION
+    VAR_ASSIGNMENT
+    INCREMENT_VARIABLE
+    REPEAT
+    END_REPEAT
+}
+
+class Variable extends Value {
+    - name : string
+}
+
+abstract class VarAction extends Instruction {
+
+}
+
+class VarDeclaration extends VarAction {
+
+}
+
+class VarAssignment extends VarAction {
+
+}
+
+class IncrementVar extends VarAction {
+    - amount : integer
+}
+
+abstract class Loop extends Instruction {
+
+}
+
+class Repeat extends Loop {
+
+}
+
+class Value {
+    - value : integer
 }
 
 ' --- RELATIONS --- '
 
 InstructionType -- Instruction
-Character "1" --> "1" Coordinate : has
+Character -->  Coordinates : has
 Program --> Character :  moves
 Program "1" --> "*" Instruction : executes
 Shape "1" --> "*" Line : contains
 Program "1" --> "*" Line : draws
-Line "1" --> "2" Coordinate : has
+Line "1" --> "2" Coordinates : has
+Instruction --> Variable : has
+VarAction --> Variable : defines
+Loop --> Value : uses
+Loop "1" *--> "*" Instruction : contains (Composite)
+Movement --> Value : has
 
 @end
