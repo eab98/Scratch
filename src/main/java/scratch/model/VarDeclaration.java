@@ -13,6 +13,11 @@ public class VarDeclaration extends VarAction {
         return new VarDeclaration("Déclaration variable", this.getType());
     }
 
+    @Override
+    public Instruction duplicate() {
+        return this;
+    }
+
     public Variable declare(String name){
         return new Variable(name);
     }

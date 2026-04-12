@@ -1,9 +1,10 @@
 package scratch.view;
 
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import scratch.model.Variable;
 import scratch.viewmodel.ScratchViewModel;
@@ -19,17 +20,18 @@ public class VariablesView extends VBox {
         Label title = new Label("Variables");
 
         TableColumn<Variable, String> nameCol = new TableColumn<>("Nom");
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
 
-        TableColumn<Variable, Integer> valueCol = new TableColumn<>("Valeur");
-        valueCol.setCellValueFactory(new PropertyValueFactory<>("value"));
+        nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
+
+        TableColumn<Variable, Number> valueCol = new TableColumn<>("Valeur");
+
+        valueCol.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getValue()));
 
         table.getColumns().addAll(nameCol, valueCol);
 
         table.setItems(scratchViewModel.getVariables());
 
         table.setPrefHeight(150);
-        // adapte la largeur des colonnes
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         this.getChildren().addAll(title, table);

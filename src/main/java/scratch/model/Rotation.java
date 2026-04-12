@@ -20,7 +20,7 @@ public class Rotation extends Movement {
     public void execute(Character pen) {
         int initial_angle = pen.getOrientation();
 
-        int modif = getDirection();
+        int modif = this.getParameter().getValue();
 
         if (this.getType() == InstructionType.TURN_LEFT)
             modif = -modif;

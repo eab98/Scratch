@@ -28,13 +28,9 @@ public abstract class Instruction {
         return this.getName() + " ";
     }
 
-    public Instruction newInstruction() {
-        return this;
-    }
+    public abstract Instruction newInstruction();
 
-    public Instruction duplicate() {
-        return this;
-    }
+    public abstract Instruction duplicate();
 
     public void setParameter(Value value) {
         this.value = value;
@@ -61,5 +57,22 @@ public abstract class Instruction {
 
     public void setNewVarName(String newVarName) {
         throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void increment(Variable var, int diff) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void assign(Variable var, Value value){
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public String getVarName(){
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+
+    }
+    public int getDifference() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+
     }
 }

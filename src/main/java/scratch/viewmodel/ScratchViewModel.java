@@ -107,7 +107,20 @@ public class ScratchViewModel {
         }, getInstru());
     }
 
-    public BooleanBinding canDuplicateOrDelete() {
+    public BooleanBinding canDuplicate() {
+        return Bindings.createBooleanBinding(() -> {
+            int idx = index.get();
+            if (idx > -1) {
+                List<Instruction> instructions = getInstru();
+                Instruction instr = instructions.get(idx);
+                return instr.getType() != InstructionType.VAR_DECLARATION
+                        && instr.getType() != InstructionType.VAR_ASSIGNEMENT;
+            }
+            return false;
+        }, index, getInstru());
+    }
+
+    public BooleanBinding canDelete() {
         return index.greaterThan(-1);
     }
 
@@ -183,6 +196,9 @@ public class ScratchViewModel {
             coordY.set(end.getY());
             direction.set(program.getPen().getOrientation());
 
+            // on synchronise le tableau après chaque action
+            syncVariables();
+
             if (onStepExecuted != null) {
                 onStepExecuted.run();
             }
@@ -196,12 +212,20 @@ public class ScratchViewModel {
     public void resetExecution() {
         indexExec.set(-1); // remet le compteur à zéro
         index.set(-1);
+
+        // remise à 0 des variables ici
+        program.resetVariables();
+
         program.reset();
+
+        program.getVariables().clear();
 
         // màj sur la Vue
         coordX.set(program.getPen().getCoord().getX());
         coordY.set(program.getPen().getCoord().getY());
         direction.set(program.getPen().getOrientation());
+
+        syncVariables();
     }
 
     public int getOrientation() {
@@ -401,6 +425,53 @@ public class ScratchViewModel {
         } catch (RuntimeException e){
             errorMessage.set(e.getMessage());
         }
+    }
+
+    public void changeIncrement(String varName, String stepStr){
+        int index = getIndexProperty().get();
+        if (index < 0 || index >= getInstru().size()) return;
+
+        Instruction instru = getInstru().get(index);
+
+        try {
+            if (varName == null || varName.isEmpty()) throw new RuntimeException("Nom de variable invalide");
+            if (stepStr == null || stepStr.isEmpty()) throw new RuntimeException("Valeur invalide");
+
+            program.incrementVariable(instru, varName.trim(), stepStr.trim());
+
+            errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+            indexExec.set(-1);
+            program.reset();
+            coordX.set(program.getPen().getCoord().getX());
+            coordY.set(program.getPen().getCoord().getY());
+        } catch (RuntimeException e){
+            errorMessage.set(e.getMessage());
+        }
+    }
+
+    public String getIncrementVarName() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.INCREMENT_VARIABLE) return ((VarAssignment) instru).getVarName();
+        return "";
+    }
+
+    public String getIncrementStep() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.INCREMENT_VARIABLE) {
+            int step = instru.getDifference();
+            return step == 0 ? "" : String.valueOf(step);
+        }
+        return "";
+    }
+
+    // synchronise le tableau avec les variables du programme
+    private void syncVariables() {
+        variables.clear();
+        // on récupère toutes les variables stockées dans la Map du Program
+        variables.addAll(program.getVariables().values());
     }
 
 }

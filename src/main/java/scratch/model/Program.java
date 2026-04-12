@@ -13,6 +13,7 @@ public class Program {
     private static final ObservableList<Instruction> catalogue = FXCollections.observableArrayList(
             new VarDeclaration("Déclaration variable", InstructionType.VAR_DECLARATION),
             new VarAssignment("Assignation", InstructionType.VAR_ASSIGNEMENT),
+            new VarAssignment("Inc/Dec variable", InstructionType.INCREMENT_VARIABLE),
             new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(0), 0),
             new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  new Value(0)),
             new Rotation("Tourner à droite de", InstructionType.TURN_RIGHT,  new Value(0)),
@@ -126,6 +127,18 @@ public class Program {
         return loop.getType() == InstructionType.REPEAT && loop.getValue().getValue() <= 0;
     }
 
+    public boolean allLoopsClosed() {
+        int level = 0;
+        //int end = 0;
+        for (Instruction instr: instructions) {
+            if (instr.getType() == InstructionType.REPEAT && level >= 0)
+                ++level;
+            else if (instr.getType() == InstructionType.END_REPEAT)
+                --level;
+        }
+        return level == 0;
+    }
+
     public void execute(Instruction instr) {
         if (instr.getType() == InstructionType.PEN_DOWN || instr.getType() == InstructionType.PEN_UP) {
             setPenDown(instr.changePenStatus(this.penDown));
@@ -138,12 +151,19 @@ public class Program {
                 variables.put(name, declaredVariable);
             }
 
-        } /*else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {
-            String name = ((VarAssignment)instr).getVarName();
-            Variable varToAssign = variables.get(name);
-            if (varToAssign != null)
-                ((VarAssignment) instr).assign(varToAssign, instr.getValue());
-        }*/
+        } else if (instr.getType() == InstructionType.INCREMENT_VARIABLE) {
+            Variable varToInc = variables.get(((VarAssignment)instr).getVarName());
+            if (varToInc != null) {
+                varToInc.setValue(varToInc.getValue() + ((VarAssignment) instr).getDifference());
+            }
+
+        } else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {
+            VarAssignment assignInstr = (VarAssignment) instr;
+            Variable varToAssign = variables.get(assignInstr.getVarName());
+            if (varToAssign != null) {
+                varToAssign.setValue(assignInstr.getAssignedValue());
+            }
+        }
 
         else {
             // sauvegarde la position de départ
@@ -235,7 +255,11 @@ public class Program {
         if(instru.getType() == InstructionType.VAR_DECLARATION){
 
             instru.setNewVarName(param);
-            declaredVariablesBeforeExec.put(param, new Variable(param));
+
+            // On ne la crée que si elle n'existe pas déjà
+            if (!declaredVariablesBeforeExec.containsKey(param)) {
+                declaredVariablesBeforeExec.put(param, new Variable(param));
+            }
 
         //sinon, on regarde si on donne à l'instru un entier -> on crée une value, si un string ->
         } else {
@@ -258,6 +282,9 @@ public class Program {
         //on délimite la zone de déclaration de variables
         int indexFirstinstruction = 0;
         int i = 0;
+
+        if (!allLoopsClosed())
+            return false;
         while(i < instructions.size() && instructions.get(i).getType() == InstructionType.VAR_DECLARATION ){
             indexFirstinstruction = i + 1; // + 1 car on veut verifier apres les variables
             i++;
@@ -308,7 +335,29 @@ public class Program {
 
     public void assignVariable(Instruction instru, String variable, String value){
         Variable var = declaredVariablesBeforeExec.get(variable);
-        ((VarAssignment) instru).assign(var, new Value(Integer.parseInt(value)));
+        if(instru.getType()==InstructionType.VAR_ASSIGNEMENT) instru.assign(var, new Value(Integer.parseInt(value)));
+    }
+
+    public void incrementVariable(Instruction instru, String variable, String stepStr){
+        Variable var = declaredVariablesBeforeExec.get(variable);
+        if (var == null) throw new RuntimeException("Variable non déclarée");
+
+        // On prend directement la valeur tapée dans la case
+        int stepVal = Integer.parseInt(stepStr);
+
+        if(instru.getType() == InstructionType.INCREMENT_VARIABLE){
+            instru.increment(var, stepVal);
+        }
+        //((VarAssignment) instru).increment(var, stepVal);
+    }
+
+    public void resetVariables() {
+        // remet la valeur de chaque variable déclarée à 0
+        for (Variable v : declaredVariablesBeforeExec.values()) {
+            v.setValue(0);
+        }
+        // vide la map d'exece
+        variables.clear();
     }
 
 }
