@@ -128,15 +128,15 @@ public class Program {
     }
 
     public boolean allLoopsClosed() {
-        int repeat = 0;
-        int end = 0;
+        int level = 0;
+        //int end = 0;
         for (Instruction instr: instructions) {
-            if (instr.getType() == InstructionType.REPEAT)
-                ++repeat;
+            if (instr.getType() == InstructionType.REPEAT && level >= 0)
+                ++level;
             else if (instr.getType() == InstructionType.END_REPEAT)
-                ++end;
+                --level;
         }
-        return repeat == end;
+        return level == 0;
     }
 
     public void execute(Instruction instr) {
@@ -152,9 +152,9 @@ public class Program {
             }
 
         } else if (instr.getType() == InstructionType.INCREMENT_VARIABLE) {
-            Variable varToInc = variables.get(((VarAssignment)instr).getVarName());
+            Variable varToInc = variables.get(instr.getVarName());
             if (varToInc != null) {
-                varToInc.setValue(varToInc.getValue() + ((VarAssignment) instr).getDifference());
+                varToInc.setValue(varToInc.getValue() + instr.getDifference());
             }
 
         } else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {

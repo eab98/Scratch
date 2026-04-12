@@ -98,7 +98,7 @@ public class ScratchView extends BorderPane {
                     setText(null);
                     setStyle("");
                 } else {
-                    setText(item.getName()); // or item.getLabel()
+                    setText("● " + item.getName()); // or item.getLabel()
 
                     switch (item.getType()) {
                         case MOVE_FORWARD:
@@ -141,7 +141,12 @@ public class ScratchView extends BorderPane {
                     setText(null);
                     setStyle("");
                 } else {
-                    setText(item.toString()); // or item.getLabel()
+                    //setText(item.toString()); // or item.getLabel()
+
+                    int index = getIndex();
+                    int tabAmount = scratchViewModel.getTabLevel(index);
+                    String spaces = "      ".repeat(tabAmount);
+                    setText(spaces + "● " + item.toString());
 
                     switch (item.getType()) {
                         case MOVE_FORWARD:
@@ -450,7 +455,7 @@ public class ScratchView extends BorderPane {
                     inputIncVar.textProperty().addListener(inputIncListener);
                     inputIncStep.textProperty().addListener(inputIncListener);
 
-                    content.getChildren().addAll(text, inputIncVar, text2, inputIncStep, plusButton, minusButton);
+                    content.getChildren().addAll(text, inputIncVar, text2, inputIncStep);
 
                 } else {
                     content.getChildren().addAll(text, input, text2);
@@ -468,6 +473,7 @@ public class ScratchView extends BorderPane {
         inputIncListener = (observable, oldValue, newValue) -> {
             scratchViewModel.changeIncrement(inputIncVar.getText(), inputIncStep.getText());
             programList.refresh();
+            canShowPlusMinusButtons(inputIncStep.getText());
         };
         inputIncVar.textProperty().addListener(inputIncListener);
         inputIncVar.setOnAction(e -> programList.refresh());
@@ -494,6 +500,15 @@ public class ScratchView extends BorderPane {
                 inputIncStep.setText("-1"); // valeur par défaut si c'était vide
             }
         });
+    }
+
+    public void canShowPlusMinusButtons(String input){
+        try {
+            Integer.parseInt(input);
+            content.getChildren().addAll(minusButton, plusButton);
+        } catch (NumberFormatException _){
+
+        }
     }
 
 }
