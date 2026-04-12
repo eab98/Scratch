@@ -152,22 +152,18 @@ public class Program {
             }
 
         } else if (instr.getType() == InstructionType.INCREMENT_VARIABLE) {
-            Variable varToInc = variables.get(instr.getVarName());
-
-            /*VarAssignment incInstr = (VarAssignment) instr;
-            // on récupère la variable et on lui ajoute la différence
-            Variable varToInc = variables.get(incInstr.getVarName());*/
-
+            Variable varToInc = variables.get(((VarAssignment)instr).getVarName());
             if (varToInc != null) {
-                varToInc.setValue(varToInc.getValue() + instr.getDifference());
+                varToInc.setValue(varToInc.getValue() + ((VarAssignment) instr).getDifference());
             }
 
-        } /*else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {
-            String name = ((VarAssignment)instr).getVarName();
-            Variable varToAssign = variables.get(name);
-            if (varToAssign != null)
-                ((VarAssignment) instr).assign(varToAssign, instr.getValue());
-        }*/
+        } else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {
+            VarAssignment assignInstr = (VarAssignment) instr;
+            Variable varToAssign = variables.get(assignInstr.getVarName());
+            if (varToAssign != null) {
+                varToAssign.setValue(assignInstr.getAssignedValue());
+            }
+        }
 
         else {
             // sauvegarde la position de départ
@@ -259,7 +255,11 @@ public class Program {
         if(instru.getType() == InstructionType.VAR_DECLARATION){
 
             instru.setNewVarName(param);
-            declaredVariablesBeforeExec.put(param, new Variable(param));
+
+            // On ne la crée que si elle n'existe pas déjà
+            if (!declaredVariablesBeforeExec.containsKey(param)) {
+                declaredVariablesBeforeExec.put(param, new Variable(param));
+            }
 
         //sinon, on regarde si on donne à l'instru un entier -> on crée une value, si un string ->
         } else {
@@ -349,6 +349,15 @@ public class Program {
             instru.increment(var, stepVal);
         }
         //((VarAssignment) instru).increment(var, stepVal);
+    }
+
+    public void resetVariables() {
+        // remet la valeur de chaque variable déclarée à 0
+        for (Variable v : declaredVariablesBeforeExec.values()) {
+            v.setValue(0);
+        }
+        // vide la map d'exece
+        variables.clear();
     }
 
 }

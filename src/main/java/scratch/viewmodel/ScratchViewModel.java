@@ -196,6 +196,9 @@ public class ScratchViewModel {
             coordY.set(end.getY());
             direction.set(program.getPen().getOrientation());
 
+            // on synchronise le tableau après chaque action
+            syncVariables();
+
             if (onStepExecuted != null) {
                 onStepExecuted.run();
             }
@@ -209,12 +212,20 @@ public class ScratchViewModel {
     public void resetExecution() {
         indexExec.set(-1); // remet le compteur à zéro
         index.set(-1);
+
+        // remise à 0 des variables ici
+        program.resetVariables();
+
         program.reset();
+
+        program.getVariables().clear();
 
         // màj sur la Vue
         coordX.set(program.getPen().getCoord().getX());
         coordY.set(program.getPen().getCoord().getY());
         direction.set(program.getPen().getOrientation());
+
+        syncVariables();
     }
 
     public int getOrientation() {
@@ -454,6 +465,13 @@ public class ScratchViewModel {
             return step == 0 ? "" : String.valueOf(step);
         }
         return "";
+    }
+
+    // synchronise le tableau avec les variables du programme
+    private void syncVariables() {
+        variables.clear();
+        // on récupère toutes les variables stockées dans la Map du Program
+        variables.addAll(program.getVariables().values());
     }
 
 }
