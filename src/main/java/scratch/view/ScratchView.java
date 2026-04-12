@@ -461,7 +461,7 @@ public class ScratchView extends BorderPane {
 
                 if (text2.getText().isEmpty()) {
                     content.getChildren().addAll(text, input);
-                } else if(currentInstru.getType() == InstructionType.VAR_ASSIGNEMENT){
+                } else if(currentInstru.getType() == InstructionType.VAR_ASSIGNMENT){
                     inputAssign1.textProperty().removeListener(inputAssignListener);
                     inputAssign2.textProperty().removeListener(inputAssignListener);
 
@@ -471,7 +471,7 @@ public class ScratchView extends BorderPane {
                     inputAssign1.textProperty().addListener(inputAssignListener);
                     inputAssign2.textProperty().addListener(inputAssignListener);
 
-                } else if(currentInstru.getType() == InstructionType.VAR_ASSIGNMENT){
+
                     content.getChildren().addAll(text, inputAssign1, text2, inputAssign2);
                     canShowPlusMinusButtonsAssign(inputAssign2.getText());
 
