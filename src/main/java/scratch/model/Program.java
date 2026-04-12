@@ -186,7 +186,31 @@ public class Program {
         try (PrintWriter writer = new PrintWriter(file)) {
             // parcourt toutes les instructions du programme
             for (Instruction instr : instructions) {
-                writer.println(instr.getType() + ";" + instr.getParameter());
+                switch (instr.getType()) {
+                    case VAR_DECLARATION:
+                        writer.println(instr.getType() + ";" + instr.getNewVarName());
+                        break;
+                    case VAR_ASSIGNEMENT:
+                        VarAssignment assign = (VarAssignment) instr;
+                        writer.println(instr.getType() + ";" + assign.getVarName() + ";" + assign.getAssignedValue());
+                        break;
+                    case INCREMENT_VARIABLE:
+                        VarAssignment inc = (VarAssignment) instr;
+                        writer.println(instr.getType() + ";" + inc.getVarName() + ";" + inc.getDifference());
+                        break;
+                    case MOVE_FORWARD:
+                    case TURN_LEFT:
+                    case TURN_RIGHT:
+                    case REPEAT:
+                        // récupère soit le nombre, soit le nom de la variable (si c'est "nb" par ex)
+                        String paramStr = (instr.getParameter() != null) ? instr.getParameter().toString() : "0";
+                        writer.println(instr.getType() + ";" + paramStr);
+                        break;
+                    default:
+                        // pour PEN_UP, PEN_DOWN, END_REPEAT (qui n'ont pas de paramètre)
+                        writer.println(instr.getType() + ";");
+                        break;
+                }
             }
             System.out.println("Fichier sauvegardé avec succès !");
         } catch (Exception e) {
@@ -198,33 +222,63 @@ public class Program {
     public void loadFromFile(File file) {
         try (Scanner scanner = new Scanner(file)) {
 
-            // vide le programme qu'on a
+            // vide le programme et nettoie la mémoire des variables
             this.empty();
+            declaredVariablesBeforeExec.clear();
 
             // lit ligne par ligne
             while (scanner.hasNextLine()) {
                 String ligne = scanner.nextLine();
-                String[] morceaux = ligne.split(";"); // Sépare "FORWARD" et "30"
+                if (ligne.trim().isEmpty()) continue; // ignore les lignes vides
 
-                if (morceaux.length == 2) {
-                    String typeAction = morceaux[0];
-                    String valeur = morceaux[1].trim();
+                String[] morceaux = ligne.split(";");
+                String typeAction = morceaux[0];
 
-                    // crée la bonne instruction en fonction du texte (ON CHERCHE L'INDEX DANS LE CATALOGUE)
-                    for (int i = 0; i < catalogue.size(); i++) {
-                        Instruction modele = catalogue.get(i);
+                // crée la bonne instruction en fonction du texte
+                for (int i = 0; i < catalogue.size(); i++) {
+                    Instruction modele = catalogue.get(i);
 
-                        if (modele.getType().toString().equals(typeAction)) {
-                            this.addInstruction(i, -1);
+                    if (modele.getType().toString().equals(typeAction)) {
+                        this.addInstruction(i, -1);
+                        Instruction nouvelleAction = instructions.get(instructions.size() - 1);
 
-                            // on ajoute à la fin de notre liste d'instruction
-                            Instruction nouvelleAction = instructions.get(instructions.size() - 1);
-
-                            // on injecte la valeur
-                            //nouvelleAction.setParameter(valeur);
-
-                            break; // on a trouvé, on passe à la prochaine ligne
+                        // si la ligne contient des paramètres (donc > 1 morceau)
+                        if (morceaux.length > 1) {
+                            switch (nouvelleAction.getType()) {
+                                case VAR_DECLARATION:
+                                    String varName = morceaux[1].trim();
+                                    nouvelleAction.setNewVarName(varName);
+                                    // On réenregistre la variable dans le moteur
+                                    declaredVariablesBeforeExec.put(varName, new Variable(varName));
+                                    break;
+                                case VAR_ASSIGNEMENT:
+                                    if (morceaux.length >= 3) {
+                                        VarAssignment assignInstr = (VarAssignment) nouvelleAction;
+                                        assignInstr.setVarName(morceaux[1].trim());
+                                        assignInstr.setAssignedValue(Integer.parseInt(morceaux[2].trim()));
+                                    }
+                                    break;
+                                case INCREMENT_VARIABLE:
+                                    if (morceaux.length >= 3) {
+                                        VarAssignment incInstr = (VarAssignment) nouvelleAction;
+                                        incInstr.setVarName(morceaux[1].trim());
+                                        incInstr.setDifference(Integer.parseInt(morceaux[2].trim()));
+                                    }
+                                    break;
+                                case MOVE_FORWARD:
+                                case TURN_LEFT:
+                                case TURN_RIGHT:
+                                case REPEAT:
+                                    // evaluate() s'occupe de savoir si c'est "30" ou "nb"
+                                    String paramVal = morceaux[1].trim();
+                                    Value evaluated = evaluate(paramVal);
+                                    if (evaluated != null) {
+                                        nouvelleAction.setParameter(evaluated);
+                                    }
+                                    break;
+                            }
                         }
+                        break; // on a trouvé, on passe à la prochaine ligne
                     }
                 }
             }
