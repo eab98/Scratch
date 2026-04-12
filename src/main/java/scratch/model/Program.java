@@ -329,29 +329,64 @@ public class Program {
 
 
 
-    //vérifie si le programme est correct (pas de PenActions de même type qui se suivent)
-    public boolean checkProgramValidity(){
-        boolean state = true; //etat fictif du pen sans execution
-
-        //on délimite la zone de déclaration de variables
-        int indexFirstinstruction = 0;
-        int i = 0;
+    // vérifie si le programme est correct (pas de PenActions en double + protection des variables de boucles)
+    public boolean checkProgramValidity() {
+        boolean state = true; // etat du pen sans execution
 
         if (!allLoopsClosed())
             return false;
+
+        // on délimite la zone de déclaration de variables
+        int indexFirstinstruction = 0;
+        int i = 0;
         while(i < instructions.size() && instructions.get(i).getType() == InstructionType.VAR_DECLARATION ){
             indexFirstinstruction = i + 1; // + 1 car on veut verifier apres les variables
             i++;
         }
 
+        // Pile pour retenir les variables bloquées par les boucles actuelles
+        Stack<String> protectedVariables = new Stack<>();
+
         for(int j = indexFirstinstruction; j < instructions.size(); j++) {
             Instruction current = instructions.get(j);
-            if((current.getType() == InstructionType.PEN_DOWN && state) ||
-                    (current.getType() == InstructionType.PEN_UP && !state)
-            || instructions.get(j).getType() == InstructionType.VAR_DECLARATION){
+
+            if(current.getType() == InstructionType.VAR_DECLARATION){
                 return false;
-            }else if((current.getType() == InstructionType.PEN_DOWN && !state) || (current.getType() == InstructionType.PEN_UP && state)){
+            }
+
+            if((current.getType() == InstructionType.PEN_DOWN && state) ||
+                    (current.getType() == InstructionType.PEN_UP && !state)){
+                return false;
+            } else if((current.getType() == InstructionType.PEN_DOWN && !state) ||
+                    (current.getType() == InstructionType.PEN_UP && state)){
                 state = !state;
+            }
+
+            // On utilise toString() et on regarde si la map la connait.
+            if (current.getType() == InstructionType.REPEAT) {
+                Value param = current.getParameter();
+                // Si le paramètre existe et que son nom est dans la liste des variables déclarées
+                if (param != null && declaredVariablesBeforeExec.containsKey(param.toString())) {
+                    protectedVariables.push(param.toString());
+                } else {
+                    protectedVariables.push(""); // Ce n'est pas une variable
+                }
+            }
+            else if (current.getType() == InstructionType.END_REPEAT) {
+                if (!protectedVariables.isEmpty()) {
+                    protectedVariables.pop();
+                }
+            }
+
+            // On utilise le polymorphisme avec getVarName()
+            if (current.getType() == InstructionType.VAR_ASSIGNMENT ||
+                    current.getType() == InstructionType.INCREMENT_VARIABLE) {
+
+                String varModified = current.getVarName();
+                if (protectedVariables.contains(varModified)) {
+                    // On essaie de modifier un compteur de boucle : PROGRAMME INVALIDE !
+                    return false;
+                }
             }
         }
         return true;
