@@ -12,7 +12,7 @@ public class Program {
     private final Character pen;
     private static final ObservableList<Instruction> catalogue = FXCollections.observableArrayList(
             new VarDeclaration("Déclaration variable", InstructionType.VAR_DECLARATION),
-            new VarAssignment("Assignation", InstructionType.VAR_ASSIGNEMENT),
+            new VarAssignment("Assignation", InstructionType.VAR_ASSIGNMENT),
             new VarAssignment("Inc/Dec variable", InstructionType.INCREMENT_VARIABLE),
             new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(0), 0),
             new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  new Value(0)),
@@ -398,7 +398,7 @@ public class Program {
                 throw new RuntimeException("Valeur invalide");
             }
 
-            if (instru.getType() == InstructionType.VAR_ASSIGNEMENT) {
+            if (instru.getType() == InstructionType.VAR_ASSIGNMENT) {
                 instru.setParameter(evaluated);
                 instru.assign(var, evaluated);
             }
