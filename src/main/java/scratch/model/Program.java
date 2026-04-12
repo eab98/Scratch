@@ -262,7 +262,7 @@ public class Program {
                                     if (morceaux.length >= 3) {
                                         VarAssignment incInstr = (VarAssignment) nouvelleAction;
                                         incInstr.setVarName(morceaux[1].trim());
-                                        incInstr.setDifference(Integer.parseInt(morceaux[2].trim()));
+                                        incInstr.setDifference(evaluate(morceaux[2].trim()));
                                     }
                                     break;
                                 case MOVE_FORWARD:
