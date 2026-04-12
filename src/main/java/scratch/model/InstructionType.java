@@ -8,7 +8,7 @@ public enum InstructionType {
     PEN_UP,
     PEN_DOWN,
     VAR_DECLARATION,
-    VAR_ASSIGNEMENT,
+    VAR_ASSIGNMENT,
     REPEAT,
     END_REPEAT,
     INCREMENT_VARIABLE

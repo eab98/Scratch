@@ -114,7 +114,7 @@ public class ScratchViewModel {
                 List<Instruction> instructions = getInstru();
                 Instruction instr = instructions.get(idx);
                 return instr.getType() != InstructionType.VAR_DECLARATION
-                        && instr.getType() != InstructionType.VAR_ASSIGNEMENT;
+                        && instr.getType() != InstructionType.VAR_ASSIGNMENT;
             }
             return false;
         }, index, getInstru());
