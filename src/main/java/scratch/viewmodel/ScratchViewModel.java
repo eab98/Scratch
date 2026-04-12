@@ -178,29 +178,35 @@ public class ScratchViewModel {
         int nextIndex = indexExec.get() + 1;
 
         if (nextIndex < instructions.size()) {
-            if (instructions.get(nextIndex).getType() == InstructionType.END_REPEAT) {
-                int loopStart = program.getLoopStart(nextIndex);
-                if (!program.loopEnded(loopStart))
-                    nextIndex = loopStart;
-            }
-            indexExec.set(nextIndex); // On passe à l'instruction suivante
-            index.set(nextIndex); // Synchronise la sélection visuelle
-            Instruction instru = instructions.get(nextIndex);
+            try {
+                if (instructions.get(nextIndex).getType() == InstructionType.END_REPEAT) {
+                    int loopStart = program.getLoopStart(nextIndex);
+                    if (!program.loopEnded(loopStart))
+                        nextIndex = loopStart;
+                }
+                indexExec.set(nextIndex); // On passe à l'instruction suivante
+                index.set(nextIndex); // Synchronise la sélection visuelle
+                Instruction instru = instructions.get(nextIndex);
 
-            // le modèle exécute l'action
-            program.execute(instru);
+                // le modèle exécute l'action
+                program.execute(instru);
 
-            // Position et direction d'arrivée
-            Coordinates end = program.getPen().getCoord();
-            coordX.set(end.getX());
-            coordY.set(end.getY());
-            direction.set(program.getPen().getOrientation());
+                // Position et direction d'arrivée
+                Coordinates end = program.getPen().getCoord();
+                coordX.set(end.getX());
+                coordY.set(end.getY());
+                direction.set(program.getPen().getOrientation());
 
-            // on synchronise le tableau après chaque action
-            syncVariables();
+                // on synchronise le tableau après chaque action
+                syncVariables();
 
-            if (onStepExecuted != null) {
-                onStepExecuted.run();
+                if (onStepExecuted != null) {
+                    onStepExecuted.run();
+                }
+            } catch (RuntimeException e) {
+                 errorMessage.set(e.getMessage());
+                 isRunning = false;
+                 updateState();
             }
         }
     }

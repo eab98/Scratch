@@ -146,7 +146,7 @@ public class ScratchView extends BorderPane {
                     int index = getIndex();
                     int tabAmount = scratchViewModel.getTabLevel(index);
                     String spaces = "      ".repeat(tabAmount);
-                    setText(spaces + "● " + item.getName());
+                    setText(spaces + "● " + item.toString());
 
                     switch (item.getType()) {
                         case MOVE_FORWARD:
