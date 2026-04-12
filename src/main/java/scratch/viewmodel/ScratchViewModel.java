@@ -462,7 +462,7 @@ public class ScratchViewModel {
 
     public String getIncrementVarName() {
         Instruction instru = instructions.get(getIndexProperty().get());
-        if (instru.getType() == InstructionType.INCREMENT_VARIABLE) return ((VarAssignment) instru).getVarName();
+        if (instru.getType() == InstructionType.INCREMENT_VARIABLE) return instru.getVarName();
         return "";
     }
 
