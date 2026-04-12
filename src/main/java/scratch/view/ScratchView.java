@@ -32,7 +32,6 @@ public class ScratchView extends BorderPane {
     private final Label sceneTitle = new Label("Scène");
     
     private final HBox buttonProgram = new HBox(8);
-    private final HBox buttonScene = new HBox(10);
 
     private final ListView<Instruction> paletteList = new ListView<>();
     private final ListView<Instruction> programList = new ListView<>();
@@ -47,17 +46,27 @@ public class ScratchView extends BorderPane {
     private final Button deleteButton = new Button("Supprimer");
     private final Button emptyButton = new Button("Vider tout");
 
-    private final Button reinitButton = new Button("Ré-initiliaser");
-    private final Button nextButton = new Button("Suivant");
-
     private final TitledPane detailsAction = new TitledPane();
     private final HBox content = new HBox();
     private final VBox contentPlusError = new VBox();
     private final TextField input = new TextField();
+    private final TextField inputAssign1 = new TextField();
+    private final TextField inputAssign2 = new TextField();
+
+    private final TextField inputIncVar = new TextField();
+    private final TextField inputIncStep = new TextField();
+    private final Button plusButton = new Button("+");
+    private final Button minusButton = new Button("-");
+    private ChangeListener<String> inputIncListener;
+
     private final Label errorMessage = new Label();
 
     //on initialise le listener ici pour pouvoir l'ajouter/l'enlever plus facilement
     private ChangeListener<String> inputListener;
+
+    private final Label infoTortue = new Label();
+
+    private ChangeListener<String> inputAssignListener;
 
 
     public ScratchView(ScratchViewModel scratchViewModel) {
@@ -76,6 +85,7 @@ public class ScratchView extends BorderPane {
         configButtonsDisabling();
         beautify();
 
+        this.scratchViewModel.setOnStepExecuted(() -> updateCanvas());
     }
     
     private void configPaletteBox() {
@@ -89,7 +99,7 @@ public class ScratchView extends BorderPane {
                     setText(null);
                     setStyle("");
                 } else {
-                    setText(item.toString()); // or item.getLabel()
+                    setText(item.getName()); // or item.getLabel()
 
                     switch (item.getType()) {
                         case MOVE_FORWARD:
@@ -165,30 +175,36 @@ public class ScratchView extends BorderPane {
         program.getChildren().add(detailsAction);
 
         errorMessage.setTextFill(Color.RED);
+
+        configInputIncrement();
+
         updateDetails();
         configInputAmount();
+        configInputAssign();
     }
 
     private void configSceneBox() {
-        configButtonsScene();
-
         Pane canvasContainer = new Pane();
         canvasContainer.getChildren().addAll(canvas, headTurtle);
 
         VariablesView variablesView = new VariablesView(scratchViewModel);
+        infoTortue.textProperty().bind(scratchViewModel.turtleInfoTextProperty());
 
-        scene.getChildren().addAll(sceneTitle, canvasContainer, variablesView, buttonScene);
+        VBox infosVariablesBox = new VBox(5);
+        infosVariablesBox.getChildren().addAll(infoTortue, variablesView);
+
+        // on lui dit quoi faire avec le canvas quand on clique sur "Ré-initialiser"
+        ExecutionView executionView = new ExecutionView(scratchViewModel, () -> {
+            GraphicsContext gc = canvas.getGraphicsContext2D();
+            gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+            configCanvas();
+        });
+
+        // on rassemble la zone du bas (Infos tortue, Variables, et notre bloc d'Exécution)
+        VBox bottomControls = new VBox(10, infosVariablesBox, executionView);
+
+        scene.getChildren().addAll(sceneTitle, canvasContainer, bottomControls);
         configCanvas();
-    }
-
-    private void configButtonsScene() {
-        buttonScene.getChildren().addAll(reinitButton, nextButton);
-
-        reinitButton.textProperty().bind(scratchViewModel.leftBtnTextProperty());
-        reinitButton.disableProperty().bind(scratchViewModel.leftBtnDisabledProperty());
-
-        nextButton.textProperty().bind(scratchViewModel.rightBtnTextProperty());
-        nextButton.disableProperty().bind(scratchViewModel.rightBtnDisabledProperty());
     }
 
     private void configSelection() {
@@ -254,29 +270,19 @@ public class ScratchView extends BorderPane {
         headTurtle.setRotate(scratchViewModel.getOrientation());
     }
 
-    private void configActions(){
+    private void configActions() {
         addToProgramButton.setOnAction(e -> scratchViewModel.addInstruction());
+
         this.paletteList.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2)
                 scratchViewModel.addInstruction();
         });
+
         upButton.setOnAction(e -> scratchViewModel.up());
         downButton.setOnAction(e -> scratchViewModel.down());
-        duplicateButton.setOnAction(e-> scratchViewModel.duplicate());
-        deleteButton.setOnAction(e-> scratchViewModel.removeInstru());
-        emptyButton.setOnAction(e-> scratchViewModel.empty());
-        nextButton.setOnAction(e -> {
-            scratchViewModel.clickRightButton();
-            updateCanvas();
-        });
-        reinitButton.setOnAction(e -> {
-            scratchViewModel.clickLeftButton();
-            //efface le canvas
-            GraphicsContext gc = canvas.getGraphicsContext2D();
-            gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-            // redessine la grille
-            configCanvas();
-        });
+        duplicateButton.setOnAction(e -> scratchViewModel.duplicate());
+        deleteButton.setOnAction(e -> scratchViewModel.removeInstru());
+        emptyButton.setOnAction(e -> scratchViewModel.empty());
     }
 
     private void configButtonsDisabling() {
@@ -300,6 +306,25 @@ public class ScratchView extends BorderPane {
         input.setOnAction(e -> {
             this.programList.refresh();
         });
+    }
+
+    private void configInputAssign() {
+        inputAssignListener = (observable, oldValue, newValue) -> {
+            scratchViewModel.changeAssignment(
+                    inputAssign1.getText(),
+                    inputAssign2.getText()
+            );
+            programList.refresh();
+        };
+        inputAssign1.textProperty().addListener(inputAssignListener);
+        inputAssign1.setOnAction(e -> {
+            this.programList.refresh();
+        });
+        inputAssign2.textProperty().addListener(inputAssignListener);
+        inputAssign2.setOnAction(e -> {
+            this.programList.refresh();
+        });
+
     }
 
     private void loadData() {
@@ -330,6 +355,11 @@ public class ScratchView extends BorderPane {
         input.setAlignment(Pos.CENTER);
 
         this.content.setSpacing(5);
+
+        inputIncVar.setMaxWidth(50);
+        inputIncStep.setMaxWidth(50);
+        inputIncVar.setAlignment(Pos.CENTER);
+        inputIncStep.setAlignment(Pos.CENTER);
     }
 
 
@@ -376,6 +406,7 @@ public class ScratchView extends BorderPane {
                 detailsAction.setContent(content);
             }
 
+
             //pour les autres instructions
             else {
                 // récupère l'instruction pour connaitre son type
@@ -387,6 +418,11 @@ public class ScratchView extends BorderPane {
                 if (currentInstru.getType() == InstructionType.VAR_DECLARATION) {
                     text.setText("Déclaration de la variable");
                     text2.setText(""); // enlève le mot pixels a la fin
+                }
+
+                if (currentInstru.getType() == InstructionType.VAR_ASSIGNEMENT) {
+                    text.setText("Assignation de la variable ");
+                    text2.setText(" valeur : ");
                 }
 
                 String param = scratchViewModel.getParameterInstru();
@@ -401,15 +437,66 @@ public class ScratchView extends BorderPane {
 
                 if (text2.getText().isEmpty()) {
                     content.getChildren().addAll(text, input);
+                } else if(currentInstru.getType() == InstructionType.VAR_ASSIGNEMENT){
+                    content.getChildren().addAll(text, inputAssign1, text2, inputAssign2);
+
+                } else if(currentInstru.getType() == InstructionType.INCREMENT_VARIABLE) {
+                    text.setText("Incrémentation de la variable");
+                    text2.setText(" de ");
+
+                    inputIncVar.textProperty().removeListener(inputIncListener);
+                    inputIncStep.textProperty().removeListener(inputIncListener);
+
+                    inputIncVar.setText(scratchViewModel.getIncrementVarName());
+                    inputIncStep.setText(scratchViewModel.getIncrementStep());
+
+                    inputIncVar.textProperty().addListener(inputIncListener);
+                    inputIncStep.textProperty().addListener(inputIncListener);
+
+                    content.getChildren().addAll(text, inputIncVar, text2, inputIncStep, plusButton, minusButton);
+
                 } else {
                     content.getChildren().addAll(text, input, text2);
                 }
+
 
                 contentPlusError.getChildren().clear();
                 contentPlusError.getChildren().addAll(content, errorMessage);
                 detailsAction.setContent(contentPlusError);
             }
         }
+    }
+
+    private void configInputIncrement() {
+        inputIncListener = (observable, oldValue, newValue) -> {
+            scratchViewModel.changeIncrement(inputIncVar.getText(), inputIncStep.getText());
+            programList.refresh();
+        };
+        inputIncVar.textProperty().addListener(inputIncListener);
+        inputIncVar.setOnAction(e -> programList.refresh());
+
+        inputIncStep.textProperty().addListener(inputIncListener);
+        inputIncStep.setOnAction(e -> programList.refresh());
+
+        plusButton.setOnAction(e -> {
+            try {
+                // on récupère le nombre actuel et on fait +1
+                int val = Integer.parseInt(inputIncStep.getText());
+                inputIncStep.setText(String.valueOf(val + 1));
+            } catch (NumberFormatException ex) {
+                inputIncStep.setText("1"); // valeur par défaut si c'était vide
+            }
+        });
+
+        minusButton.setOnAction(e -> {
+            try {
+                // on récupère le nombre actuel et on fait -1
+                int val = Integer.parseInt(inputIncStep.getText());
+                inputIncStep.setText(String.valueOf(val - 1));
+            } catch (NumberFormatException ex) {
+                inputIncStep.setText("-1"); // valeur par défaut si c'était vide
+            }
+        });
     }
 
 }

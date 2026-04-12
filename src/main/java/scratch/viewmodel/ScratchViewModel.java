@@ -21,6 +21,7 @@ public class ScratchViewModel {
 
     private final DoubleProperty coordX = new SimpleDoubleProperty(0);
     private final DoubleProperty coordY = new SimpleDoubleProperty(0);
+    private final IntegerProperty direction = new SimpleIntegerProperty(0);
 
     private final StringProperty amount = new SimpleStringProperty("");
 
@@ -29,6 +30,8 @@ public class ScratchViewModel {
     // état pour les boutons charger et executer
     private boolean isLoaded = false;
     private boolean isRunning = false;
+
+    private Runnable onStepExecuted;
 
     private final StringProperty leftBtnText = new SimpleStringProperty("Charger");
     private final BooleanProperty leftBtnDisabled = new SimpleBooleanProperty(true);
@@ -55,9 +58,21 @@ public class ScratchViewModel {
 
     public StringProperty getAmountProperty() { return amount; }
 
+    private final StringProperty turtleInfoText = new SimpleStringProperty("");
+    public StringProperty turtleInfoTextProperty() { return turtleInfoText; }
+
+    private final ExecutionViewModel executionVM = new ExecutionViewModel(this);
+    public ExecutionViewModel getExecutionVM() { return executionVM; }
+
     public ScratchViewModel(Program program) {
         this.program = program;
         updateState();
+
+        updateTurtleInfoText();
+
+        coordX.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
+        coordY.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
+        direction.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
     }
 
     public ObservableList<Instruction> getCatalogue() {
@@ -157,11 +172,15 @@ public class ScratchViewModel {
             // le modèle exécute l'action
             program.execute(instru);
 
-            // Position d'arrivée
+            // Position et direction d'arrivée
             Coordinates end = program.getPen().getCoord();
             coordX.set(end.getX());
             coordY.set(end.getY());
+            direction.set(program.getPen().getOrientation());
 
+            if (onStepExecuted != null) {
+                onStepExecuted.run();
+            }
         }
     }
 
@@ -177,6 +196,7 @@ public class ScratchViewModel {
         // màj sur la Vue
         coordX.set(program.getPen().getCoord().getX());
         coordY.set(program.getPen().getCoord().getY());
+        direction.set(program.getPen().getOrientation());
     }
 
     public int getOrientation() {
@@ -233,16 +253,22 @@ public class ScratchViewModel {
         } else {
             // On clic sur reset
             isRunning = false;
+            executionVM.stopAuto();
             resetExecution();
         }
         updateState(); // update le visuel
     }
 
     public void clickRightButton() {
-        if (!isRunning) {
-            isRunning = true; // bouton exec qui devient suivant
+        if (executionVM.isAutoModeProperty().get()) {
+            executionVM.playAuto(); // lance l'auto
+            isRunning = true;
         } else {
-            execute(); // on avance d'un step
+            if (!isRunning) {
+                isRunning = true; // bouton exec qui devient suivant
+            } else {
+                execute(); // on avance d'un step
+            }
         }
         updateState();
     }
@@ -251,6 +277,7 @@ public class ScratchViewModel {
         // dès qu'on modifie dans programme, on annule et on doit recharger à nouveau
         isLoaded = false;
         isRunning = false;
+        executionVM.stopAuto();
         resetExecution();
         updateState();
     }
@@ -308,6 +335,107 @@ public class ScratchViewModel {
         Instruction instru = instructions.get(index);
 
         return instru.getType() == InstructionType.PEN_UP || instru.getType() == InstructionType.PEN_DOWN;
+    }
+
+    private void updateTurtleInfoText() {
+        double x = coordX.get();
+        double y = coordY.get();
+        int direction = getOrientation();
+
+        // On compense pour l'affichage (-90 + 90 = 0)
+        double displayDirection = direction + 90;
+
+        // Petite sécurité pour garder l'angle affiché entre -180° et 180°
+        if (displayDirection > 180) {
+            displayDirection -= 360;
+        }
+
+        turtleInfoText.set(String.format(java.util.Locale.FRENCH, "Tortue : x = %.1f, y = %.1f, direction = %.1f °", x, y, (double) displayDirection));
+    }
+
+    public boolean executeStep() {
+        if (indexExec.get() < getInstru().size() - 1) {
+            execute();
+            updateState();
+            return true; // le programme continue
+        }
+        return false; // le programme est fini
+    }
+
+    public void setOnStepExecuted(Runnable onStepExecuted) {
+        this.onStepExecuted = onStepExecuted;
+    }
+
+    public void changeAssignment(String input1, String input2){
+        int index = getIndexProperty().get();
+        if (index < 0 || index >= getInstru().size()) {
+            return;
+        }
+
+        Instruction instru = getInstru().get(index);
+
+        try {
+            if (input1 == null || input1.isEmpty()) {
+                throw  new RuntimeException("Nom de variable invalide");
+            }
+            if( input2 == null || input2.isEmpty()) {
+                throw new RuntimeException("Valeur invalide");
+            }
+
+            program.assignVariable(instru, input1, input2);
+
+            errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+
+            indexExec.set(-1); // remet l'exécution à zéro
+            program.reset(); // replace la tortue
+            coordX.set(program.getPen().getCoord().getX());
+            coordY.set(program.getPen().getCoord().getY());
+        } catch (RuntimeException e){
+            errorMessage.set(e.getMessage());
+        }
+    }
+
+    public void changeIncrement(String varName, String stepStr){
+        int index = getIndexProperty().get();
+        if (index < 0 || index >= getInstru().size()) return;
+
+        Instruction instru = getInstru().get(index);
+
+        try {
+            if (varName == null || varName.isEmpty()) throw new RuntimeException("Nom de variable invalide");
+            if (stepStr == null || stepStr.isEmpty()) throw new RuntimeException("Valeur invalide");
+
+            program.incrementVariable(instru, varName.trim(), stepStr.trim());
+
+            errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+            indexExec.set(-1);
+            program.reset();
+            coordX.set(program.getPen().getCoord().getX());
+            coordY.set(program.getPen().getCoord().getY());
+        } catch (RuntimeException e){
+            errorMessage.set(e.getMessage());
+        }
+    }
+
+    public String getIncrementVarName() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.INCREMENT_VARIABLE) return ((VarAssignment) instru).getVarName();
+        return "";
+    }
+
+    public String getIncrementStep() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.INCREMENT_VARIABLE) {
+            int step = ((VarAssignment) instru).getDifference();
+            return step == 0 ? "" : String.valueOf(step);
+        }
+        return "";
     }
 
 }

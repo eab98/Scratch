@@ -8,4 +8,8 @@ class VarAction extends Instruction {
         super(name, type, null);
         this.variable = null;
     }
+
+    public Variable getVariable() {
+        return variable;
+    }
 }

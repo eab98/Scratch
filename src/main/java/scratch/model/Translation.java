@@ -15,7 +15,7 @@ public class Translation extends Movement{
 
     @Override
     public Instruction newInstruction() {
-        return new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(0), 30);
+        return new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(30), 30);
     }
 
     public void setDistance(Value value) {
@@ -34,9 +34,10 @@ public class Translation extends Movement{
         int direction = pen.getOrientation();
         Coordinates origin = pen.getCoord();
 
+        int currentDistance = this.getParameter().getValue();
 
-        double x = Math.cos(Math.toRadians(direction)) * distance;
-        double y = Math.sin(Math.toRadians(direction)) * distance;
+        double x = Math.cos(Math.toRadians(direction)) * currentDistance;
+        double y = Math.sin(Math.toRadians(direction)) * currentDistance;
 
         double x_in = origin.getX();
         double y_in = origin.getY();
