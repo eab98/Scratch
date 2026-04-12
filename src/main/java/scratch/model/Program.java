@@ -161,7 +161,7 @@ public class Program {
             VarAssignment assignInstr = (VarAssignment) instr;
             Variable varToAssign = variables.get(assignInstr.getVarName());
             if (varToAssign != null) {
-                varToAssign.setValue(assignInstr.getAssignedValue());
+                varToAssign.setValue(assignInstr.getAssignedValue().getValue());
             }
         }
 
@@ -255,7 +255,7 @@ public class Program {
                                     if (morceaux.length >= 3) {
                                         VarAssignment assignInstr = (VarAssignment) nouvelleAction;
                                         assignInstr.setVarName(morceaux[1].trim());
-                                        assignInstr.setAssignedValue(Integer.parseInt(morceaux[2].trim()));
+                                        assignInstr.setAssignedValue(evaluate(morceaux[2].trim()));
                                     }
                                     break;
                                 case INCREMENT_VARIABLE:
