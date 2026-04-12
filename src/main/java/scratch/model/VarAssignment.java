@@ -5,6 +5,8 @@ public class VarAssignment extends VarAction {
     private int difference = 0;
     private Value varValue;
 
+    private int assignedValue = 0;
+
     public VarAssignment(String name, InstructionType type) {
         super(name, type);
     }
@@ -27,9 +29,9 @@ public class VarAssignment extends VarAction {
 
     @Override
     public void assign(Variable var, Value value){
-        var.setValue(value.getValue());
+        // on stocke la valeur dans l'instruction pour le moment de l'exécution
         this.setVarName(var.getName());
-        this.varValue = value;
+        this.assignedValue = value.getValue();
     }
 
     // méthode pour stocker l'incrémentation
@@ -57,6 +59,8 @@ public class VarAssignment extends VarAction {
         this.difference = difference;
     }
 
+    public int getAssignedValue() { return assignedValue; }
+
     @Override
     public String toString() {
         /*return this.getName() + " : " + this.getVarName();*//*(this.getVariable() == null ? "" : this.getVariable().getName()
@@ -67,7 +71,7 @@ public class VarAssignment extends VarAction {
         String msg = "";
 
         if(this.getType() == InstructionType.VAR_ASSIGNEMENT){
-            msg = " : " + this.getVarName() + " = " + (this.varValue == null? "" : this.varValue);
+            msg = " : " + this.getVarName() + " = " + this.assignedValue;
         } else if (this.getType() == InstructionType.INCREMENT_VARIABLE){
             if(difference == 0){
                 msg = " : " + this.getVarName() + " de ";
