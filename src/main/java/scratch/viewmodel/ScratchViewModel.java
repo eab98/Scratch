@@ -474,4 +474,23 @@ public class ScratchViewModel {
         variables.addAll(program.getVariables().values());
     }
 
+    public int getTabLevel(int index){
+        int level = 0;
+
+        if (index < 0 || index >= instructions.size()) {
+            return 0;
+        }
+
+        for(int i = 0; i<index; i++){
+            if(instructions.get(i).getType() == InstructionType.REPEAT){
+                level++;
+            }else if(instructions.get(i).getType() == InstructionType.END_REPEAT){
+                level--;
+            }
+        }
+        //si jamais le niveau descend en dessous de 0, on return 0 donc on prend le max entre le level et 0
+        return Math.max(level, 0);
+
+    }
+
 }
