@@ -114,9 +114,7 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: green;");
                             break;
 
-                        case VAR_DECLARATION:
-                        case VAR_ASSIGNEMENT:
-                        case INCREMENT_VARIABLE:
+                        case VAR_DECLARATION, VAR_ASSIGNEMENT, INCREMENT_VARIABLE, REPEAT, END_REPEAT:
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
@@ -159,9 +157,7 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: green;");
                             break;
 
-                        case VAR_DECLARATION:
-                        case VAR_ASSIGNEMENT:
-                        case INCREMENT_VARIABLE:
+                        case VAR_DECLARATION, VAR_ASSIGNEMENT, INCREMENT_VARIABLE, REPEAT, END_REPEAT:
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 

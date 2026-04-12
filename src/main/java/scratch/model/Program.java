@@ -17,6 +17,8 @@ public class Program {
             new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(0), 0),
             new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  new Value(0)),
             new Rotation("Tourner à droite de", InstructionType.TURN_RIGHT,  new Value(0)),
+            new Repeat("Répéter", InstructionType.REPEAT, new Value(0)),
+            new Repeat("Fin Répéter", InstructionType.END_REPEAT, new Value(0)),
             new PenAction("Lever stylo", InstructionType.PEN_UP),
             new PenAction("Abaisser stylo", InstructionType.PEN_DOWN)
             );
@@ -90,6 +92,39 @@ public class Program {
             instructions.add(instru.duplicate());
             checkProgramValidity();
         }
+    }
+
+    /*on part du end pour retrouver le start et recommencer la boucle
+    mais pour les boucles imbriquees, on peut trouver des start qui ne serait pas le start correspondant à notre end
+    logique par niveau -> a chaque fois qu'on rencontre un end autre que celui en parametre, on increment le niveau car il
+    s'agit d'une autre boucle
+    */
+
+    public int getLoopStart(int end) {
+        int level = 0;
+
+        for (int i = end - 1; i >= 0; i--) {
+            Instruction instr = instructions.get(i);
+
+            if (instr.getType() == InstructionType.END_REPEAT) {
+                level++;
+            } else if (instr.getType() == InstructionType.REPEAT) {
+                //c'est le start qui correspond au end en param
+                if (level == 0) {
+                    return i;
+                }
+                //c'est un start d'une boucle imbriquee donc tout ce qui se trouve au-delà apartient à un niveau inférieur
+                else {
+                    level--;
+                }
+            }
+        }
+        return 0;
+    }
+
+    public boolean loopEnded(int idx) {
+        Instruction loop = instructions.get(idx);
+        return loop.getType() == InstructionType.REPEAT && loop.getValue().getValue() <= 0;
     }
 
     public void execute(Instruction instr) {
