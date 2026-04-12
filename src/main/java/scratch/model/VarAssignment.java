@@ -9,12 +9,18 @@ public class VarAssignment extends VarAction {
     }
 
     public Instruction newInstruction(){
-        return new VarAssignment("Assignation ", this.getType());
+        return new VarAssignment(this.getName(), this.getType());
     }
 
     public void assign(Variable var, Value value){
         var.setValue(value.getValue());
         this.setVarName(var.getName());
+    }
+
+    // méthode pour stocker l'incrémentation
+    public void increment(Variable var, int diff) {
+        this.setVarName(var.getName());
+        this.setDifference(diff);
     }
 
     public String getVarName() {

@@ -398,4 +398,44 @@ public class ScratchViewModel {
         }
     }
 
+    public void changeIncrement(String varName, String stepStr){
+        int index = getIndexProperty().get();
+        if (index < 0 || index >= getInstru().size()) return;
+
+        Instruction instru = getInstru().get(index);
+
+        try {
+            if (varName == null || varName.isEmpty()) throw new RuntimeException("Nom de variable invalide");
+            if (stepStr == null || stepStr.isEmpty()) throw new RuntimeException("Valeur invalide");
+
+            program.incrementVariable(instru, varName.trim(), stepStr.trim());
+
+            errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+            indexExec.set(-1);
+            program.reset();
+            coordX.set(program.getPen().getCoord().getX());
+            coordY.set(program.getPen().getCoord().getY());
+        } catch (RuntimeException e){
+            errorMessage.set(e.getMessage());
+        }
+    }
+
+    public String getIncrementVarName() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.INCREMENT_VARIABLE) return ((VarAssignment) instru).getVarName();
+        return "";
+    }
+
+    public String getIncrementStep() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.INCREMENT_VARIABLE) {
+            int step = ((VarAssignment) instru).getDifference();
+            return step == 0 ? "" : String.valueOf(step);
+        }
+        return "";
+    }
+
 }

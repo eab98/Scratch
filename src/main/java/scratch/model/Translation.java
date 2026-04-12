@@ -34,9 +34,10 @@ public class Translation extends Movement{
         int direction = pen.getOrientation();
         Coordinates origin = pen.getCoord();
 
+        int currentDistance = this.getParameter().getValue();
 
-        double x = Math.cos(Math.toRadians(direction)) * distance;
-        double y = Math.sin(Math.toRadians(direction)) * distance;
+        double x = Math.cos(Math.toRadians(direction)) * currentDistance;
+        double y = Math.sin(Math.toRadians(direction)) * currentDistance;
 
         double x_in = origin.getX();
         double y_in = origin.getY();
