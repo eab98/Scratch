@@ -105,11 +105,14 @@ public class Program {
             }
 
         } else if (instr.getType() == InstructionType.INCREMENT_VARIABLE) {
-            VarAssignment incInstr = (VarAssignment) instr;
+            Variable varToInc = variables.get(instr.getVarName());
+
+            /*VarAssignment incInstr = (VarAssignment) instr;
             // on récupère la variable et on lui ajoute la différence
-            Variable varToInc = variables.get(incInstr.getVarName());
+            Variable varToInc = variables.get(incInstr.getVarName());*/
+
             if (varToInc != null) {
-                varToInc.setValue(varToInc.getValue() + incInstr.getDifference());
+                varToInc.setValue(varToInc.getValue() + instr.getDifference());
             }
 
         } /*else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {
@@ -282,7 +285,7 @@ public class Program {
 
     public void assignVariable(Instruction instru, String variable, String value){
         Variable var = declaredVariablesBeforeExec.get(variable);
-        ((VarAssignment) instru).assign(var, new Value(Integer.parseInt(value)));
+        if(instru.getType()==InstructionType.VAR_ASSIGNEMENT) instru.assign(var, new Value(Integer.parseInt(value)));
     }
 
     public void incrementVariable(Instruction instru, String variable, String stepStr){
@@ -292,7 +295,10 @@ public class Program {
         // On prend directement la valeur tapée dans la case
         int stepVal = Integer.parseInt(stepStr);
 
-        ((VarAssignment) instru).increment(var, stepVal);
+        if(instru.getType() == InstructionType.INCREMENT_VARIABLE){
+            instru.increment(var, stepVal);
+        }
+        //((VarAssignment) instru).increment(var, stepVal);
     }
 
 }

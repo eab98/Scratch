@@ -13,6 +13,7 @@ public class VarAssignment extends VarAction {
         return new VarAssignment(this.getName(), this.getType());
     }
 
+    @Override
     public void assign(Variable var, Value value){
         var.setValue(value.getValue());
         this.setVarName(var.getName());
@@ -20,11 +21,13 @@ public class VarAssignment extends VarAction {
     }
 
     // méthode pour stocker l'incrémentation
+    @Override
     public void increment(Variable var, int diff) {
         this.setVarName(var.getName());
         this.setDifference(diff);
     }
 
+    @Override
     public String getVarName() {
         return varName;
     }
@@ -33,8 +36,9 @@ public class VarAssignment extends VarAction {
         this.varName = varName;
     }
 
+    @Override
     public int getDifference() {
-        return difference;
+       return difference;
     }
 
     public void setDifference(int difference) {
