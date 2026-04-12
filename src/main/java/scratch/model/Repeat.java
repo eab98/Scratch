@@ -12,11 +12,15 @@ public class Repeat extends Instruction {
     @Override
     public void execute(Character character) {
         if (this.getType() == InstructionType.REPEAT) {
-            Value val = this.getValue();
-            if (val.getValue() == 0)
-                val.setValue(loop);
-            val.setValue(val.getValue() - 1);
+            if (loop == 0)
+                loop = getValue().getValue();
+            --loop;
         }
+    }
+
+    @Override
+    public int getLoop() {
+        return this.loop;
     }
 
     @Override

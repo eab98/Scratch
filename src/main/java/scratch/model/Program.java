@@ -124,7 +124,7 @@ public class Program {
 
     public boolean loopEnded(int idx) {
         Instruction loop = instructions.get(idx);
-        return loop.getType() == InstructionType.REPEAT && loop.getValue().getValue() <= 0;
+        return loop.getType() == InstructionType.REPEAT && loop.getLoop() <= 0;
     }
 
     public boolean allLoopsClosed() {
@@ -397,7 +397,7 @@ public class Program {
         if (var == null) throw new RuntimeException("Variable non déclarée");
 
         // On prend directement la valeur tapée dans la case
-        int stepVal = Integer.parseInt(stepStr);
+        Value stepVal = this.evaluate(stepStr);
 
         if(instru.getType() == InstructionType.INCREMENT_VARIABLE){
             instru.increment(var, stepVal);
