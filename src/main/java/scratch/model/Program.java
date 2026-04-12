@@ -333,10 +333,23 @@ public class Program {
         return declaredVariablesBeforeExec.get(name);
     }
 
-    public void assignVariable(Instruction instru, String variable, String value){
-        Variable var = declaredVariablesBeforeExec.get(variable);
-        if(instru.getType()==InstructionType.VAR_ASSIGNEMENT) instru.assign(var, new Value(Integer.parseInt(value)));
-    }
+    public void assignVariable(Instruction instru, String variable, String valueText){
+            Variable var = declaredVariablesBeforeExec.get(variable);
+            if (var == null) {
+                throw new RuntimeException("Variable non déclarée");
+            }
+
+            Value evaluated = evaluate(valueText);
+            if (evaluated == null) {
+                throw new RuntimeException("Valeur invalide");
+            }
+
+            if (instru.getType() == InstructionType.VAR_ASSIGNEMENT) {
+                instru.setParameter(evaluated);
+                instru.assign(var, evaluated);
+            }
+        }
+
 
     public void incrementVariable(Instruction instru, String variable, String stepStr){
         Variable var = declaredVariablesBeforeExec.get(variable);
