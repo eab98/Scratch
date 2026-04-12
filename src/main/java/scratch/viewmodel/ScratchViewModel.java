@@ -474,4 +474,33 @@ public class ScratchViewModel {
         variables.addAll(program.getVariables().values());
     }
 
+    public int getTabLevel(int index){
+        int level = 0;
+
+        if (index < 0 || index >= instructions.size()) {
+            return 0;
+        }
+
+        /*
+        On regarde le nombre de boucles ouvertes avant l'instruction courante
+         */
+        for(int i = 0; i<index; i++){
+            if(instructions.get(i).getType() == InstructionType.REPEAT){
+                level++;
+            }else if(instructions.get(i).getType() == InstructionType.END_REPEAT){
+                level--;
+            }
+        }
+
+        //On verifie si l'instru courante est une end_repeat, sinon le end_repeat est indente comme le reste des instructions dans le repeat
+        Instruction current = instructions.get(index);
+        if(current.getType() == InstructionType.END_REPEAT){
+            level--;
+        }
+
+        //si jamais le level descend en dessous de 0, on return 0 donc on prend le max entre le level et 0
+        return Math.max(level, 0);
+
+    }
+
 }
