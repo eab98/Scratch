@@ -28,13 +28,9 @@ public abstract class Instruction {
         return this.getName() + " ";
     }
 
-    public Instruction newInstruction() {
-        return this;
-    }
+    public abstract Instruction newInstruction();
 
-    public Instruction duplicate() {
-        return this;
-    }
+    public abstract Instruction duplicate();
 
     public void setParameter(Value value) {
         this.value = value;
