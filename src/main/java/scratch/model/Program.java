@@ -343,7 +343,7 @@ public class Program {
         if (var == null) throw new RuntimeException("Variable non déclarée");
 
         // On prend directement la valeur tapée dans la case
-        int stepVal = Integer.parseInt(stepStr);
+        Value stepVal = this.evaluate(stepStr);
 
         if(instru.getType() == InstructionType.INCREMENT_VARIABLE){
             instru.increment(var, stepVal);

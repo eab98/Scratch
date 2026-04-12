@@ -2,7 +2,7 @@ package scratch.model;
 
 public class VarAssignment extends VarAction {
     private String varName = "";
-    private int difference = 0;
+    private Value difference = new Value(0);
     private Value varValue;
 
     private int assignedValue = 0;
@@ -36,7 +36,7 @@ public class VarAssignment extends VarAction {
 
     // méthode pour stocker l'incrémentation
     @Override
-    public void increment(Variable var, int diff) {
+    public void increment(Variable var, Value diff) {
         this.setVarName(var.getName());
         this.setDifference(diff);
     }
@@ -52,10 +52,10 @@ public class VarAssignment extends VarAction {
 
     @Override
     public int getDifference() {
-       return difference;
+       return difference.getValue();
     }
 
-    public void setDifference(int difference) {
+    public void setDifference(Value difference) {
         this.difference = difference;
     }
 
@@ -73,13 +73,12 @@ public class VarAssignment extends VarAction {
         if(this.getType() == InstructionType.VAR_ASSIGNEMENT){
             msg = " : " + this.getVarName() + " = " + this.assignedValue;
         } else if (this.getType() == InstructionType.INCREMENT_VARIABLE){
-            if(difference == 0){
+            if(difference == null){
                 msg = " : " + this.getVarName() + " de ";
             }else {
                 msg = " : " + this.getVarName() + " de " + this.difference;
             }
         }
-
         return instruName + " " + msg;
     }
 }

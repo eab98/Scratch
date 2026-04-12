@@ -59,7 +59,7 @@ public abstract class Instruction {
         throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
     }
 
-    public void increment(Variable var, int diff) {
+    public void increment(Variable var, Value diff) {
         throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
     }
 
