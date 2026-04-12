@@ -457,6 +457,8 @@ public class ScratchView extends BorderPane {
 
                     content.getChildren().addAll(text, inputIncVar, text2, inputIncStep);
 
+                    canShowPlusMinusButtonsIncrement(inputIncStep.getText());
+
                 } else {
                     content.getChildren().addAll(text, input, text2);
                 }
@@ -473,7 +475,7 @@ public class ScratchView extends BorderPane {
         inputIncListener = (observable, oldValue, newValue) -> {
             scratchViewModel.changeIncrement(inputIncVar.getText(), inputIncStep.getText());
             programList.refresh();
-            canShowPlusMinusButtons(inputIncStep.getText());
+            canShowPlusMinusButtonsIncrement(inputIncStep.getText());
         };
         inputIncVar.textProperty().addListener(inputIncListener);
         inputIncVar.setOnAction(e -> programList.refresh());
@@ -502,7 +504,8 @@ public class ScratchView extends BorderPane {
         });
     }
 
-    public void canShowPlusMinusButtons(String input){
+    public void canShowPlusMinusButtonsIncrement(String input){
+        content.getChildren().removeAll(minusButton, plusButton);
         try {
             Integer.parseInt(input);
             content.getChildren().addAll(minusButton, plusButton);
