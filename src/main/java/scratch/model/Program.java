@@ -13,6 +13,7 @@ public class Program {
     private static final ObservableList<Instruction> catalogue = FXCollections.observableArrayList(
             new VarDeclaration("Déclaration variable", InstructionType.VAR_DECLARATION),
             new VarAssignment("Assignation", InstructionType.VAR_ASSIGNEMENT),
+            new VarAssignment("Inc/Dec variable", InstructionType.INCREMENT_VARIABLE),
             new Translation("Avancer de", InstructionType.MOVE_FORWARD, new Value(0), 0),
             new Rotation("Tourner à gauche de", InstructionType.TURN_LEFT,  new Value(0)),
             new Rotation("Tourner à droite de", InstructionType.TURN_RIGHT,  new Value(0)),
@@ -136,6 +137,17 @@ public class Program {
 
             if(declaredVariable != null){
                 variables.put(name, declaredVariable);
+            }
+
+        } else if (instr.getType() == InstructionType.INCREMENT_VARIABLE) {
+            Variable varToInc = variables.get(instr.getVarName());
+
+            /*VarAssignment incInstr = (VarAssignment) instr;
+            // on récupère la variable et on lui ajoute la différence
+            Variable varToInc = variables.get(incInstr.getVarName());*/
+
+            if (varToInc != null) {
+                varToInc.setValue(varToInc.getValue() + instr.getDifference());
             }
 
         } /*else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {
@@ -308,7 +320,20 @@ public class Program {
 
     public void assignVariable(Instruction instru, String variable, String value){
         Variable var = declaredVariablesBeforeExec.get(variable);
-        ((VarAssignment) instru).assign(var, new Value(Integer.parseInt(value)));
+        if(instru.getType()==InstructionType.VAR_ASSIGNEMENT) instru.assign(var, new Value(Integer.parseInt(value)));
+    }
+
+    public void incrementVariable(Instruction instru, String variable, String stepStr){
+        Variable var = declaredVariablesBeforeExec.get(variable);
+        if (var == null) throw new RuntimeException("Variable non déclarée");
+
+        // On prend directement la valeur tapée dans la case
+        int stepVal = Integer.parseInt(stepStr);
+
+        if(instru.getType() == InstructionType.INCREMENT_VARIABLE){
+            instru.increment(var, stepVal);
+        }
+        //((VarAssignment) instru).increment(var, stepVal);
     }
 
 }
