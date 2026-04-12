@@ -152,9 +152,9 @@ public class Program {
             }
 
         } else if (instr.getType() == InstructionType.INCREMENT_VARIABLE) {
-            Variable varToInc = variables.get(((VarAssignment)instr).getVarName());
+            Variable varToInc = variables.get(instr.getVarName());
             if (varToInc != null) {
-                varToInc.setValue(varToInc.getValue() + ((VarAssignment) instr).getDifference());
+                varToInc.setValue(varToInc.getValue() + instr.getDifference());
             }
 
         } else if (instr.getType() == InstructionType.VAR_ASSIGNEMENT) {
