@@ -56,6 +56,8 @@ public class ScratchView extends BorderPane {
     private final TextField inputIncStep = new TextField();
     private final Button plusButton = new Button("+");
     private final Button minusButton = new Button("-");
+    private final Button plusButtonAmount = new Button("+");
+    private final Button minusButtonAmount = new Button("-");
     private final Button plusButtonAssign = new Button("+");
     private final Button minusButtonAssign = new Button("-");
     private ChangeListener<String> inputIncListener;
@@ -308,6 +310,26 @@ public class ScratchView extends BorderPane {
         input.setOnAction(e -> {
             this.programList.refresh();
         });
+
+        plusButtonAmount.setOnAction(e -> {
+            try {
+                // on récupère le nombre actuel et on fait +1
+                int val = Integer.parseInt(input.getText());
+                input.setText(String.valueOf(val + 1));
+            } catch (NumberFormatException ex) {
+                input.setText("1"); // valeur par défaut si c'était vide
+            }
+        });
+
+        minusButtonAmount.setOnAction(e -> {
+            try {
+                // on récupère le nombre actuel et on fait +1
+                int val = Integer.parseInt(input.getText());
+                input.setText(String.valueOf(val - 1));
+            } catch (NumberFormatException ex) {
+                input.setText("1"); // valeur par défaut si c'était vide
+            }
+        });
     }
 
     private void configInputAssign() {
@@ -492,8 +514,12 @@ public class ScratchView extends BorderPane {
 
                     canShowPlusMinusButtonsIncrement(inputIncStep.getText());
 
+                } else if (currentInstru.getType() == InstructionType.VAR_DECLARATION) {
+                    content.getChildren().addAll(text, input, text2);
+
                 } else {
                     content.getChildren().addAll(text, input, text2);
+                    canShowPlusMinusButtonsAmount(input.getText());
                 }
 
 
@@ -542,6 +568,16 @@ public class ScratchView extends BorderPane {
         try {
             Integer.parseInt(input);
             content.getChildren().addAll(minusButton, plusButton);
+        } catch (NumberFormatException _){
+
+        }
+    }
+
+    public void canShowPlusMinusButtonsAmount(String input){
+        content.getChildren().removeAll(minusButtonAmount, plusButtonAmount);
+        try {
+            Integer.parseInt(input);
+            content.getChildren().addAll(minusButtonAmount, plusButtonAmount);
         } catch (NumberFormatException _){
 
         }
