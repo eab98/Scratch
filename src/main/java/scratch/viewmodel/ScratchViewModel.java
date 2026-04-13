@@ -33,6 +33,8 @@ public class ScratchViewModel {
 
     private Runnable onStepExecuted;
 
+    private static final double OFFSET = 195.0;
+
     private final StringProperty leftBtnText = new SimpleStringProperty("Charger");
     private final BooleanProperty leftBtnDisabled = new SimpleBooleanProperty(true);
 
@@ -66,8 +68,13 @@ public class ScratchViewModel {
 
     public ScratchViewModel(Program program) {
         this.program = program;
-        updateState();
 
+        // synchronise avec la vraie position (195) au démarrage
+        this.coordX.set(program.getPen().getCoord().getX());
+        this.coordY.set(program.getPen().getCoord().getY());
+        this.direction.set(program.getPen().getOrientation());
+
+        updateState();
         updateTurtleInfoText();
 
         coordX.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
@@ -375,12 +382,12 @@ public class ScratchViewModel {
     }
 
     private void updateTurtleInfoText() {
-        double x = coordX.get();
-        double y = coordY.get();
+        double x = coordX.get() - OFFSET;
+        double y = OFFSET - coordY.get();
         int direction = getOrientation();
 
         // On compense pour l'affichage (-90 + 90 = 0)
-        double displayDirection = direction + 90;
+        double displayDirection = -(direction + 90);
 
         // Petite sécurité pour garder l'angle affiché entre -180° et 180°
         if (displayDirection > 180) {
