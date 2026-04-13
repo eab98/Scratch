@@ -30,6 +30,7 @@ public class ScratchViewModel {
     // état pour les boutons charger et executer
     private boolean isLoaded = false;
     private boolean isRunning = false;
+    private boolean isError = false;
 
     private Runnable onStepExecuted;
 
@@ -178,6 +179,7 @@ public class ScratchViewModel {
 
     public void empty() {
         program.empty();
+        isError = false;
         notifyProgramChanged();
     }
 
@@ -213,6 +215,7 @@ public class ScratchViewModel {
             } catch (RuntimeException e) {
                  errorMessage.set(e.getMessage());
                  isRunning = false;
+                 isError = true;
                  updateState();
             }
         }
@@ -223,6 +226,7 @@ public class ScratchViewModel {
     }
 
     public void resetExecution() {
+        isError = false;
         indexExec.set(-1); // remet le compteur à zéro
         index.set(-1);
 
@@ -278,9 +282,11 @@ public class ScratchViewModel {
             // état 4 : gestion bouton suivant et executer
             leftBtnText.set("Ré-initialiser");
             leftBtnDisabled.set(false);
+            if (isError)
+                rightBtnDisabled.set(true);
 
             // on a tout terminé ?
-            if (indexExec.get() >= getInstru().size() - 1) {
+            else if (indexExec.get() >= getInstru().size() - 1) {
                 rightBtnText.set("Exécuter");
                 rightBtnDisabled.set(true);
             } else {
