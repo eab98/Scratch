@@ -30,6 +30,8 @@ public class Program {
     private final Map<String, Variable> variables = new HashMap<>();
     private final Map<String, Variable> declaredVariablesBeforeExec = new HashMap<>();
 
+//    private boolean isError = false;
+
     public Program(Character pen) {
         this.pen = pen;
     }
@@ -308,14 +310,17 @@ public class Program {
         //si on veut declarer alors l'input est le nom de la nouvelle variable
         if(instru.getType() == InstructionType.VAR_DECLARATION){
 
-            instru.setNewVarName(param);
 
             // On ne la crée que si elle n'existe pas déjà
             if (!declaredVariablesBeforeExec.containsKey(param)) {
                 declaredVariablesBeforeExec.put(param, new Variable(param));
+                instru.setNewVarName(param);
+            } else {
+                //isError = true;
+                throw new IllegalArgumentException("Cette variable existe déjà.");
             }
 
-        //sinon, on regarde si on donne à l'instru un entier -> on crée une value, si un string ->
+        //sinon, on regarde si on donne à l'instru un entier -> on crée une value, si un string -> on crée une variable
         } else {
             Value evaluated = evaluate(param);
             if (evaluated == null) {
@@ -332,6 +337,11 @@ public class Program {
     // vérifie si le programme est correct (pas de PenActions en double + protection des variables de boucles)
     public boolean checkProgramValidity() {
         boolean state = true; // etat du pen sans execution
+
+//        if(isError){
+//            isError = false;
+//            return false;
+//        }
 
         if (!allLoopsClosed())
             return false;
