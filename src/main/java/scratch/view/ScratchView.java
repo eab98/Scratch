@@ -78,6 +78,13 @@ public class ScratchView extends BorderPane {
 
         this.setLeft(palette);
         this.setCenter(program);
+
+        // emballe la scene dans un ScrollPane pour pouvoir scroller
+        ScrollPane rightScroll = new ScrollPane(scene);
+        rightScroll.setFitToWidth(true); // pour que le contenu s'étire bien en largeur
+        rightScroll.setStyle("-fx-background-color: transparent;"); // enlève le fond gris moche
+        rightScroll.setBorder(null);
+
         this.setRight(scene);
 
         loadData();
@@ -187,6 +194,10 @@ public class ScratchView extends BorderPane {
 
     private void configSceneBox() {
         Pane canvasContainer = new Pane();
+
+        canvasContainer.setMinSize(400, 400);
+        canvasContainer.setMaxSize(400, 400);
+
         canvasContainer.getChildren().addAll(canvas, headTurtle);
 
         VariablesView variablesView = new VariablesView(scratchViewModel);
