@@ -11,6 +11,8 @@ public class Repeat extends Instruction {
 
     @Override
     public void execute(Character character) {
+        if (loop < 0)
+            throw new RuntimeException("Erreur : " + this + "\nLe nombre de répétitions doit être positif");
         if (this.getType() == InstructionType.REPEAT) {
             if (loop == 0)
                 loop = getValue().getValue();
