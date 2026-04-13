@@ -36,7 +36,7 @@ public class Translation extends Movement{
 
         int currentDistance = this.getParameter().getValue();
 
-        if(currentDistance<0 || currentDistance>100){
+        if(currentDistance<=0 || currentDistance>100){
             throw new RuntimeException("Erreur : " + this + "\nLa distance doit être comprise entre 1 et 100");
         }
 

@@ -114,7 +114,7 @@ public class ScratchViewModel {
                 List<Instruction> instructions = getInstru();
                 Instruction instr = instructions.get(idx);
                 return instr.getType() != InstructionType.VAR_DECLARATION
-                        && instr.getType() != InstructionType.VAR_ASSIGNEMENT;
+                        && instr.getType() != InstructionType.VAR_ASSIGNMENT;
             }
             return false;
         }, index, getInstru());
@@ -513,7 +513,7 @@ public class ScratchViewModel {
 
     public String getAssignmentVar(){
         Instruction instru = instructions.get(getIndexProperty().get());
-        if (instru.getType() == InstructionType.VAR_ASSIGNEMENT) {
+        if (instru.getType() == InstructionType.VAR_ASSIGNMENT) {
             return instru.getVarName();
         }
         return "";
@@ -521,7 +521,7 @@ public class ScratchViewModel {
 
     public String getAssignmentValue(){
         Instruction instru = instructions.get(getIndexProperty().get());
-        if (instru.getType() == InstructionType.VAR_ASSIGNEMENT) {
+        if (instru.getType() == InstructionType.VAR_ASSIGNMENT) {
             Value val = instru.getValue();
             return val == null ? "" : val.toString();
         }

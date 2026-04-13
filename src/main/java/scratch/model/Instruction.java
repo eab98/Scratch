@@ -63,6 +63,10 @@ public abstract class Instruction {
         throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
     }
 
+    public int getLoop() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
     public void assign(Variable var, Value value){
         throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
     }

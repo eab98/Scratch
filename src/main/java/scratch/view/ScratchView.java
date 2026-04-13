@@ -115,7 +115,7 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: green;");
                             break;
 
-                        case VAR_DECLARATION, VAR_ASSIGNEMENT, INCREMENT_VARIABLE, REPEAT, END_REPEAT:
+                        case VAR_DECLARATION, VAR_ASSIGNMENT, INCREMENT_VARIABLE, REPEAT, END_REPEAT:
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
@@ -163,7 +163,7 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: green;");
                             break;
 
-                        case VAR_DECLARATION, VAR_ASSIGNEMENT, INCREMENT_VARIABLE, REPEAT, END_REPEAT:
+                        case VAR_DECLARATION, VAR_ASSIGNMENT, INCREMENT_VARIABLE, REPEAT, END_REPEAT:
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
@@ -444,7 +444,7 @@ public class ScratchView extends BorderPane {
                     text2.setText(""); // enlève le mot pixels a la fin
                 }
 
-                if (currentInstru.getType() == InstructionType.VAR_ASSIGNEMENT) {
+                if (currentInstru.getType() == InstructionType.VAR_ASSIGNMENT) {
                     text.setText("Assignation de la variable ");
                     text2.setText(" valeur : ");
                 }
@@ -461,7 +461,7 @@ public class ScratchView extends BorderPane {
 
                 if (text2.getText().isEmpty()) {
                     content.getChildren().addAll(text, input);
-                } else if(currentInstru.getType() == InstructionType.VAR_ASSIGNEMENT){
+                } else if(currentInstru.getType() == InstructionType.VAR_ASSIGNMENT){
                     inputAssign1.textProperty().removeListener(inputAssignListener);
                     inputAssign2.textProperty().removeListener(inputAssignListener);
 
@@ -470,6 +470,7 @@ public class ScratchView extends BorderPane {
 
                     inputAssign1.textProperty().addListener(inputAssignListener);
                     inputAssign2.textProperty().addListener(inputAssignListener);
+
 
                     content.getChildren().addAll(text, inputAssign1, text2, inputAssign2);
                     canShowPlusMinusButtonsAssign(inputAssign2.getText());
