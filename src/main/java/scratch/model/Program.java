@@ -340,6 +340,9 @@ public class Program {
         int indexFirstinstruction = 0;
         int i = 0;
         while(i < instructions.size() && instructions.get(i).getType() == InstructionType.VAR_DECLARATION ){
+            Instruction current = instructions.get(i);
+            if (current.getNewVarName() == null || current.getNewVarName().isBlank())
+                return false;
             indexFirstinstruction = i + 1; // + 1 car on veut verifier apres les variables
             i++;
         }
@@ -383,7 +386,7 @@ public class Program {
                     current.getType() == InstructionType.INCREMENT_VARIABLE) {
 
                 String varModified = current.getVarName();
-                if (protectedVariables.contains(varModified)) {
+                if (protectedVariables.contains(varModified) || current.getVarName() == null || current.getVarName().isBlank()) {
                     // On essaie de modifier un compteur de boucle : PROGRAMME INVALIDE !
                     return false;
                 }
