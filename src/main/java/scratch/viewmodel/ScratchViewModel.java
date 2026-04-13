@@ -406,6 +406,8 @@ public class ScratchViewModel {
     public boolean executeStep() {
         if (indexExec.get() < getInstru().size() - 1) {
             execute();
+            if (isError)
+                return false;
             updateState();
             return true; // le programme continue
         }
