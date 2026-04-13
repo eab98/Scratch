@@ -433,8 +433,8 @@ public class ScratchView extends BorderPane {
             //pour les autres instructions
             else {
                 // récupère l'instruction pour connaitre son type
-
-                Label text2 = new Label("pixels");
+                boolean isRotation = currentInstru.getType() == InstructionType.TURN_LEFT || currentInstru.getType() == InstructionType.TURN_RIGHT;
+                Label text2 = new Label(isRotation ? "degrés" : "pixels");
 
                 if (currentInstru.getType() == InstructionType.REPEAT)
                     text2.setText("fois");
