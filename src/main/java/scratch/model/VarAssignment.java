@@ -46,6 +46,7 @@ public class VarAssignment extends VarAction {
         return varName;
     }
 
+    @Override
     public void setVarName(String varName) {
         this.varName = varName;
     }
@@ -55,12 +56,15 @@ public class VarAssignment extends VarAction {
        return difference.getValue();
     }
 
+    @Override
     public void setDifference(Value difference) {
         this.difference = difference;
     }
 
+    @Override
     public Value getAssignedValue() { return assignedValue; }
 
+    @Override
     public void setAssignedValue(Value assignedValue) {
         this.assignedValue = assignedValue;
     }

@@ -79,4 +79,21 @@ public abstract class Instruction {
         throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
 
     }
+
+    public Object getAssignedValue() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setVarName(String varName) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+
+    }
+
+    public void setAssignedValue(Value assignedValue) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setDifference(Value difference) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
 }

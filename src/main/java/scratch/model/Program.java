@@ -192,12 +192,11 @@ public class Program {
                         writer.println(instr.getType() + ";" + instr.getNewVarName());
                         break;
                     case VAR_ASSIGNMENT:
-                        VarAssignment assign = (VarAssignment) instr;
-                        writer.println(instr.getType() + ";" + assign.getVarName() + ";" + assign.getAssignedValue());
+                        writer.println(instr.getType() + ";" + instr.getVarName() + ";" + instr.getAssignedValue());
                         break;
                     case INCREMENT_VARIABLE:
-                        VarAssignment inc = (VarAssignment) instr;
-                        writer.println(instr.getType() + ";" + inc.getVarName() + ";" + inc.getDifference());
+
+                        writer.println(instr.getType() + ";" + instr.getVarName() + ";" + instr.getDifference());
                         break;
                     case MOVE_FORWARD:
                     case TURN_LEFT:
@@ -254,16 +253,16 @@ public class Program {
                                     break;
                                 case VAR_ASSIGNMENT:
                                     if (morceaux.length >= 3) {
-                                        VarAssignment assignInstr = (VarAssignment) nouvelleAction;
-                                        assignInstr.setVarName(morceaux[1].trim());
-                                        assignInstr.setAssignedValue(evaluate(morceaux[2].trim()));
+
+                                        nouvelleAction.setVarName(morceaux[1].trim());
+                                        nouvelleAction.setAssignedValue(evaluate(morceaux[2].trim()));
                                     }
                                     break;
                                 case INCREMENT_VARIABLE:
                                     if (morceaux.length >= 3) {
-                                        VarAssignment incInstr = (VarAssignment) nouvelleAction;
-                                        incInstr.setVarName(morceaux[1].trim());
-                                        incInstr.setDifference(evaluate(morceaux[2].trim()));
+
+                                        nouvelleAction.setVarName(morceaux[1].trim());
+                                        nouvelleAction.setDifference(evaluate(morceaux[2].trim()));
                                     }
                                     break;
                                 case MOVE_FORWARD:
