@@ -316,6 +316,7 @@ public class ScratchView extends BorderPane {
             this.scratchViewModel.getAmountProperty().set(newValue);
             this.scratchViewModel.changeAmount();
             this.programList.refresh();
+            canShowPlusMinusButtonsAmount(input.getText());
         };
         input.textProperty().addListener(inputListener);
         input.setOnAction(e -> {
