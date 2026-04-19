@@ -1,11 +1,17 @@
 package scratch.model;
 
+/**
+ * C'est la classe "Mère" de toutes les actions du jeu.
+ * Le mot "abstract" (abstraite) signifie qu'on ne peut pas créer une "Instruction" générique.
+ * On sera obligé de créer une action spécifique (comme une Translation ou une Rotation) qui héritera de cette classe.
+ */
 public abstract class Instruction {
-    private final String name;
-    private final InstructionType type;
+    private final String name; // Le nom affiché à l'écran (ex: "Avancé de")
+    private final InstructionType type; // Le mot-clé officiel du dictionnaire (ex: MOVE_FORWARD)
 
-    private Value value;
+    private Value value; // Le paramètre (le chiffre 30, ou la variable "ma_var")
 
+    // Le Constructeur : quand on crée une action, on lui donne son nom, son type et son paramètre
     public Instruction(String name, InstructionType type, Value value) {
         this.name = name;
         this.type = type;

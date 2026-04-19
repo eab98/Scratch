@@ -292,6 +292,7 @@ public class Program {
     public void empty(){
         instructions.clear();
         variables.clear();
+        declaredVariablesBeforeExec.clear();
     }
 
 
