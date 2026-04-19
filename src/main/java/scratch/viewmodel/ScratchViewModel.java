@@ -6,6 +6,7 @@ import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scratch.model.*;
+import scratch.model.Character;
 
 import java.util.List;
 
@@ -357,8 +358,10 @@ public class ScratchViewModel {
 
             indexExec.set(-1); // remet l'exécution à zéro
             program.reset(); // replace la tortue
-            coordX.set(program.getPen().getCoord().getX());
-            coordY.set(program.getPen().getCoord().getY());
+            Character pen = program.getPen();
+            Coordinates coords = pen.getCoord();
+            coordX.set(coords.getX());
+            coordY.set(coords.getY());
         } catch(RuntimeException e) {
             errorMessage.set(e.getMessage());
         }
