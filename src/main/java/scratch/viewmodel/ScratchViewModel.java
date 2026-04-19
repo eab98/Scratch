@@ -67,14 +67,16 @@ public class ScratchViewModel {
 
     private final ExecutionViewModel executionVM = new ExecutionViewModel(this);
     public ExecutionViewModel getExecutionVM() { return executionVM; }
+    private final Character pen;
 
     public ScratchViewModel(Program program) {
         this.program = program;
-
+        this.pen = program.getPen();
+        Coordinates coord = pen.getCoord();
         // synchronise avec la vraie position (195) au démarrage
-        this.coordX.set(program.getPen().getCoord().getX());
-        this.coordY.set(program.getPen().getCoord().getY());
-        this.direction.set(program.getPen().getOrientation());
+        this.coordX.set(coord.getX());
+        this.coordY.set(coord.getY());
+        this.direction.set(pen.getOrientation());
 
         updateState();
         updateTurtleInfoText();
@@ -202,7 +204,7 @@ public class ScratchViewModel {
                 program.execute(instru);
 
                 // Position et direction d'arrivée
-                Coordinates end = program.getPen().getCoord();
+                Coordinates end = pen.getCoord();
                 coordX.set(end.getX());
                 coordY.set(end.getY());
                 direction.set(program.getPen().getOrientation());
@@ -240,9 +242,10 @@ public class ScratchViewModel {
         errorMessage.set("");
 
         // màj sur la Vue
-        coordX.set(program.getPen().getCoord().getX());
-        coordY.set(program.getPen().getCoord().getY());
-        direction.set(program.getPen().getOrientation());
+        Coordinates coords = pen.getCoord();
+        coordX.set(coords.getX());
+        coordY.set(coords.getY());
+        direction.set(pen.getOrientation());
 
         syncVariables();
     }
@@ -358,7 +361,6 @@ public class ScratchViewModel {
 
             indexExec.set(-1); // remet l'exécution à zéro
             program.reset(); // replace la tortue
-            Character pen = program.getPen();
             Coordinates coords = pen.getCoord();
             coordX.set(coords.getX());
             coordY.set(coords.getY());
@@ -446,8 +448,9 @@ public class ScratchViewModel {
 
             indexExec.set(-1); // remet l'exécution à zéro
             program.reset(); // replace la tortue
-            coordX.set(program.getPen().getCoord().getX());
-            coordY.set(program.getPen().getCoord().getY());
+            Coordinates coords = pen.getCoord();
+            coordX.set(coords.getX());
+            coordY.set(coords.getY());
         } catch (RuntimeException e){
             errorMessage.set(e.getMessage());
         }
@@ -471,8 +474,9 @@ public class ScratchViewModel {
             updateState();
             indexExec.set(-1);
             program.reset();
-            coordX.set(program.getPen().getCoord().getX());
-            coordY.set(program.getPen().getCoord().getY());
+            Coordinates coords = pen.getCoord();
+            coordX.set(coords.getX());
+            coordY.set(coords.getY());
         } catch (RuntimeException e){
             errorMessage.set(e.getMessage());
         }
