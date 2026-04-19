@@ -10,10 +10,10 @@ import scratch.viewmodel.ScratchViewModel;
 public class ExecutionView extends VBox {
 
     public ExecutionView(ScratchViewModel scratchVM, Runnable onResetCanvas) {
-        // On récupère le "chronomètre" depuis le cerveau
+        // On récupère le "chronomètre" depuis le VM
         ExecutionViewModel execVM = scratchVM.getExecutionVM();
 
-        // --- LES BOUTONS RADIO (Mode Auto / Mode Manuel) ---
+        // LES BOUTONS RADIO (Mode Auto / Mode Manuel)
         RadioButton manualRadio = new RadioButton("Exécution manuelle");
         RadioButton autoRadio = new RadioButton("Exécution automatique");
 
@@ -23,7 +23,7 @@ public class ExecutionView extends VBox {
         autoRadio.setToggleGroup(group);
         manualRadio.setSelected(true); // Par défaut, on est en manuel
 
-        // ON BRANCHE LE TALKIE-WALKIE !
+        // on branche le vm
         // Si le bouton "auto" est coché, la variable 'isAutoMode' du ViewModel devient VRAIE.
         execVM.isAutoModeProperty().bind(autoRadio.selectedProperty());
 
@@ -36,8 +36,7 @@ public class ExecutionView extends VBox {
         Button nextButton = new Button("Suivant");
         Button stopButton = new Button("Arrêter");
 
-        // Binding des textes et désactivations
-        // Le texte du bouton et sa désactivation (grisé) sont contrôlés par le ViewModel
+        // Binding des textes et désactivations vers le ViewModel qui le controle
         reinitButton.textProperty().bind(scratchVM.leftBtnTextProperty());
         reinitButton.disableProperty().bind(scratchVM.leftBtnDisabledProperty());
 
@@ -62,14 +61,12 @@ public class ExecutionView extends VBox {
         HBox buttonBox = new HBox(10, reinitButton, nextButton, stopButton);
         buttonBox.setAlignment(Pos.CENTER);
 
-        // Slider de vitesse
         // (Valeur minimum : 0.01s, Valeur max : 5s, Valeur par défaut : 1s)
         Slider speedSlider = new Slider(0.01, 5, 1);
         speedSlider.setShowTickMarks(true); // Affiche les petits traits
         speedSlider.setShowTickLabels(true); // Affiche les chiffres sous les traits
         speedSlider.setMajorTickUnit(1); // Un trait tous les 1 unité
 
-        // ON BRANCHE LE CURSEUR AU CHRONOMÈTRE !
         // Bidirectional = Si le curseur bouge, le chrono change. Si le chrono change, le curseur bouge.
         speedSlider.valueProperty().bindBidirectional(execVM.speedDelayProperty());
 

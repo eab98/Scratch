@@ -22,6 +22,7 @@ public class VariablesView extends VBox {
 
         // Colonne 1 : Le nom de la variable
         TableColumn<Variable, String> nameCol = new TableColumn<>("Nom");
+
         // On dit à la colonne comment lire le nom dans l'objet Variable
         nameCol.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
 
@@ -32,10 +33,10 @@ public class VariablesView extends VBox {
         // On ajoute les colonnes au tableau
         table.getColumns().addAll(nameCol, valueCol);
 
-        // ON BRANCHE LE TALKIE-WALKIE ! Le tableau lira toujours la liste du Cerveau.
+        // Le tableau lira toujours la liste du VM
         table.setItems(scratchViewModel.getVariables());
 
-        // Un peu de design
+
         table.setPrefHeight(150); // Hauteur du tableau
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS); // étire les colonnes du tableau pour remplir la largeur
 

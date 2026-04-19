@@ -16,26 +16,31 @@ import scratch.model.InstructionType;
 import scratch.viewmodel.ScratchViewModel;
 
 
+// BorderPane car : Gauche (Palette), Centre (Programme), Droite (Scène/Canvas).
+
 public class ScratchView extends BorderPane {
 
     private ScratchViewModel scratchViewModel;
 
-    private final VBox palette = new VBox(8);
-    private final VBox program = new VBox(8);
-    private final VBox scene = new VBox(20);
+    // conteneurs principaux
+    private final VBox palette = new VBox(8); // Colonne de gauche (catalogues)
+    private final VBox program = new VBox(8); // Colonne centrale (instructions)
+    private final VBox scene = new VBox(20); // Colonne de droite (dessin et exécution)
 
-    private final Group headTurtle = new Group();
+    private final Group headTurtle = new Group(); // Groupe représentant la tortue
 
+    // titres sections
     private final Label paletteTitle = new Label("Palette d'actions");
     private final Label programTitle = new Label("Programme");
     private final Label sceneTitle = new Label("Scène");
-    
-    private final HBox buttonProgram = new HBox(8);
 
-    private final ListView<Instruction> paletteList = new ListView<>();
-    private final ListView<Instruction> programList = new ListView<>();
+    // listes et boutons
+    private final HBox buttonProgram = new HBox(8); // Conteneur pour les boutons du programme
 
-    private final Canvas canvas = new Canvas(400, 400);
+    private final ListView<Instruction> paletteList = new ListView<>(); // Liste des actions possibles
+    private final ListView<Instruction> programList = new ListView<>(); // Liste des actions du script
+
+    private final Canvas canvas = new Canvas(400, 400); // Zone de dessin
 
     private final Button addToProgramButton = new Button("Ajouter au programme");
 
@@ -45,43 +50,51 @@ public class ScratchView extends BorderPane {
     private final Button deleteButton = new Button("Supprimer");
     private final Button emptyButton = new Button("Vider tout");
 
-    private final TitledPane detailsAction = new TitledPane();
-    private final HBox content = new HBox();
-    private final VBox contentPlusError = new VBox();
-    private final TextField input = new TextField();
-    private final TextField inputAssign1 = new TextField();
-    private final TextField inputAssign2 = new TextField();
+    // zone détails actions (en bas au centre)
+    private final TitledPane detailsAction = new TitledPane(); // Panneau dépliant
+    private final HBox content = new HBox(); // Conteneur pour les champs de texte
+    private final VBox contentPlusError = new VBox(); // Conteneur pour champs + messages d'erreur
 
-    private final TextField inputIncVar = new TextField();
-    private final TextField inputIncStep = new TextField();
+    // Champs de texte pour paramétrer les actions
+    private final TextField input = new TextField();
+    private final TextField inputAssign1 = new TextField(); // Nom variable (assignation)
+    private final TextField inputAssign2 = new TextField(); // Valeur variable (assignation)
+    private final TextField inputIncVar = new TextField(); // Nom variable (incrémentation)
+    private final TextField inputIncStep = new TextField(); // Pas/Valeur (incrémentation)
+
+    // Boutons +/- pour faciliter la saisie des nombres
     private final Button plusButton = new Button("+");
     private final Button minusButton = new Button("-");
     private final Button plusButtonAmount = new Button("+");
     private final Button minusButtonAmount = new Button("-");
     private final Button plusButtonAssign = new Button("+");
     private final Button minusButtonAssign = new Button("-");
+
     private ChangeListener<String> inputIncListener;
 
-    private final Label errorMessage = new Label();
+    private final Label errorMessage = new Label(); // msg d'information
 
     //on initialise le listener ici pour pouvoir l'ajouter/l'enlever plus facilement
     private ChangeListener<String> inputListener;
 
-    private final Label infoTortue = new Label();
+    private final Label infoTortue = new Label(); // msg d'information
 
     private ChangeListener<String> inputAssignListener;
 
 
     public ScratchView(ScratchViewModel scratchViewModel) {
         this.scratchViewModel = scratchViewModel;
+
+        // Configuration des 3 zones principales
         configPaletteBox();
         configProgramBox();
         configSceneBox();
 
+        // Placement des zones dans le BorderPane
         this.setLeft(palette);
         this.setCenter(program);
 
-        // emballe la scene dans un ScrollPane pour pouvoir scroller
+        // emballe la scene dans un ScrollPane pour pouvoir scroller (si l'écran est trop petit)
         ScrollPane rightScroll = new ScrollPane(scene);
         rightScroll.setFitToWidth(true); // pour que le contenu s'étire bien en largeur
         rightScroll.setStyle("-fx-background-color: transparent;"); // enlève le fond gris moche
@@ -89,17 +102,24 @@ public class ScratchView extends BorderPane {
 
         this.setRight(scene);
 
+        // Chargement des données et configuration des comportements
         loadData();
         configSelection();
         configActions();
         configButtonsDisabling();
         beautify();
 
+        // Lien avec l'exécution : quand une étape est jouée, on met à jour le dessin
         this.scratchViewModel.setOnStepExecuted(() -> updateCanvas());
     }
-    
+
+    /**
+     * Configure la colonne de gauche
+     */
     private void configPaletteBox() {
         palette.getChildren().addAll(paletteTitle, paletteList, addToProgramButton);
+
+        // couleurs selon le type
         paletteList.setCellFactory(lv -> new ListCell<Instruction>() {
             @Override
             protected void updateItem(Instruction item, boolean empty) {
@@ -109,8 +129,9 @@ public class ScratchView extends BorderPane {
                     setText(null);
                     setStyle("");
                 } else {
-                    setText("● " + item.getName()); // or item.getLabel()
+                    setText("● " + item.getName()); // or item.getLabel() // Affiche le nom avec une puce
 
+                    // Applique une couleur de texte différente selon la catégorie de l'instruction
                     switch (item.getType()) {
                         case MOVE_FORWARD:
                             setStyle("-fx-text-fill: blue;");
@@ -135,14 +156,22 @@ public class ScratchView extends BorderPane {
             }
         });
     }
-    
+
+    /**
+     * Rassemble les boutons d'édition du programme dans un conteneur horizontal.
+     */
     private void configButtonsProg() {
         buttonProgram.getChildren().addAll(upButton, downButton, duplicateButton, deleteButton, emptyButton);
     }
 
+    /**
+     * Configure la colonne centrale (Programme en cours de création).
+     */
     private void configProgramBox(){
         configButtonsProg();
         program.getChildren().addAll(programTitle, programList, buttonProgram);
+
+        // Personnalisation de l'affichage des instructions du programme
         programList.setCellFactory(lv -> new ListCell<Instruction>() {
             @Override
             protected void updateItem(Instruction item, boolean empty) {
@@ -154,11 +183,13 @@ public class ScratchView extends BorderPane {
                 } else {
                     //setText(item.toString()); // or item.getLabel()
 
+                    // Gestion de l'indentation pour les boucles REPEAT
                     int index = getIndex();
                     int tabAmount = scratchViewModel.getTabLevel(index);
                     String spaces = "      ".repeat(tabAmount);
                     setText(spaces + "● " + item.toString());
 
+                    // Même code couleur que pour la palette
                     switch (item.getType()) {
                         case MOVE_FORWARD:
                             setStyle("-fx-text-fill: blue;");
@@ -182,28 +213,32 @@ public class ScratchView extends BorderPane {
                 }
             }
         });
+
         detailsAction.setText("Détails de l'action");
         program.getChildren().add(detailsAction);
 
         errorMessage.setTextFill(Color.RED);
 
+        // init des champs de saisie pour les différents types
         configInputIncrement();
-
         updateDetails();
         configInputAmount();
         configInputAssign();
     }
 
+    /**
+     * Configure la colonne de droite (Canvas, variables, et contrôles d'exécution).
+     */
     private void configSceneBox() {
         Pane canvasContainer = new Pane();
 
         canvasContainer.setMinSize(400, 400);
         canvasContainer.setMaxSize(400, 400);
 
-        canvasContainer.getChildren().addAll(canvas, headTurtle);
+        canvasContainer.getChildren().addAll(canvas, headTurtle); // Superpose la tortue sur le canvas
 
         VariablesView variablesView = new VariablesView(scratchViewModel);
-        infoTortue.textProperty().bind(scratchViewModel.turtleInfoTextProperty());
+        infoTortue.textProperty().bind(scratchViewModel.turtleInfoTextProperty()); // Lie le texte aux infos du ViewModel
 
         VBox infosVariablesBox = new VBox(5);
         infosVariablesBox.getChildren().addAll(infoTortue, variablesView);
@@ -211,33 +246,44 @@ public class ScratchView extends BorderPane {
         // on lui dit quoi faire avec le canvas quand on clique sur "Ré-initialiser"
         ExecutionView executionView = new ExecutionView(scratchViewModel, () -> {
             GraphicsContext gc = canvas.getGraphicsContext2D();
-            gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-            configCanvas();
+            gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight()); // Efface tout
+            configCanvas(); // Redessine la grille et replace la tortue
         });
 
         // on rassemble la zone du bas (Infos tortue, Variables, et notre bloc d'Exécution)
         VBox bottomControls = new VBox(10, infosVariablesBox, executionView);
 
         scene.getChildren().addAll(sceneTitle, canvasContainer, bottomControls);
-        configCanvas();
+        configCanvas(); // Dessine l'état initial
     }
 
+    /**
+     * Gère les sélections dans les listes (clic de l'utilisateur).
+     */
     private void configSelection() {
+        // Quand on clique dans la palette, on prévient le ViewModel
         this.paletteList.getSelectionModel().selectedIndexProperty()
                 .addListener((observable, oldValue, newValue) -> {
                     this.scratchViewModel.getCatalogIndexProperty().set(newValue.intValue());
                 } );
+
+        // Quand on clique dans le programme, on prévient le ViewModel et on met à jour le panneau de détails
         this.programList.getSelectionModel().selectedIndexProperty()
                 .addListener((observable, oldValue, newValue) -> {
                     this.scratchViewModel.getIndexProperty().set(newValue.intValue());
                     updateDetails();
                 } );
+
+        // Si le ViewModel change l'index sélectionné, on met à jour la sélection dans la vue (Synchronisation)
         this.scratchViewModel.getIndexProperty().addListener((observable, oldValue, newValue) -> {
             this.programList.getSelectionModel().select(newValue.intValue());
         });
 
     }
 
+    /**
+     * Dessine la grille de fond et crée la forme de la tortue.
+     */
     private void configCanvas() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.setFill(Color.WHITE);
@@ -245,21 +291,25 @@ public class ScratchView extends BorderPane {
         double w = canvas.getWidth();
         double h = canvas.getHeight();
 
-        gc.fillRect(0, 0, w, h);
+        gc.fillRect(0, 0, w, h); // Fond blanc
 
+        // Dessin de la grille
         gc.setStroke(Color.BLACK);
         gc.setLineWidth(0.2);
 
+        // Lignes verticales
         for (int i = 15; i < w; i += 30) {
             gc.strokeLine(i, 0, i, h);
         }
 
         gc.setStroke(Color.BLACK);
 
+        // Lignes horizontales
         for (int i = 15; i < h; i += 30) {
             gc.strokeLine(0, i, w, i);
         }
 
+        // Dessin de la tortue (Triangle bleu + point vert)
         // le triangle bleu
         Polygon body = new Polygon(
                 -7.5, -5.0,
@@ -269,7 +319,7 @@ public class ScratchView extends BorderPane {
         body.setFill(Color.DEEPSKYBLUE);
         body.setStroke(Color.BLACK);
 
-        // le petit point vert
+        // le petit point vert (pour indiquer l'avant de la tortue)
         Circle dot = new Circle(7.5, 0.0, 2.5);
         dot.setFill(Color.GREEN);
         dot.setStroke(Color.BLACK);
@@ -277,7 +327,7 @@ public class ScratchView extends BorderPane {
         // assemblage dans le groupe
         headTurtle.getChildren().addAll(body, dot);
 
-        // coordonnée au centre
+        // coordonnée au centre initial (400/2 = 200, ajusté avec -5)
         headTurtle.setLayoutX(195);
         headTurtle.setLayoutY(195);
 
@@ -285,9 +335,13 @@ public class ScratchView extends BorderPane {
         headTurtle.setRotate(scratchViewModel.getOrientation());
     }
 
+    /**
+     * Associe les boutons et événements de clics aux méthodes du ViewModel.
+     */
     private void configActions() {
         addToProgramButton.setOnAction(e -> scratchViewModel.addInstruction());
 
+        // Double-clic sur un élément de la palette = ajout direct au programme
         this.paletteList.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2)
                 scratchViewModel.addInstruction();
@@ -300,6 +354,10 @@ public class ScratchView extends BorderPane {
         emptyButton.setOnAction(e -> scratchViewModel.empty());
     }
 
+    /**
+     * Désactive dynamiquement les boutons si l'action n'est pas possible
+     * (Ex: On ne peut pas "Monter" si on est déjà tout en haut).
+     */
     private void configButtonsDisabling() {
         upButton.disableProperty().bind(scratchViewModel.canUp().not());
         downButton.disableProperty().bind(scratchViewModel.canDown().not());
@@ -308,8 +366,14 @@ public class ScratchView extends BorderPane {
         emptyButton.disableProperty().bind(scratchViewModel.canEmpty().not());
     }
 
+    /**
+     * Configure le champ de texte classique (ex: avancer de X pixels, répéter X fois).
+     * Gère les clics sur les boutons + et -.
+     */
     private void configInputAmount() {
-        errorMessage.textProperty().bind(scratchViewModel.getErrorMessage());
+        errorMessage.textProperty().bind(scratchViewModel.getErrorMessage()); // Lie l'erreur au ViewModel
+
+        // Listener appelé à chaque fois qu'on tape au clavier dans ce champ
         inputListener = (observable, oldValue, newValue) -> {
 
             // envoie le texte brut au ViewModel (meme si c'est une case vide)
@@ -323,6 +387,7 @@ public class ScratchView extends BorderPane {
             this.programList.refresh();
         });
 
+        // Bouton +
         plusButtonAmount.setOnAction(e -> {
             try {
                 // on récupère le nombre actuel et on fait +1
@@ -333,9 +398,10 @@ public class ScratchView extends BorderPane {
             }
         });
 
+        // Bouton -
         minusButtonAmount.setOnAction(e -> {
             try {
-                // on récupère le nombre actuel et on fait +1
+                // on récupère le nombre actuel et on fait -1
                 int val = Integer.parseInt(input.getText());
                 input.setText(String.valueOf(val - 1));
             } catch (NumberFormatException ex) {
@@ -344,14 +410,17 @@ public class ScratchView extends BorderPane {
         });
     }
 
+    /**
+     * Configure les champs de texte pour l'assignation de variable (Var = Valeur).
+     */
     private void configInputAssign() {
         inputAssignListener = (observable, oldValue, newValue) -> {
             scratchViewModel.changeAssignment(
-                    inputAssign1.getText(),
-                    inputAssign2.getText()
+                    inputAssign1.getText(), // Nom de la variable
+                    inputAssign2.getText() // Valeur
             );
             programList.refresh();
-            canShowPlusMinusButtonsAssign(inputAssign2.getText());
+            canShowPlusMinusButtonsAssign(inputAssign2.getText()); // Check si la valeur est un nombre
         };
         inputAssign1.textProperty().addListener(inputAssignListener);
         inputAssign1.setOnAction(e -> {
@@ -373,7 +442,7 @@ public class ScratchView extends BorderPane {
 
         minusButtonAssign.setOnAction(e -> {
             try {
-                // on récupère le nombre actuel et on fait +1
+                // on récupère le nombre actuel et on fait -1
                 int val = Integer.parseInt(inputAssign2.getText());
                 inputAssign2.setText(String.valueOf(val - 1));
             } catch (NumberFormatException ex) {
@@ -383,11 +452,17 @@ public class ScratchView extends BorderPane {
 
     }
 
+    /**
+     * Relie les listes visuelles aux listes de données contenues dans le ViewModel.
+     */
     private void loadData() {
         paletteList.setItems(scratchViewModel.getCatalogue());
         programList.setItems(scratchViewModel.getInstru());
     }
 
+    /**
+     * Applique les styles graphiques de base (marges, dimensions, alignements).
+     */
     private void beautify() {
         palette.setPrefWidth(250);
         scene.setPrefWidth(500);
@@ -406,6 +481,7 @@ public class ScratchView extends BorderPane {
         BorderPane.setMargin(program, new Insets(2));
         BorderPane.setMargin(scene, new Insets(2));
 
+        // Paramétrage des zones de saisie
         input.setMaxWidth(50);
         input.setPrefColumnCount(3);
         input.setAlignment(Pos.CENTER);
@@ -418,7 +494,9 @@ public class ScratchView extends BorderPane {
         inputIncStep.setAlignment(Pos.CENTER);
     }
 
-
+    /**
+     * Dessine le déplacement de la tortue à l'écran après l'exécution d'une instruction.
+     */
     private void updateCanvas() {
         // mémorise l'ancienne position de la tortue
         double oldX = headTurtle.getLayoutX();
@@ -433,12 +511,13 @@ public class ScratchView extends BorderPane {
             GraphicsContext gc = canvas.getGraphicsContext2D();
             gc.setStroke(Color.RED);
             gc.setLineWidth(2);
-            gc.strokeLine(oldX, oldY, newX, newY);
+            gc.strokeLine(oldX, oldY, newX, newY); // Trace un trait de l'ancien point au nouveau
         }
 
         // déplace la tortue à sa nouvelle position
         headTurtle.setLayoutX(newX);
         headTurtle.setLayoutY(newY);
+        // Modifie son orientation (rotation)
         headTurtle.setRotate(scratchViewModel.getOrientation());
     }
 
@@ -542,6 +621,9 @@ public class ScratchView extends BorderPane {
         }
     }
 
+    /**
+     * Configure les champs et boutons pour l'action "Incrémenter une variable".
+     */
     private void configInputIncrement() {
         inputIncListener = (observable, oldValue, newValue) -> {
             scratchViewModel.changeIncrement(inputIncVar.getText(), inputIncStep.getText());
@@ -575,6 +657,10 @@ public class ScratchView extends BorderPane {
         });
     }
 
+    /**
+     * Affiche ou masque les boutons +/- d'incrémentation selon si l'utilisateur
+     * a bien rentré un nombre valide dans le champ.
+     */
     public void canShowPlusMinusButtonsIncrement(String input){
         content.getChildren().removeAll(minusButton, plusButton);
         try {
@@ -585,6 +671,7 @@ public class ScratchView extends BorderPane {
         }
     }
 
+    // idem pour tout ce qui est pixels, degrés etc..
     public void canShowPlusMinusButtonsAmount(String input){
         content.getChildren().removeAll(minusButtonAmount, plusButtonAmount);
         try {
@@ -595,6 +682,7 @@ public class ScratchView extends BorderPane {
         }
     }
 
+    // idem pour le champ "Valeur" d'assignation variable
     public void canShowPlusMinusButtonsAssign(String input){
         content.getChildren().removeAll(minusButtonAssign, plusButtonAssign);
         try {
