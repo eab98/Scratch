@@ -341,7 +341,7 @@ public class ScratchViewModel {
         return instructions.get(index).getName();
     }
 
-    public void changeAmount() {
+    public void changeValue() {
         int index = getIndexProperty().get();
         Instruction instru = instructions.get(index);
 
@@ -353,7 +353,7 @@ public class ScratchViewModel {
                 throw new RuntimeException("Erreur valeur");
             }
 
-            program.changeAmount(instru, amount.get());
+            program.changeValue(instru, amount.get());
             errorMessage.set("");
             isRunning = false;
             isLoaded = false;

@@ -303,7 +303,7 @@ public class Program {
 
     }
 
-    public void changeAmount(Instruction instru, String param) {
+    public void changeValue(Instruction instru, String param) {
         //si on veut declarer alors l'input est le nom de la nouvelle variable
         if(instru.getType() == InstructionType.VAR_DECLARATION){
 
