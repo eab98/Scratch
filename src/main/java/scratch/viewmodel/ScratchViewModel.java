@@ -10,12 +10,21 @@ import scratch.model.*;
 import java.util.List;
 
 public class ScratchViewModel {
+
+    // Le lien : Le ViewModel doit savoir avec quel moteur il travaille
     private final Program program;
 
     private List<Instruction> instructions = getInstru();
 
+
+    // --- LES TALKIES-WALKIES (Pour suivre la souris du joueur) ---
+
+    // On garde en mémoire le numéro de la ligne sélectionnée. (-1 = rien n'est sélectionné)
+    // catalogIndex : Sélection dans le catalogue (gauche)
+    // index : Sélection dans le brouillon (milieu)
     private final IntegerProperty index = new SimpleIntegerProperty(-1),
             catalogIndex = new SimpleIntegerProperty(-1);
+
     //indice de l'instruction en exécution
     private final IntegerProperty indexExec = new SimpleIntegerProperty(-1);
 
@@ -23,6 +32,7 @@ public class ScratchViewModel {
     private final DoubleProperty coordY = new SimpleDoubleProperty(0);
     private final IntegerProperty direction = new SimpleIntegerProperty(0);
 
+    // Ce talkie-walkie contient le texte que le joueur est entrain de taper
     private final StringProperty amount = new SimpleStringProperty("");
 
     private final StringProperty errorMessage = new SimpleStringProperty("");
@@ -32,10 +42,11 @@ public class ScratchViewModel {
     private boolean isRunning = false;
     private boolean isError = false;
 
-    private Runnable onStepExecuted;
+    private Runnable onStepExecuted; // Un signal pour dire à l'animation "C'est bon, j'ai fini un pas !"
 
     private static final double OFFSET = 195.0;
 
+    // --- TALKIES-WALKIES pour les boutons principaux
     private final StringProperty leftBtnText = new SimpleStringProperty("Charger");
     private final BooleanProperty leftBtnDisabled = new SimpleBooleanProperty(true);
 
@@ -46,12 +57,15 @@ public class ScratchViewModel {
     public BooleanProperty leftBtnDisabledProperty() { return leftBtnDisabled; }
     public StringProperty rightBtnTextProperty() { return rightBtnText; }
     public BooleanProperty rightBtnDisabledProperty() { return rightBtnDisabled; }
+
+    // Le Talkie-Walkie pour la liste des variables à afficher sur l'écran
     private final ObservableList<Variable> variables = FXCollections.observableArrayList();
 
     public ObservableList<Variable> getVariables() {
         return variables;
     }
 
+    // L'écran s'abonne à ces méthodes pour réagir quand la sélection change
     public IntegerProperty getIndexProperty(){
         return index;
     }
@@ -67,6 +81,7 @@ public class ScratchViewModel {
     private final ExecutionViewModel executionVM = new ExecutionViewModel(this);
     public ExecutionViewModel getExecutionVM() { return executionVM; }
 
+    // Le constructeur : Quand on lance le jeu, on connecte les deux
     public ScratchViewModel(Program program) {
         this.program = program;
 
@@ -78,15 +93,20 @@ public class ScratchViewModel {
         updateState();
         updateTurtleInfoText();
 
+        // Les "espions" : dès que X, Y ou la direction bougent, on refabrique la phrase !
         coordX.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
         coordY.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
         direction.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
     }
 
+    // --- LES PONTS POUR L'ECRAN ---
+
+    // L'écran va appeler ça pour dessiner le tiroir de gauche
     public ObservableList<Instruction> getCatalogue() {
         return Program.getCatalogue();
     }
 
+    // L'écran va appeler ça pour dessiner la liste des blocs au milieu
     public ObservableList<Instruction> getInstru() {
         return Program.getInstructions();
     }
@@ -97,17 +117,22 @@ public class ScratchViewModel {
 
     public DoubleProperty coordYProperty() { return coordY; }
 
+    // Le bouton "Monter" s'allume seulement si l'index est plus grand que 0
     public BooleanBinding canUp() {
         return index.greaterThan(0);
     }
 
+    // Le bouton "Descendre" s'allume seulement si l'index n'est pas le dernier de la liste
     public BooleanBinding canDown() {
         return Bindings.createBooleanBinding(() -> {
-            int idx = index.get();
-            return idx >= 0 && idx < instructions.size() - 1;
+            int idx = index.get(); // 1. Il regarde quelle ligne est sélectionnée (ex: ligne n°1)
+            return idx >= 0 && idx < instructions.size() - 1; // 2. Il vérifie les deux conditions :
         }, getInstru(), index);
+        // getInstru : Si j'ajoute un nouveau bloc tout en bas ou que j'en supprime un, la taille totale change. Le vigile se réveille et recalcule
+        // index : Si je clique sur un autre bloc, le vigile se réveille et recalcule
     }
 
+    // Le bouton "Tout vider" s'allume seulement s'il y a au moins un bloc
     public BooleanBinding canEmpty() {
         return Bindings.createBooleanBinding(() -> {
             List<Instruction> instr = getInstru();
@@ -115,6 +140,8 @@ public class ScratchViewModel {
         }, getInstru());
     }
 
+    // Le bouton "Dupliquer" s'allume si on a sélectionné un bloc,
+    // ET que ce n'est PAS une déclaration/assignation de variable
     public BooleanBinding canDuplicate() {
         return Bindings.createBooleanBinding(() -> {
             int idx = index.get();
@@ -128,30 +155,37 @@ public class ScratchViewModel {
         }, index, getInstru());
     }
 
+    // Le bouton "Supprimer un bloc" s'allume si on a sélectionné quelque chose (index > -1)
     public BooleanBinding canDelete() {
         return index.greaterThan(-1);
     }
 
+    // --- Les actions des boutons de l'interface
+
+    // Bouton "Ajouter"
     public void addInstruction() {
-        int idx = catalogIndex.get();
-        int insertIndex = index.get();
+        int idx = catalogIndex.get(); // Quel bloc du catalogue est cliqué ?
+        int insertIndex = index.get(); // A quel endroit du brouillon veut-on le mettre ?
         if (idx >= 0 && idx < getCatalogue().size()) {
-            program.addInstruction(idx, insertIndex);
+            program.addInstruction(idx, insertIndex); // on donne l'ordre au programme
 
             notifyProgramChanged();
 
-            index.set(insertIndex + 1);
+            index.set(insertIndex + 1); // Mets l'instruction en dessous du précedent
         }
     }
 
+    // Bouton "Monter" (Flèche Haut)
     public void up() {
         int idx = index.get();
         if (idx > 0 && idx < getInstru().size()) {
             program.up(idx);
             notifyProgramChanged();
-            index.set(idx - 1);
+            index.set(idx - 1); // La sélection suit le bloc qui monte
         }
     }
+
+    // Bouton "Descendre"
     public void down() {
         int idx = index.get();
         if(idx >= 0 && idx < getInstru().size() - 1 ) {
@@ -161,6 +195,7 @@ public class ScratchViewModel {
         }
     }
 
+    // Bouton "Supprimer"
     public void removeInstru(){
         int idx = index.get();
         if (idx >= 0 && idx < getInstru().size()){
@@ -169,6 +204,7 @@ public class ScratchViewModel {
         notifyProgramChanged();
     }
 
+    // Bouton "Dupliquer"
     public void duplicate() {
         int idx = index.get();
         if(idx >= 0 && idx < getInstru().size()){
@@ -177,6 +213,7 @@ public class ScratchViewModel {
         notifyProgramChanged();
     }
 
+    // Bouton "Tout vider"
     public void empty() {
         program.empty();
         isError = false;
@@ -184,33 +221,34 @@ public class ScratchViewModel {
     }
 
     public void execute() {
-        int nextIndex = indexExec.get() + 1;
+        int nextIndex = indexExec.get() + 1; // On regarde l'index de la prochaine instruction
 
-        if (nextIndex < instructions.size()) {
+        if (nextIndex < instructions.size()) { // Si on n'est pas à la fin du programme
             try {
+                // Gestion spéciale pour les boucles "Répéter"
                 if (instructions.get(nextIndex).getType() == InstructionType.END_REPEAT) {
                     int loopStart = program.getLoopStart(nextIndex);
                     if (!program.loopEnded(loopStart))
                         nextIndex = loopStart;
                 }
                 indexExec.set(nextIndex); // On passe à l'instruction suivante
-                index.set(nextIndex); // Synchronise la sélection visuelle
+                index.set(nextIndex); // Synchronise la sélection visuelle (le surlignage bleu sur l'écran)
                 Instruction instru = instructions.get(nextIndex);
 
-                // le modèle exécute l'action
+                // le modèle exécute l'action (calcul mathématique)
                 program.execute(instru);
 
-                // Position et direction d'arrivée
+                // Position et direction d'arrivée (On met à jour les Talkies-Walkies de l'écran)
                 Coordinates end = program.getPen().getCoord();
                 coordX.set(end.getX());
                 coordY.set(end.getY());
                 direction.set(program.getPen().getOrientation());
 
-                // on synchronise le tableau après chaque action
+                // on synchronise le tableau après chaque action (au cas où une variable a changé)
                 syncVariables();
 
                 if (onStepExecuted != null) {
-                    onStepExecuted.run();
+                    onStepExecuted.run(); // Pour l'auto-play, commenté pour l'instant
                 }
             } catch (RuntimeException e) {
                  errorMessage.set(e.getMessage());
@@ -221,6 +259,7 @@ public class ScratchViewModel {
         }
     }
 
+    // L'écran demande : "À cet instant précis du jeu, est-ce que la tortue a son stylo baissé pour dessiner ?"
     public boolean isPenDown() {
         return program.isPenDown();
     }
@@ -230,20 +269,20 @@ public class ScratchViewModel {
         indexExec.set(-1); // remet le compteur à zéro
         index.set(-1);
 
-        // remise à 0 des variables ici
+        // remise à 0 des variables dans le moteur (le Program)
         program.resetVariables();
 
-        program.reset();
+        program.reset(); // Remet la tortue au centre
 
         program.getVariables().clear();
         errorMessage.set("");
 
-        // màj sur la Vue
+        // màj sur la Vue (on synchronise les Talkies-Walkies avec la vraie tortue)
         coordX.set(program.getPen().getCoord().getX());
         coordY.set(program.getPen().getCoord().getY());
         direction.set(program.getPen().getOrientation());
 
-        syncVariables();
+        syncVariables(); // <-- On met à jour l'affichage du tableau des variables
     }
 
     public int getOrientation() {
@@ -260,6 +299,7 @@ public class ScratchViewModel {
             rightBtnText.set("Exécuter");
             rightBtnDisabled.set(true);
         }else if(!program.checkProgramValidity()){
+            // Si le code contient une erreur de logique (ex: boucle infinie, variables au mauvais endroit)
             leftBtnText.set("Charger");
             leftBtnDisabled.set(true);
             rightBtnText.set("Exécuter");
@@ -332,11 +372,13 @@ public class ScratchViewModel {
         updateState();
     }
 
+    // L'écran demande : "C'est quoi le nom du bloc sur lequel le joueur a cliqué ?"
     public String getNameInstruParIndex() {
-        int index = getIndexProperty().get();
-        return instructions.get(index).getName();
+        int index = getIndexProperty().get(); // On regarde quelle ligne est sélectionnée
+        return instructions.get(index).getName(); // On renvoie le nom (ex: "Avancer", "Tourner")
     }
 
+    // Quand le joueur valide son texte (en appuyant sur Entrée)
     public void changeAmount() {
         int index = getIndexProperty().get();
         Instruction instru = instructions.get(index);
@@ -368,22 +410,28 @@ public class ScratchViewModel {
     si c'est une declaration on affiche le nom de la nouvelle variable (newVarName)
     si c'est une autre instruction, on affiche le parametre (soit nom de la variable soit un entier) sousforme de string
      */
+    // L'écran demande : "Est-ce qu'il y a un texte ou un chiffre écrit à l'intérieur de ce bloc ?"
     public String getParameterInstru() {
         int index = getIndexProperty().get();
         Instruction instru = instructions.get(index);
 
+        // Cas spécial : Si c'est le bloc "Déclarer une variable"
         if( instru.getType() == InstructionType.VAR_DECLARATION) {
-            return instru.getNewVarName();
+            return instru.getNewVarName(); // On renvoie le nom de la variable (ex: "Score")
         }
 
+        // Pour tous les autres blocs (Avancer, Répéter...)
         Value param = instru.getParameter();
+        // Si la case est vide, on renvoie du vide (""), sinon on renvoie la valeur (ex: "50")
         return param == null ? "" : param.toString();
     }
 
+    // L'écran demande : "Est-ce que le bloc sélectionné a un rapport avec le stylo ?"
     public boolean isPenAction() {
         int index = getIndexProperty().get();
         Instruction instru = instructions.get(index);
 
+        // On vérifie si c'est "Stylo levé" OU "Stylo baissé"
         return instru.getType() == InstructionType.PEN_UP || instru.getType() == InstructionType.PEN_DOWN;
     }
 
@@ -418,8 +466,13 @@ public class ScratchViewModel {
         this.onStepExecuted = onStepExecuted;
     }
 
+    // --- MODIFIER LES VARIABLES ---
+
+    // Quand le joueur modifie un bloc "Mettre [Variable] à [Valeur]"
     public void changeAssignment(String input1, String input2){
         int index = getIndexProperty().get();
+
+        // Sécurité : si on n'a rien sélectionné, on annule
         if (index < 0 || index >= getInstru().size()) {
             return;
         }
@@ -427,6 +480,7 @@ public class ScratchViewModel {
         Instruction instru = getInstru().get(index);
 
         try {
+            // Sécurité : on vérifie que le joueur n'a pas laissé les cases vides
             if (input1 == null || input1.isEmpty()) {
                 throw  new RuntimeException("Nom de variable invalide");
             }
@@ -434,8 +488,10 @@ public class ScratchViewModel {
                 throw new RuntimeException("Valeur invalide");
             }
 
+            // On donne l'ordre au moteur de changer la variable
             program.assignVariable(instru, input1, input2);
 
+            // Comme le code a changé, on éteint les alarmes et on force le jeu à faire un Reset !
             errorMessage.set("");
             isRunning = false;
             isLoaded = false;
@@ -446,10 +502,12 @@ public class ScratchViewModel {
             coordX.set(program.getPen().getCoord().getX());
             coordY.set(program.getPen().getCoord().getY());
         } catch (RuntimeException e){
-            errorMessage.set(e.getMessage());
+            errorMessage.set(e.getMessage()); // S'il y a une erreur, on l'affiche
         }
     }
 
+    // Quand le joueur modifie un bloc "Ajouter [Valeur] à [Variable]"
+    // (C'est exactement la même logique que la méthode juste au-dessus)
     public void changeIncrement(String varName, String stepStr){
         int index = getIndexProperty().get();
         if (index < 0 || index >= getInstru().size()) return;
@@ -475,6 +533,8 @@ public class ScratchViewModel {
         }
     }
 
+    // --- LECTURE DES VARIABLES POUR L'ÉCRAN ---
+
     public String getIncrementVarName() {
         Instruction instru = instructions.get(getIndexProperty().get());
         if (instru.getType() == InstructionType.INCREMENT_VARIABLE) return instru.getVarName();
@@ -497,11 +557,14 @@ public class ScratchViewModel {
         variables.addAll(program.getVariables().values());
     }
 
-    public int getTabLevel(int index){
-        int level = 0;
+
+    // Cette méthode calcule combien d'espaces on doit mettre à gauche d'un bloc.
+    // L'idée : Si on est dans une boucle "Répéter", on décale le bloc vers la droite.
+    public int getTabLevel(int index) {
+        int level = 0; // Au début, aucun décalage (niveau 0)
 
         if (index < 0 || index >= instructions.size()) {
-            return 0;
+            return 0; // Si le bloc n'existe pas, pas de décalage
         }
 
         /*
@@ -509,16 +572,16 @@ public class ScratchViewModel {
          */
         for(int i = 0; i<index; i++){
             if(instructions.get(i).getType() == InstructionType.REPEAT){
-                level++;
+                level++; // Si on croise un "Répéter", on ajoute un décalage (+1)
             }else if(instructions.get(i).getType() == InstructionType.END_REPEAT){
-                level--;
+                level--; // Si on croise un "Fin Répéter", on enlève un décalage (-1)
             }
         }
 
         //On verifie si l'instru courante est une end_repeat, sinon le end_repeat est indente comme le reste des instructions dans le repeat
         Instruction current = instructions.get(index);
         if(current.getType() == InstructionType.END_REPEAT){
-            level--;
+            level--; // Il doit être aligné avec le "Répéter" du début, donc on lui enlève un décalage
         }
 
         //si jamais le level descend en dessous de 0, on return 0 donc on prend le max entre le level et 0
