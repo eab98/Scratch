@@ -11,17 +11,13 @@ import java.util.List;
 
 public class ScratchViewModel {
 
-    // Le lien : Le ViewModel doit savoir avec quel moteur il travaille
     private final Program program;
 
     private List<Instruction> instructions = getInstru();
 
-
-    // --- LES TALKIES-WALKIES (Pour suivre la souris du joueur) ---
-
-    // On garde en mémoire le numéro de la ligne sélectionnée. (-1 = rien n'est sélectionné)
-    // catalogIndex : Sélection dans le catalogue (gauche)
-    // index : Sélection dans le brouillon (milieu)
+    // index ligne sélectionnée, -1 si rien n'est sélectionné
+    // catalogIndex : index instruction selectionnée dans le catalogue
+    // index : index instruction dans le programme (programList)
     private final IntegerProperty index = new SimpleIntegerProperty(-1),
             catalogIndex = new SimpleIntegerProperty(-1);
 
@@ -32,7 +28,7 @@ public class ScratchViewModel {
     private final DoubleProperty coordY = new SimpleDoubleProperty(0);
     private final IntegerProperty direction = new SimpleIntegerProperty(0);
 
-    // Ce talkie-walkie contient le texte que le joueur est entrain de taper
+    // input provenant du TextField du detailsBox
     private final StringProperty amount = new SimpleStringProperty("");
 
     private final StringProperty errorMessage = new SimpleStringProperty("");
@@ -42,11 +38,12 @@ public class ScratchViewModel {
     private boolean isRunning = false;
     private boolean isError = false;
 
-    private Runnable onStepExecuted; // Un signal pour dire à l'animation "C'est bon, j'ai fini un pas !"
+    // signal pour dire qu'on a fait un pas
+    private Runnable onStepExecuted;
 
     private static final double OFFSET = 195.0;
 
-    // --- TALKIES-WALKIES pour les boutons principaux
+    //boutons principaux
     private final StringProperty leftBtnText = new SimpleStringProperty("Charger");
     private final BooleanProperty leftBtnDisabled = new SimpleBooleanProperty(true);
 
@@ -58,14 +55,14 @@ public class ScratchViewModel {
     public StringProperty rightBtnTextProperty() { return rightBtnText; }
     public BooleanProperty rightBtnDisabledProperty() { return rightBtnDisabled; }
 
-    // Le Talkie-Walkie pour la liste des variables à afficher sur l'écran
+    // liste des variables à afficher sur l'écran
     private final ObservableList<Variable> variables = FXCollections.observableArrayList();
 
     public ObservableList<Variable> getVariables() {
         return variables;
     }
 
-    // L'écran s'abonne à ces méthodes pour réagir quand la sélection change
+    // notifier la vue que la selection a changé
     public IntegerProperty getIndexProperty(){
         return index;
     }
@@ -81,7 +78,7 @@ public class ScratchViewModel {
     private final ExecutionViewModel executionVM = new ExecutionViewModel(this);
     public ExecutionViewModel getExecutionVM() { return executionVM; }
 
-    // Le constructeur : Quand on lance le jeu, on connecte les deux
+
     public ScratchViewModel(Program program) {
         this.program = program;
 
@@ -93,20 +90,19 @@ public class ScratchViewModel {
         updateState();
         updateTurtleInfoText();
 
-        // Les "espions" : dès que X, Y ou la direction bougent, on refabrique la phrase !
+        // si X, Y ou la direction change, on update les infos
         coordX.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
         coordY.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
         direction.addListener((obs, oldVal, newVal) -> updateTurtleInfoText());
     }
 
-    // --- LES PONTS POUR L'ECRAN ---
 
-    // L'écran va appeler ça pour dessiner le tiroir de gauche
+    // donne la liste d'instru à gauche
     public ObservableList<Instruction> getCatalogue() {
         return Program.getCatalogue();
     }
 
-    // L'écran va appeler ça pour dessiner la liste des blocs au milieu
+    // donne la liste d'instru du program (programList)
     public ObservableList<Instruction> getInstru() {
         return Program.getInstructions();
     }
@@ -117,22 +113,23 @@ public class ScratchViewModel {
 
     public DoubleProperty coordYProperty() { return coordY; }
 
-    // Le bouton "Monter" s'allume seulement si l'index est plus grand que 0
+    //bouton "Monter" s'active seulement si l'index est plus grand que 0
     public BooleanBinding canUp() {
         return index.greaterThan(0);
     }
 
-    // Le bouton "Descendre" s'allume seulement si l'index n'est pas le dernier de la liste
+    //bouton "Descendre" s'allume seulement si l'index n'est pas le dernier de la liste
     public BooleanBinding canDown() {
+        // recuperer la ligne selectionnee et on verifie qu'elle se trouve dans le tableau mais pas a la derniere ligne
+
         return Bindings.createBooleanBinding(() -> {
-            int idx = index.get(); // 1. Il regarde quelle ligne est sélectionnée (ex: ligne n°1)
-            return idx >= 0 && idx < instructions.size() - 1; // 2. Il vérifie les deux conditions :
+            int idx = index.get();
+            return idx >= 0 && idx < instructions.size() - 1;
         }, getInstru(), index);
-        // getInstru : Si j'ajoute un nouveau bloc tout en bas ou que j'en supprime un, la taille totale change. Le vigile se réveille et recalcule
-        // index : Si je clique sur un autre bloc, le vigile se réveille et recalcule
+
     }
 
-    // Le bouton "Tout vider" s'allume seulement s'il y a au moins un bloc
+    //bouton "Tout vider" s'active' seulement s'il y a au moins une instru dans la liste
     public BooleanBinding canEmpty() {
         return Bindings.createBooleanBinding(() -> {
             List<Instruction> instr = getInstru();
@@ -140,8 +137,7 @@ public class ScratchViewModel {
         }, getInstru());
     }
 
-    // Le bouton "Dupliquer" s'allume si on a sélectionné un bloc,
-    // ET que ce n'est PAS une déclaration/assignation de variable
+    // Le bouton "Dupliquer" s'allume si on a sélectionné une instru et si ce n'est PAS une déclaration/assignation de variable
     public BooleanBinding canDuplicate() {
         return Bindings.createBooleanBinding(() -> {
             int idx = index.get();
@@ -155,23 +151,27 @@ public class ScratchViewModel {
         }, index, getInstru());
     }
 
-    // Le bouton "Supprimer un bloc" s'allume si on a sélectionné quelque chose (index > -1)
+    // bouton "Supprimer" s'active si on a sélectionné quelque chose (index > -1)
     public BooleanBinding canDelete() {
         return index.greaterThan(-1);
     }
 
-    // --- Les actions des boutons de l'interface
+
 
     // Bouton "Ajouter"
     public void addInstruction() {
-        int idx = catalogIndex.get(); // Quel bloc du catalogue est cliqué ?
-        int insertIndex = index.get(); // A quel endroit du brouillon veut-on le mettre ?
+
+        //on recupere l'index selectionee dans le catalogue et l'endroit ou on veut mettre dans le prog, on appelle add et on met l'instruction juste en dessous
+
+        int idx = catalogIndex.get();
+
+        int insertIndex = index.get();
         if (idx >= 0 && idx < getCatalogue().size()) {
-            program.addInstruction(idx, insertIndex); // on donne l'ordre au programme
+            program.addInstruction(idx, insertIndex);
 
             notifyProgramChanged();
 
-            index.set(insertIndex + 1); // Mets l'instruction en dessous du précedent
+            index.set(insertIndex + 1);
         }
     }
 
@@ -220,35 +220,38 @@ public class ScratchViewModel {
         notifyProgramChanged();
     }
 
-    public void execute() {
-        int nextIndex = indexExec.get() + 1; // On regarde l'index de la prochaine instruction
 
-        if (nextIndex < instructions.size()) { // Si on n'est pas à la fin du programme
+    //On recupere l'index de l'instru suivante, si on est pas a la fin du programme
+    //pour type end_repeat : on recupere le start correspondant a chaque end, si la boucle n'est pas finie on remet l'index courant sur l'index de start (on reprend la boucle)
+    //on appelle execute du programme et on met à jour les coordonnées
+    // le tout englobé dans un try et catch qui récupère les erreurs d'exécution (notamment pour les actions de variables)
+
+    public void execute() {
+        int nextIndex = indexExec.get() + 1;
+
+        if (nextIndex < instructions.size()) {
             try {
-                // Gestion spéciale pour les boucles "Répéter"
                 if (instructions.get(nextIndex).getType() == InstructionType.END_REPEAT) {
                     int loopStart = program.getLoopStart(nextIndex);
                     if (!program.loopEnded(loopStart))
                         nextIndex = loopStart;
                 }
-                indexExec.set(nextIndex); // On passe à l'instruction suivante
-                index.set(nextIndex); // Synchronise la sélection visuelle (le surlignage bleu sur l'écran)
+                indexExec.set(nextIndex);
+                index.set(nextIndex);
                 Instruction instru = instructions.get(nextIndex);
 
-                // le modèle exécute l'action (calcul mathématique)
                 program.execute(instru);
 
-                // Position et direction d'arrivée (On met à jour les Talkies-Walkies de l'écran)
                 Coordinates end = program.getPen().getCoord();
                 coordX.set(end.getX());
                 coordY.set(end.getY());
                 direction.set(program.getPen().getOrientation());
 
-                // on synchronise le tableau après chaque action (au cas où une variable a changé)
+                //on synchronise le tableau après chaque action au cas où une variable a changé
                 syncVariables();
 
                 if (onStepExecuted != null) {
-                    onStepExecuted.run(); // Pour l'auto-play, commenté pour l'instant
+                    onStepExecuted.run();
                 }
             } catch (RuntimeException e) {
                  errorMessage.set(e.getMessage());
