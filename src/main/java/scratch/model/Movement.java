@@ -5,6 +5,7 @@ public abstract class Movement extends Instruction {
 
     public Movement(String name, InstructionType type, Value value) {
         super(name, type, value);
+
         if(value != null) this.direction = value.getValue();
     }
 

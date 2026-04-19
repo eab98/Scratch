@@ -7,24 +7,25 @@ import javafx.beans.property.*;
 import javafx.util.Duration;
 
 public class ExecutionViewModel {
+
     private final ScratchViewModel scratchVM;
 
     private final BooleanProperty isAutoMode = new SimpleBooleanProperty(false);
-    private final DoubleProperty speedDelay = new SimpleDoubleProperty(1.0);
-    private final BooleanProperty stopBtnDisabled = new SimpleBooleanProperty(true);
+    private final DoubleProperty speedDelay = new SimpleDoubleProperty(1.0); // vitesse (1.0 = 1 seconde)
+    private final BooleanProperty stopBtnDisabled = new SimpleBooleanProperty(true); // bouton "Arrêter" désactivé ou pas
+
+
     private Timeline timeline;
 
     public ExecutionViewModel(ScratchViewModel scratchVM) {
         this.scratchVM = scratchVM;
 
-        // adapte la vitesse en direct si le slider bouge
         speedDelay.addListener((obs, oldVal, newVal) -> {
             if (timeline != null && timeline.getStatus() == Animation.Status.RUNNING) {
                 playAuto();
             }
         });
 
-        // si on décoche le mode auto, on arrête l'horloge
         isAutoMode.addListener((obs, oldVal, newVal) -> {
             if (!newVal) stopAuto();
         });
@@ -34,12 +35,16 @@ public class ExecutionViewModel {
     public DoubleProperty speedDelayProperty() { return speedDelay; }
     public BooleanProperty stopBtnDisabledProperty() { return stopBtnDisabled; }
 
+    // Lancer la lecture automatique (Le bouton "Play")
     public void playAuto() {
+        // S'il y avait déjà un chrono, on l'arrête pour en recréer un proprement
         if (timeline != null) timeline.stop();
 
+        // On crée un nouveau chrono réglé sur la vitesse actuelle (speedDelay)
         timeline = new Timeline(new KeyFrame(Duration.seconds(speedDelay.get()), e -> {
-            // On demande au ScratchViewModel de faire une étape
             boolean canContinue = scratchVM.executeStep();
+
+            // di erreur ou fin de programme, on arrête
             if (!canContinue) {
                 stopAuto();
             }
@@ -47,13 +52,21 @@ public class ExecutionViewModel {
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
 
+        // on active le bouton Stop
         stopBtnDisabled.set(false);
-        scratchVM.rightBtnDisabledProperty().set(true); // bloque le bouton Suivant/Exécuter
+
+        // desactive le bouton Suivant/Exécuter
+        scratchVM.rightBtnDisabledProperty().set(true);
     }
 
+    // Arrêter la lecture automatique (bouton "Stop")
     public void stopAuto() {
         if (timeline != null) timeline.stop();
+
+        // on désactive le bouton Stop
         stopBtnDisabled.set(true);
-        scratchVM.updateState(); // demande au ScratchViewModel de remettre ses boutons dans le bon état
+
+        //le vm remet ses boutons dans le bon état
+        scratchVM.updateState();
     }
 }
