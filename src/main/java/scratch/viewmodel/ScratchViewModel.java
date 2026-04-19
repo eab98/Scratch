@@ -6,11 +6,11 @@ import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import scratch.model.*;
+import scratch.model.Character;
 
 import java.util.List;
 
 public class ScratchViewModel {
-
     private final Program program;
 
     private List<Instruction> instructions = getInstru();
@@ -77,15 +77,17 @@ public class ScratchViewModel {
 
     private final ExecutionViewModel executionVM = new ExecutionViewModel(this);
     public ExecutionViewModel getExecutionVM() { return executionVM; }
+    private final Character pen;
 
 
     public ScratchViewModel(Program program) {
         this.program = program;
-
+        this.pen = program.getPen();
+        Coordinates coord = pen.getCoord();
         // synchronise avec la vraie position (195) au démarrage
-        this.coordX.set(program.getPen().getCoord().getX());
-        this.coordY.set(program.getPen().getCoord().getY());
-        this.direction.set(program.getPen().getOrientation());
+        this.coordX.set(coord.getX());
+        this.coordY.set(coord.getY());
+        this.direction.set(pen.getOrientation());
 
         updateState();
         updateTurtleInfoText();
@@ -242,7 +244,8 @@ public class ScratchViewModel {
 
                 program.execute(instru);
 
-                Coordinates end = program.getPen().getCoord();
+                // Position et direction d'arrivée
+                Coordinates end = pen.getCoord();
                 coordX.set(end.getX());
                 coordY.set(end.getY());
                 direction.set(program.getPen().getOrientation());
@@ -262,7 +265,6 @@ public class ScratchViewModel {
         }
     }
 
-    // L'écran demande : "À cet instant précis du jeu, est-ce que la tortue a son stylo baissé pour dessiner ?"
     public boolean isPenDown() {
         return program.isPenDown();
     }
@@ -280,10 +282,11 @@ public class ScratchViewModel {
         program.getVariables().clear();
         errorMessage.set("");
 
-        // màj sur la Vue (on synchronise les Talkies-Walkies avec la vraie tortue)
-        coordX.set(program.getPen().getCoord().getX());
-        coordY.set(program.getPen().getCoord().getY());
-        direction.set(program.getPen().getOrientation());
+        // màj sur la Vue
+        Coordinates coords = pen.getCoord();
+        coordX.set(coords.getX());
+        coordY.set(coords.getY());
+        direction.set(pen.getOrientation());
 
         syncVariables(); // <-- On met à jour l'affichage du tableau des variables
     }
@@ -381,8 +384,7 @@ public class ScratchViewModel {
         return instructions.get(index).getName(); // On renvoie le nom (ex: "Avancer", "Tourner")
     }
 
-    // Quand le joueur valide son texte (en appuyant sur Entrée)
-    public void changeAmount() {
+    public void changeValue() {
         int index = getIndexProperty().get();
         Instruction instru = instructions.get(index);
 
@@ -394,7 +396,7 @@ public class ScratchViewModel {
                 throw new RuntimeException("Erreur valeur");
             }
 
-            program.changeAmount(instru, amount.get());
+            program.changeValue(instru, amount.get());
             errorMessage.set("");
             isRunning = false;
             isLoaded = false;
@@ -402,8 +404,9 @@ public class ScratchViewModel {
 
             indexExec.set(-1); // remet l'exécution à zéro
             program.reset(); // replace la tortue
-            coordX.set(program.getPen().getCoord().getX());
-            coordY.set(program.getPen().getCoord().getY());
+            Coordinates coords = pen.getCoord();
+            coordX.set(coords.getX());
+            coordY.set(coords.getY());
         } catch(RuntimeException e) {
             errorMessage.set(e.getMessage());
         }
@@ -413,28 +416,22 @@ public class ScratchViewModel {
     si c'est une declaration on affiche le nom de la nouvelle variable (newVarName)
     si c'est une autre instruction, on affiche le parametre (soit nom de la variable soit un entier) sousforme de string
      */
-    // L'écran demande : "Est-ce qu'il y a un texte ou un chiffre écrit à l'intérieur de ce bloc ?"
     public String getParameterInstru() {
         int index = getIndexProperty().get();
         Instruction instru = instructions.get(index);
 
-        // Cas spécial : Si c'est le bloc "Déclarer une variable"
         if( instru.getType() == InstructionType.VAR_DECLARATION) {
             return instru.getNewVarName(); // On renvoie le nom de la variable (ex: "Score")
         }
 
-        // Pour tous les autres blocs (Avancer, Répéter...)
         Value param = instru.getParameter();
-        // Si la case est vide, on renvoie du vide (""), sinon on renvoie la valeur (ex: "50")
         return param == null ? "" : param.toString();
     }
 
-    // L'écran demande : "Est-ce que le bloc sélectionné a un rapport avec le stylo ?"
     public boolean isPenAction() {
         int index = getIndexProperty().get();
         Instruction instru = instructions.get(index);
 
-        // On vérifie si c'est "Stylo levé" OU "Stylo baissé"
         return instru.getType() == InstructionType.PEN_UP || instru.getType() == InstructionType.PEN_DOWN;
     }
 
@@ -469,13 +466,8 @@ public class ScratchViewModel {
         this.onStepExecuted = onStepExecuted;
     }
 
-    // --- MODIFIER LES VARIABLES ---
-
-    // Quand le joueur modifie un bloc "Mettre [Variable] à [Valeur]"
     public void changeAssignment(String input1, String input2){
         int index = getIndexProperty().get();
-
-        // Sécurité : si on n'a rien sélectionné, on annule
         if (index < 0 || index >= getInstru().size()) {
             return;
         }
@@ -483,7 +475,6 @@ public class ScratchViewModel {
         Instruction instru = getInstru().get(index);
 
         try {
-            // Sécurité : on vérifie que le joueur n'a pas laissé les cases vides
             if (input1 == null || input1.isEmpty()) {
                 throw  new RuntimeException("Nom de variable invalide");
             }
@@ -502,8 +493,9 @@ public class ScratchViewModel {
 
             indexExec.set(-1); // remet l'exécution à zéro
             program.reset(); // replace la tortue
-            coordX.set(program.getPen().getCoord().getX());
-            coordY.set(program.getPen().getCoord().getY());
+            Coordinates coords = pen.getCoord();
+            coordX.set(coords.getX());
+            coordY.set(coords.getY());
         } catch (RuntimeException e){
             errorMessage.set(e.getMessage()); // S'il y a une erreur, on l'affiche
         }
@@ -529,14 +521,13 @@ public class ScratchViewModel {
             updateState();
             indexExec.set(-1);
             program.reset();
-            coordX.set(program.getPen().getCoord().getX());
-            coordY.set(program.getPen().getCoord().getY());
+            Coordinates coords = pen.getCoord();
+            coordX.set(coords.getX());
+            coordY.set(coords.getY());
         } catch (RuntimeException e){
             errorMessage.set(e.getMessage());
         }
     }
-
-    // --- LECTURE DES VARIABLES POUR L'ÉCRAN ---
 
     public String getIncrementVarName() {
         Instruction instru = instructions.get(getIndexProperty().get());

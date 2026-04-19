@@ -39,7 +39,6 @@ public class Program {
         this.pen = pen;
     }
 
-
     public Character getPen() {
         return pen;
     }
@@ -156,7 +155,6 @@ public class Program {
     }
 
     public void execute(Instruction instr) {
-
         if (instr.getType() == InstructionType.PEN_DOWN || instr.getType() == InstructionType.PEN_UP) {
             setPenDown(instr.changePenStatus(this.penDown));
 
@@ -175,10 +173,9 @@ public class Program {
             }
 
         } else if (instr.getType() == InstructionType.VAR_ASSIGNMENT) {
-            VarAssignment assignInstr = (VarAssignment) instr;
-            Variable varToAssign = variables.get(assignInstr.getVarName());
+            Variable varToAssign = variables.get(instr.getVarName());
             if (varToAssign != null) {
-                varToAssign.setValue(assignInstr.getAssignedValue().getValue());
+                varToAssign.setValue(instr.getAssignedValue().getValue());
             }
         }
 
@@ -331,8 +328,7 @@ public class Program {
 
     }
 
-    // Quand le joueur tape du texte dans la case blanche d'un bloc
-    public void changeAmount(Instruction instru, String param) {
+    public void changeValue(Instruction instru, String param) {
         //si on veut declarer alors l'input est le nom de la nouvelle variable
         // CAS 1 : Le joueur tape dans le bloc "Déclaration variable"
         if(instru.getType() == InstructionType.VAR_DECLARATION){
@@ -443,7 +439,6 @@ public class Program {
                 }
             }
         }
-
         return true;
     }
 
@@ -460,8 +455,7 @@ public class Program {
             // essaie de voir si c'est un simple nombre. Essaie de forcer le texte à devenir un nombre entier (ex: "50" -> 50)
             return new Value(Integer.parseInt(param.trim()));
         } catch (NumberFormatException e) {
-            // Si ça plante (l'erreur NumberFormatException), ça veut dire que ce n'est pas un nombre.
-            // On regarde alors dans la mémoire (la Map) si on a bien une variable qui s'appelle comme ça.
+            // si ça plante, c'est que c'est du texte
             if (declaredVariablesBeforeExec.containsKey(param.trim())) {
                 return declaredVariablesBeforeExec.get(param.trim());
             }
