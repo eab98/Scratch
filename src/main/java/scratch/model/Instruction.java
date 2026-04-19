@@ -80,7 +80,7 @@ public abstract class Instruction {
 
     }
 
-    public Object getAssignedValue() {
+    public Value getAssignedValue() {
         throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
     }
 

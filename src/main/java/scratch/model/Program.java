@@ -159,10 +159,9 @@ public class Program {
             }
 
         } else if (instr.getType() == InstructionType.VAR_ASSIGNMENT) {
-            VarAssignment assignInstr = (VarAssignment) instr;
-            Variable varToAssign = variables.get(assignInstr.getVarName());
+            Variable varToAssign = variables.get(instr.getVarName());
             if (varToAssign != null) {
-                varToAssign.setValue(assignInstr.getAssignedValue().getValue());
+                varToAssign.setValue(instr.getAssignedValue().getValue());
             }
         }
 
