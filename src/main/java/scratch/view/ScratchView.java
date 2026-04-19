@@ -314,7 +314,7 @@ public class ScratchView extends BorderPane {
 
             // envoie le texte brut au ViewModel (meme si c'est une case vide)
             this.scratchViewModel.getAmountProperty().set(newValue);
-            this.scratchViewModel.changeAmount();
+            this.scratchViewModel.changeValue();
             this.programList.refresh();
             canShowPlusMinusButtonsAmount(input.getText());
         };
