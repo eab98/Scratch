@@ -1,5 +1,6 @@
 package scratch.model;
 
+
 public class VarDeclaration extends VarAction {
 
     private String newVarName = "";
@@ -7,7 +8,6 @@ public class VarDeclaration extends VarAction {
         super(name, type);
     }
 
-    // ajoute depuis la palette au programme
     @Override
     public Instruction newInstruction(){
         return new VarDeclaration("Déclaration variable", this.getType());
@@ -32,9 +32,13 @@ public class VarDeclaration extends VarAction {
         return newVarName;
     }
 
+    /**
+     * Quand l'utilisateur tape le nom de sa variable, on fait appel au Regex pour vérifier si le nom est légal !
+     */
     @Override
     public void setNewVarName(String newVarName) {
         if(!newVarName.matches("^[a-zA-Z_][a-zA-Z0-9_]*$")) {
+            // Si le nom est interdit (ex: commence par un chiffre), erreur
             throw new RuntimeException("Format invalide");
         }
         this.newVarName = newVarName;

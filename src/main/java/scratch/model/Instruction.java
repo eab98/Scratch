@@ -1,10 +1,10 @@
 package scratch.model;
 
 public abstract class Instruction {
-    private final String name;
-    private final InstructionType type;
+    private final String name; // Le nom affiché à l'écran (ex: "Avancé de")
+    private final InstructionType type; // Le mot-clé officiel du dictionnaire (ex: MOVE_FORWARD)
 
-    private Value value;
+    private Value value; // Le paramètre (le chiffre 30, ou la variable "ma_var")
 
     public Instruction(String name, InstructionType type, Value value) {
         this.name = name;
@@ -45,7 +45,6 @@ public abstract class Instruction {
     }
 
 
-    //Transtypage
 
     public boolean changePenStatus(boolean currentStatus){
         throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
@@ -78,5 +77,22 @@ public abstract class Instruction {
     public int getDifference() {
         throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
 
+    }
+
+    public Value getAssignedValue() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setVarName(String varName) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+
+    }
+
+    public void setAssignedValue(Value assignedValue) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setDifference(Value difference) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
     }
 }

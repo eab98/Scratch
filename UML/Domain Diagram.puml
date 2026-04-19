@@ -3,6 +3,7 @@
 class Program {
         - penDown : boolean
         - variables : Map<String, Variable>
+        - declaredVariablesBeforeExec : Map<String, Variable>
 }
 
 class Character {
@@ -64,23 +65,16 @@ abstract class VarAction extends Instruction {
 }
 
 class VarDeclaration extends VarAction {
-
+    - newVarName : String
 }
 
 class VarAssignment extends VarAction {
-
+    - varName : String
 }
 
-class IncrementVar extends VarAction {
-    - amount : integer
-}
 
-abstract class Loop extends Instruction {
-
-}
-
-class Repeat extends Loop {
-
+class Repeat extends Instruction {
+    - loop : int
 }
 
 class Value {
@@ -94,12 +88,10 @@ Character -->  Coordinates : has
 Program --> Character :  moves
 Program "1" --> "*" Instruction : executes
 Shape "1" --> "*" Line : contains
-Program "1" --> "*" Line : draws
+Program  --> Shape : draws
 Line "1" --> "2" Coordinates : has
-Instruction --> Variable : has
-VarAction --> Variable : defines
-Loop --> Value : uses
-Loop "1" *--> "*" Instruction : contains (Composite)
-Movement --> Value : has
+Instruction --> Value : has
+VarAction --> Variable : describes
+VarAssignment "1" --> "2" Value : has
 
 @end

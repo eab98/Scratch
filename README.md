@@ -12,8 +12,4 @@
 
 ## Notes de version itération 2
 
-...
-
-## Notes de version itération 3
-
-...
+* Aucun bug connu. Toutes les fonctionnalités sont présentes

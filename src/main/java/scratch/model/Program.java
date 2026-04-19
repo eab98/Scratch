@@ -4,12 +4,12 @@ package scratch.model;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.*;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class Program {
-    private final Character pen;
+    private final Character pen; //Personnage qui bouge
+
     private static final ObservableList<Instruction> catalogue = FXCollections.observableArrayList(
             new VarDeclaration("Déclaration variable", InstructionType.VAR_DECLARATION),
             new VarAssignment("Assignation", InstructionType.VAR_ASSIGNMENT),
@@ -23,12 +23,17 @@ public class Program {
             new PenAction("Abaisser stylo", InstructionType.PEN_DOWN)
             );
 
+    // C'est ici qu'on stocke les blocs que l'utilisateur a glissés.
     private static final ObservableList<Instruction> instructions = FXCollections.observableArrayList();
+
     private boolean penDown = true;   //true si PEN_DOWN, false si PEN_UP
     private final Shape shape = new Shape();
 
-    private final Map<String, Variable> variables = new HashMap<>();
-    private final Map<String, Variable> declaredVariablesBeforeExec = new HashMap<>();
+    //Stockage des variables créées par l'utilisateur
+    private final Map<String, Variable> variables = new HashMap<>(); // pendant exec
+    private final Map<String, Variable> declaredVariablesBeforeExec = new HashMap<>(); // avant exec
+
+//    private boolean isError = false;
 
     public Program(Character pen) {
         this.pen = pen;
@@ -54,6 +59,8 @@ public class Program {
         this.penDown = penDown;
     }
 
+
+    // Quand l'utilisateur glisse un bloc du catalogue vers sa liste
     public void addInstruction(int idx, int insertIndex) {
 
         Instruction instru = catalogue.get(idx);
@@ -64,6 +71,7 @@ public class Program {
         checkProgramValidity();
     }
 
+    // Le bouton "Monter" pour remonter un bloc dans la liste
     public void up(int idx) {
         if(idx > 0 && idx < instructions.size()) {
             Instruction instru = instructions.set(idx, instructions.get(idx - 1));
@@ -72,6 +80,7 @@ public class Program {
         }
     }
 
+    // Le bouton "Descendre" pour baisser un bloc
     public void down(int idx) {
         if(idx>=0 && idx < instructions.size() - 1) {
             Instruction instru = instructions.set(idx, instructions.get(idx + 1));
@@ -100,21 +109,23 @@ public class Program {
     s'agit d'une autre boucle
     */
 
+    // Quand on arrive à un "Fin Répéter", remonte la liste pour retrouver le "Répéter" de départ
     public int getLoopStart(int end) {
         int level = 0;
 
+        // On part du bloc "Fin" et on remonte la liste à l'envers (i--)
         for (int i = end - 1; i >= 0; i--) {
             Instruction instr = instructions.get(i);
 
             if (instr.getType() == InstructionType.END_REPEAT) {
                 level++;
             } else if (instr.getType() == InstructionType.REPEAT) {
-                //c'est le start qui correspond au end en param
+
                 if (level == 0) {
-                    return i;
+                    return i;// C'est le "Répéter" qui correspond exactement à notre "Fin Répéter"
                 }
-                //c'est un start d'une boucle imbriquee donc tout ce qui se trouve au-delà apartient à un niveau inférieur
-                else {
+
+                else {// C'est le "Répéter" d'une autre boucle imbriquée à l'intérieur, on l'ignore
                     level--;
                 }
             }
@@ -122,11 +133,14 @@ public class Program {
         return 0;
     }
 
+
+    // Vérifie si la boucle a fini de tourner (si son compteur est arrivé à 0)
     public boolean loopEnded(int idx) {
         Instruction loop = instructions.get(idx);
         return loop.getType() == InstructionType.REPEAT && loop.getLoop() <= 0;
     }
 
+    // Vérifie si chaque bloc "Répéter" possède bien son "Fin Répéter"
     public boolean allLoopsClosed() {
         int level = 0;
         //int end = 0;
@@ -136,6 +150,7 @@ public class Program {
             else if (instr.getType() == InstructionType.END_REPEAT)
                 --level;
         }
+        // Si level finit à 0, ça veut dire qu'il y a autant de débuts que de fins et qu'ils sont tous dans le bon ordre.
         return level == 0;
     }
 
@@ -158,10 +173,9 @@ public class Program {
             }
 
         } else if (instr.getType() == InstructionType.VAR_ASSIGNMENT) {
-            VarAssignment assignInstr = (VarAssignment) instr;
-            Variable varToAssign = variables.get(assignInstr.getVarName());
+            Variable varToAssign = variables.get(instr.getVarName());
             if (varToAssign != null) {
-                varToAssign.setValue(assignInstr.getAssignedValue().getValue());
+                varToAssign.setValue(instr.getAssignedValue().getValue());
             }
         }
 
@@ -182,32 +196,34 @@ public class Program {
 
 
     // sauvegarder fichier
+    // Il écrit la liste des blocs dans un fichier texte
     public void saveToFile(File file) {
         try (PrintWriter writer = new PrintWriter(file)) {
-            // parcourt toutes les instructions du programme
+            // parcourt toutes les instructions du programme. On lit la liste de blocs de haut en bas
             for (Instruction instr : instructions) {
+                // Selon le type de bloc, on l'écrit différemment dans le fichier avec un ";" comme séparateur
                 switch (instr.getType()) {
                     case VAR_DECLARATION:
                         writer.println(instr.getType() + ";" + instr.getNewVarName());
                         break;
                     case VAR_ASSIGNMENT:
-                        VarAssignment assign = (VarAssignment) instr;
-                        writer.println(instr.getType() + ";" + assign.getVarName() + ";" + assign.getAssignedValue());
+                        writer.println(instr.getType() + ";" + instr.getVarName() + ";" + instr.getAssignedValue());
                         break;
                     case INCREMENT_VARIABLE:
-                        VarAssignment inc = (VarAssignment) instr;
-                        writer.println(instr.getType() + ";" + inc.getVarName() + ";" + inc.getDifference());
+
+                        writer.println(instr.getType() + ";" + instr.getVarName() + ";" + instr.getDifference());
                         break;
                     case MOVE_FORWARD:
                     case TURN_LEFT:
                     case TURN_RIGHT:
                     case REPEAT:
-                        // récupère soit le nombre, soit le nom de la variable (si c'est "nb" par ex)
+                        // récupère soit le nombre, soit le nom de la variable (si c'est "nb" par ex) ou (ex: "50" ou "score")
                         String paramStr = (instr.getParameter() != null) ? instr.getParameter().toString() : "0";
                         writer.println(instr.getType() + ";" + paramStr);
                         break;
                     default:
                         // pour PEN_UP, PEN_DOWN, END_REPEAT (qui n'ont pas de paramètre)
+                        // Pour les blocs simples sans texte (Stylo, Fin Répéter)
                         writer.println(instr.getType() + ";");
                         break;
                 }
@@ -219,6 +235,7 @@ public class Program {
     }
 
     // charger fichier
+    // Il lit un fichier texte et recrée les blocs à l'écran
     public void loadFromFile(File file) {
         try (Scanner scanner = new Scanner(file)) {
 
@@ -226,43 +243,47 @@ public class Program {
             this.empty();
             declaredVariablesBeforeExec.clear();
 
-            // lit ligne par ligne
+            // On lit le fichier ligne par ligne
             while (scanner.hasNextLine()) {
                 String ligne = scanner.nextLine();
                 if (ligne.trim().isEmpty()) continue; // ignore les lignes vides
 
+                // On coupe la phrase à chaque point-virgule ";"
                 String[] morceaux = ligne.split(";");
-                String typeAction = morceaux[0];
+                String typeAction = morceaux[0]; // Le premier morceau c'est le nom du bloc
 
+                // On cherche dans le catalogue le bloc qui correspond à ce nom
                 // crée la bonne instruction en fonction du texte
                 for (int i = 0; i < catalogue.size(); i++) {
                     Instruction modele = catalogue.get(i);
 
                     if (modele.getType().toString().equals(typeAction)) {
+                        // On ajoute le bloc à la liste du joueur
                         this.addInstruction(i, -1);
                         Instruction nouvelleAction = instructions.get(instructions.size() - 1);
 
+                        // S'il y avait du texte après le ";"
                         // si la ligne contient des paramètres (donc > 1 morceau)
                         if (morceaux.length > 1) {
                             switch (nouvelleAction.getType()) {
                                 case VAR_DECLARATION:
                                     String varName = morceaux[1].trim();
                                     nouvelleAction.setNewVarName(varName);
-                                    // On réenregistre la variable dans le moteur
+                                    // On réenregistre la variable
                                     declaredVariablesBeforeExec.put(varName, new Variable(varName));
                                     break;
                                 case VAR_ASSIGNMENT:
                                     if (morceaux.length >= 3) {
-                                        VarAssignment assignInstr = (VarAssignment) nouvelleAction;
-                                        assignInstr.setVarName(morceaux[1].trim());
-                                        assignInstr.setAssignedValue(evaluate(morceaux[2].trim()));
+
+                                        nouvelleAction.setVarName(morceaux[1].trim());
+                                        nouvelleAction.setAssignedValue(evaluate(morceaux[2].trim()));
                                     }
                                     break;
                                 case INCREMENT_VARIABLE:
                                     if (morceaux.length >= 3) {
-                                        VarAssignment incInstr = (VarAssignment) nouvelleAction;
-                                        incInstr.setVarName(morceaux[1].trim());
-                                        incInstr.setDifference(evaluate(morceaux[2].trim()));
+
+                                        nouvelleAction.setVarName(morceaux[1].trim());
+                                        nouvelleAction.setDifference(evaluate(morceaux[2].trim()));
                                     }
                                     break;
                                 case MOVE_FORWARD:
@@ -289,13 +310,16 @@ public class Program {
         }
     }
 
+    // Le bouton "Vider tout"
     public void empty(){
         instructions.clear();
         variables.clear();
+        declaredVariablesBeforeExec.clear();
     }
 
 
     public static ObservableList<Instruction> getCatalogue() {
+        // "unmodifiable" empêche l'écran de modifier le catalogue par erreur
         return FXCollections.unmodifiableObservableList(catalogue);
     }
 
@@ -304,19 +328,25 @@ public class Program {
 
     }
 
-    public void changeAmount(Instruction instru, String param) {
+    public void changeValue(Instruction instru, String param) {
         //si on veut declarer alors l'input est le nom de la nouvelle variable
+        // CAS 1 : Le joueur tape dans le bloc "Déclaration variable"
         if(instru.getType() == InstructionType.VAR_DECLARATION){
 
-            instru.setNewVarName(param);
-
-            // On ne la crée que si elle n'existe pas déjà
+            // On vérifie qu'il n'a pas déjà créé une variable avec ce nom
             if (!declaredVariablesBeforeExec.containsKey(param)) {
+                // C'EST ICI QU'ON AJOUTE LA VARIABLE !
                 declaredVariablesBeforeExec.put(param, new Variable(param));
+                instru.setNewVarName(param);
+            } else {
+                // Si le nom existe déjà, on déclenche une erreur
+                //isError = true;
+                throw new IllegalArgumentException("Cette variable existe déjà.");
             }
 
-        //sinon, on regarde si on donne à l'instru un entier -> on crée une value, si un string ->
+            // CAS 2 : Le joueur tape dans n'importe quel autre bloc (ex: Avancer)
         } else {
+            // On appelle notre traducteur pour savoir si c'est un chiffre ou une variable
             Value evaluated = evaluate(param);
             if (evaluated == null) {
                 throw new RuntimeException("Valeur ou variable invalide");
@@ -329,31 +359,46 @@ public class Program {
 
 
 
-    // vérifie si le programme est correct (pas de PenActions en double + protection des variables de boucles)
+    // vérifie si le programme est correct (pas de PenActions en double + protection des variables de boucles, etc)
     public boolean checkProgramValidity() {
         boolean state = true; // etat du pen sans execution
 
+//        if(isError){
+//            isError = false;
+//            return false;
+//        }
+
+        // Si une boucle n'est pas fermée, on bloque tout direct.
         if (!allLoopsClosed())
             return false;
 
-        // on délimite la zone de déclaration de variables
+        // Vérifier que les déclarations de variables sont TOUTES au début
         int indexFirstinstruction = 0;
         int i = 0;
+
+        // On avance tant qu'on lit des "Déclarations"
         while(i < instructions.size() && instructions.get(i).getType() == InstructionType.VAR_DECLARATION ){
-            indexFirstinstruction = i + 1; // + 1 car on veut verifier apres les variables
+            Instruction current = instructions.get(i);
+            if (current.getNewVarName() == null || current.getNewVarName().isBlank())
+                return false; // Erreur : variable sans nom
+            indexFirstinstruction = i + 1; // + 1 car on veut verifier apres les variables. On retient où commencent les vraies actions
             i++;
         }
 
-        // Pile pour retenir les variables bloquées par les boucles actuelles
+        // La Pile (Stack) pour protéger les compteurs de boucle
+        // pour retenir les variables bloquées par les boucles actuelles
         Stack<String> protectedVariables = new Stack<>();
 
+        // On lit le reste du programme
         for(int j = indexFirstinstruction; j < instructions.size(); j++) {
             Instruction current = instructions.get(j);
 
+            // Règle A : Si on trouve une déclaration ici, c'est interdit (elles doivent être en haut)
             if(current.getType() == InstructionType.VAR_DECLARATION){
                 return false;
             }
 
+            // Règle B : Interdit de baisser un stylo déjà baissé (ou lever un stylo levé)
             if((current.getType() == InstructionType.PEN_DOWN && state) ||
                     (current.getType() == InstructionType.PEN_UP && !state)){
                 return false;
@@ -363,27 +408,32 @@ public class Program {
             }
 
             // On utilise toString() et on regarde si la map la connait.
+            // Règle C : Protéger les variables dans les boucles
             if (current.getType() == InstructionType.REPEAT) {
                 Value param = current.getParameter();
                 // Si le paramètre existe et que son nom est dans la liste des variables déclarées
+                // Exemple : Si la boucle utilise une variable (ex: "nb"), on la met dans la pile !
                 if (param != null && declaredVariablesBeforeExec.containsKey(param.toString())) {
                     protectedVariables.push(param.toString());
                 } else {
-                    protectedVariables.push(""); // Ce n'est pas une variable
+                    protectedVariables.push(""); // Ce n'est pas une variable. Boucle normale (ex: Répéter 10), rien à protéger
                 }
             }
             else if (current.getType() == InstructionType.END_REPEAT) {
+                // Fin de la boucle : on retire la variable de la pile (elle n'est plus protégée)
                 if (!protectedVariables.isEmpty()) {
                     protectedVariables.pop();
                 }
             }
 
+            // Règle D : Interdit de modifier une variable protégée !
             // On utilise le polymorphisme avec getVarName()
             if (current.getType() == InstructionType.VAR_ASSIGNMENT ||
                     current.getType() == InstructionType.INCREMENT_VARIABLE) {
 
                 String varModified = current.getVarName();
-                if (protectedVariables.contains(varModified)) {
+                // Si la pile contient le nom de cette variable
+                if (protectedVariables.contains(varModified) || current.getVarName() == null || current.getVarName().isBlank()) {
                     // On essaie de modifier un compteur de boucle : PROGRAMME INVALIDE !
                     return false;
                 }
@@ -392,7 +442,6 @@ public class Program {
         return true;
     }
 
-
     public void reset() {
         this.pen.reset();
         this.penDown = true;
@@ -400,15 +449,18 @@ public class Program {
 
     // traduit un texte en value
     public Value evaluate(String param) {
+        // Si la case est vide, on annule
         if (param == null || param.trim().isEmpty()) return null;
         try {
-            // essaie de voir si c'est un simple nombre
+            // essaie de voir si c'est un simple nombre. Essaie de forcer le texte à devenir un nombre entier (ex: "50" -> 50)
             return new Value(Integer.parseInt(param.trim()));
         } catch (NumberFormatException e) {
             // si ça plante, c'est que c'est du texte
             if (declaredVariablesBeforeExec.containsKey(param.trim())) {
                 return declaredVariablesBeforeExec.get(param.trim());
             }
+
+            // Si ce n'est ni un nombre, ni une variable connue, on renvoie null (erreur)
             return null;
         }
     }
@@ -423,28 +475,31 @@ public class Program {
     }
 
     public void assignVariable(Instruction instru, String variable, String valueText){
+        // On vérifie que la variable existe bien
             Variable var = declaredVariablesBeforeExec.get(variable);
             if (var == null) {
                 throw new RuntimeException("Variable non déclarée");
             }
 
+        // On traduit le texte tapé par le joueur
             Value evaluated = evaluate(valueText);
             if (evaluated == null) {
                 throw new RuntimeException("Valeur invalide");
             }
 
+        // Si tout est bon, on donne l'ordre au bloc de s'actualiser
             if (instru.getType() == InstructionType.VAR_ASSIGNMENT) {
                 instru.setParameter(evaluated);
                 instru.assign(var, evaluated);
             }
         }
 
-
     public void incrementVariable(Instruction instru, String variable, String stepStr){
+        // On vérifie que la variable existe
         Variable var = declaredVariablesBeforeExec.get(variable);
         if (var == null) throw new RuntimeException("Variable non déclarée");
 
-        // On prend directement la valeur tapée dans la case
+        // On traduit la valeur tapée
         Value stepVal = this.evaluate(stepStr);
 
         if(instru.getType() == InstructionType.INCREMENT_VARIABLE){
@@ -453,12 +508,13 @@ public class Program {
         //((VarAssignment) instru).increment(var, stepVal);
     }
 
+    // Vide le brouillon et remet les variables de base à zéro
     public void resetVariables() {
         // remet la valeur de chaque variable déclarée à 0
         for (Variable v : declaredVariablesBeforeExec.values()) {
             v.setValue(0);
         }
-        // vide la map d'exece
+        // vide la map d'exec
         variables.clear();
     }
 

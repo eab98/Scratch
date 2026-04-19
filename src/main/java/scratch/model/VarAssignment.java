@@ -1,11 +1,16 @@
 package scratch.model;
 
+/**
+ * Gère deux choses :
+ * 1 : Mettre une valeur précise dans la variable (VAR_ASSIGNMENT) -> ex: "score = 10"
+ * 2 : Ajouter une valeur à la variable (INCREMENT_VARIABLE) -> ex: "score de 1" (pour faire +1)
+ */
 public class VarAssignment extends VarAction {
     private String varName = "";
-    private Value difference = new Value(0);
+    private Value difference = new Value(0); // Pour l'incrémentation (+X)
     private Value varValue;
 
-    private Value assignedValue = new Value(0);
+    private Value assignedValue = new Value(0); // Pour l'assignation (=X)
 
     public VarAssignment(String name, InstructionType type) {
         super(name, type);
@@ -27,6 +32,7 @@ public class VarAssignment extends VarAction {
         return this;
     }
 
+
     @Override
     public void assign(Variable var, Value value){
         // on stocke la valeur dans l'instruction pour le moment de l'exécution
@@ -34,7 +40,6 @@ public class VarAssignment extends VarAction {
         this.assignedValue = value;
     }
 
-    // méthode pour stocker l'incrémentation
     @Override
     public void increment(Variable var, Value diff) {
         this.setVarName(var.getName());
@@ -46,6 +51,7 @@ public class VarAssignment extends VarAction {
         return varName;
     }
 
+    @Override
     public void setVarName(String varName) {
         this.varName = varName;
     }
@@ -55,15 +61,19 @@ public class VarAssignment extends VarAction {
        return difference.getValue();
     }
 
+    @Override
     public void setDifference(Value difference) {
         this.difference = difference;
     }
 
+    @Override
     public Value getAssignedValue() { return assignedValue; }
 
+    @Override
     public void setAssignedValue(Value assignedValue) {
         this.assignedValue = assignedValue;
     }
+
 
     @Override
     public String toString() {
@@ -76,7 +86,8 @@ public class VarAssignment extends VarAction {
 
         if(this.getType() == InstructionType.VAR_ASSIGNMENT){
             msg = " : " + this.getVarName() + " = " + this.assignedValue;
-        } else if (this.getType() == InstructionType.INCREMENT_VARIABLE){
+        }
+        else if (this.getType() == InstructionType.INCREMENT_VARIABLE){
             if(difference == null){
                 msg = " : " + this.getVarName() + " de ";
             }else {
