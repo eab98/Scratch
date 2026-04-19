@@ -7,9 +7,8 @@ package scratch.model;
 public class Variable extends Value{
     private String name;
 
-    // Le constructeur : quand on crée une variable, on lui donne juste un nom, sa valeur de base est 0.
     public Variable(String name) {
-        super(0); // On donne la valeur 0 au parent (Value)
+        super(0); // On donne la valeur 0 par défaut au parent (Value)
         this.name = name;
     }
 
@@ -23,7 +22,6 @@ public class Variable extends Value{
         if(name.matches("^[a-zA-Z_][a-zA-Z0-9_]*$"))  this.name = name;
     }
 
-    // Ex: Si ma variable s'appelle "nb_tour" et vaut 5, on veut afficher "Avancer de nb_tour", pas "Avancer de 5".
     @Override
     public String toString() {
         return name;

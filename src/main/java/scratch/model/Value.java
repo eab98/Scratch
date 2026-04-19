@@ -19,7 +19,6 @@ public class Value {
         this.value = value;
     }
 
-    // toString() : permet d'afficher la valeur sous forme de texte (ex: dans la liste)
     @Override
     public String toString() {
         return Integer.toString(value);
