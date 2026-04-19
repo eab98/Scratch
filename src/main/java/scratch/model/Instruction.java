@@ -26,9 +26,11 @@ public abstract class Instruction {
         return name;
     }
 
+    // Méthode vide : la classe Mère ne sait pas comment s'exécuter, ce sont les classes Filles qui devront définir ça !
     public void execute(Character character) {
     }
 
+    // Traduit l'instruction en texte pour l'afficher dans la liste visuelle
     @Override
     public String toString() {
         return this.getName() + " ";
@@ -38,6 +40,7 @@ public abstract class Instruction {
 
     public abstract Instruction duplicate();
 
+    //Getters et Setters pour la boite (Value)
     public void setParameter(Value value) {
         this.value = value;
     }

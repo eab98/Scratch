@@ -1,7 +1,11 @@
 package scratch.model;
 
+/**
+ * Une classe simple qui enveloppe un nombre entier.
+ * Elle sert de base pour pouvoir manipuler des nombres ou des variables de la même façon.
+ */
 public class Value {
-    private int value;
+    private int value; // La valeur numérique stockée
 
     public Value(int value) {
         this.value = value;
@@ -15,6 +19,7 @@ public class Value {
         this.value = value;
     }
 
+    // toString() : permet d'afficher la valeur sous forme de texte (ex: dans la liste)
     @Override
     public String toString() {
         return Integer.toString(value);
