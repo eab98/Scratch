@@ -5,6 +5,7 @@ package scratch {
     package scratch.model {
         class Character {
           - orientation : integer
+          + reset : void
         }
 
         class Coordinates {
@@ -17,15 +18,31 @@ package scratch {
             + execute(pen : Character) : void
             + newInstruction() : Instruction
             + duplicate() : Instruction
+            + changePenStatus(currentStatus : boolean) : boolean
+            + getNewVarName() : String
+            + setNewVarName(newVarName : String) : void
+            + increment(var : Variable, value : Value) : void
+            + getLoop() : integer
+            + assign(var : Variable, value : Value) : void
+            + getVarName() : String
+            + getDifference() : integer
+            + getAssignedValue() : Value
+            + setVarName (varName : String) : void
+            + setAssignedValue(assignedValue : Value) : void
+            + setDifference(difference : Value) : void
         }
 
         enum InstructionType {
             - MOVE_FORWARD
-            - MOVE_BACKWARD
             - TURN_LEFT
             - TURN_RIGHT
             - PEN_UP
             - PEN_DOWN
+            - VAR_DECLARATION
+            - VAR_ASSIGNMENT
+            - REPEAT
+            - END_REPEAT
+            - INCREMENT_VARIABLE
         }
 
         class Line {
@@ -47,6 +64,8 @@ package scratch {
             - penDown : boolean
             - catalogue : List<Instruction>
             - instructions : List<Instruction>
+            - variables : Map<String, Variable>
+            - declaredVariablesBeforeExec : Map<String, Variable>
             + addInstruction(idx : integer) : void
             + up(idx : integer) : void
             + down(idx : integer) : void
@@ -56,7 +75,16 @@ package scratch {
             + execute(instr : Instruction) : void
             + saveToFile(file : File) : void
             + loadFromFile(file : File) : void
-            + changeAmount(instru : Instruction, amount : integer) : void
+            + changeValue(instru : Instruction, param : String) : void
+            + getLoopStart(end : integer) : integer
+            + loopEnded(idx : integer) : boolean
+            + allLoopsClosed() : boolean
+            + checkProgramValidity() : boolean
+            + reset() : void
+            + evaluate(param : String) : Value
+            + assignVariable(instru : Instruction, variable : String, valueText : String) : void
+            + incrementVariable(instru : Instruction, variable : String, stepStr: String) : void
+            + resetVariables() : void
         }
 
         class Rotation extends Movement {
@@ -76,9 +104,42 @@ package scratch {
             + newInstruction() : Instruction
             + duplicate() : Instruction
         }
+
+        class Variable extends Value {
+            - name : string
+        }
+
+        abstract class VarAction extends Instruction {
+
+        }
+
+        class VarDeclaration extends VarAction {
+            - newVarName : String
+        }
+
+        class VarAssignment extends VarAction {
+            - varName : String
+        }
+
+
+        class Repeat extends Instruction {
+            - loop : int
+        }
+
+        class Value {
+            - value : integer
+        }
     }
 
     package scratch.viewModel {
+        class ExecutionViewModel {
+            - isAutoMode : boolean
+            - speedDelay : double
+            - stopBtnDisabled : boolean
+            - timeline : Timeline
+            + playAuto() : void
+            + stopAuto() : void
+        }
         class MainViewModel {
             + saveProgram(file : File) : void
             + loadProgram(file : File) : void
@@ -95,16 +156,20 @@ package scratch {
             - errorMessage : string
             - isLoaded : boolean
             - isRunning : boolean
+            - isError : boolean
+            - onStepExecuted : Runnable
+            - offset : double
             - leftBtnText : string
             - leftBtnDisabled : boolean
             - rightBtnText : string
             - rightBtnDisabled : boolean
-            + getCatalogue() : List<Instruction>
-            + getInstru() : List<Instruction>
+            - variables : List<Variable>
+            - turtleInfoText : string
             + canUp() : boolean
             + canDown() : boolean
             + canEmpty() : boolean
-            + canDuplicateOrDelete() : boolean
+            + canDuplicate() : boolean
+            + canDelete() : boolean
             + addInstruction() : void
             + up() : void
             + down() : void
@@ -120,13 +185,30 @@ package scratch {
             + clickRightButton() : void
             + notifyProgramChanged() : void
             + getNameInstruParIndex() : string
-            + changeAmount() : void
+            + changeValue() : void
             + getParameterInstru() : integer
             + isPenAction() : boolean
+            - updateTurtleInfoText() : void
+            + executeStep() : boolean
+            + changeAssignment(input1 : String, input2 : String) : void
+            + changeIncrement(varName : String, stepStr : String) : void
+            + getIncrementVarName() : String
+            + getIncrementStep() : String
+            - syncVariables() : void
+            + getTabLevel(index : integer) : integer
+            + getAssignmentVar() : String
+            + getAssignmentValue() : String
+
         }
 
     }
     package scratch.view {
+        class VariablesView {
+
+                }
+        class ExecutionView {
+
+        }
         class MainView {
 
         }
@@ -139,6 +221,10 @@ package scratch {
             - updateCanvas() : void
             - updateDetails() : void
             - loadData() : void
+            + canShowPlusMinusButtonsIncrement(input : String) : void
+            + canShowPlusMinusButtonsAmount(input : String) : void
+            + canShowPlusMinusButtonsAssign(input : String) : void
+
         }
     }
 }
@@ -147,16 +233,24 @@ package scratch {
 Character  -->  Coordinates : has
 Instruction  --  InstructionType
 Line "1" --> "2" Coordinates : has
-Program "1" --> "1" Character : has
-Program "1" --> "*" Instruction : contains
+Program -->  Character : has
+Program "1" --> "*" Instruction : executes
 Shape "1" --> "*" Line : contains
+Program --> Shape : draws
+Instruction --> Value : has
+VarAction --> Variable : describes
+VarAssignment "1" --> "2" Value : has
 MainViewModel --> Program : has
 MainViewModel --> ScratchViewModel : has
 ScratchViewModel --> Program : has
-ScratchViewModel --> Shape : creates
+ScratchViewModel --> Character : has
 ScratchViewModel "1" --> "*" Instruction : contains
-MainView --> ScratchView : has
+ScratchViewModel "1" --> "*" Variable : contains
+ScratchViewModel --> ExecutionViewModel : has
+MainView --> MainViewModel : has
 ScratchView --> ScratchViewModel : has
 ScratchView "1" --> "*" Instruction : contains
+ExecutionView --> ScratchViewModel : has
+VariablesView --> ScratchViewModel : has
 
 @enduml
