@@ -402,6 +402,11 @@ public class Program {
 //            return false;
 //        }
 
+        Instruction derniere = instructions.get(instructions.size() - 1);
+        if (derniere.getType() == InstructionType.DRAW_RECTANGLE) {
+            return false;
+        }
+
         // Si une boucle n'est pas fermée, on bloque tout direct.
         if (!allLoopsClosed())
             return false;

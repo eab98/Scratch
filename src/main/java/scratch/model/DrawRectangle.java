@@ -50,7 +50,7 @@ public class DrawRectangle extends Instruction {
         int height = this.hauteur.getValue();
 
         if (width < 20 || height < 20) {
-            throw new RuntimeException("La hauteur et la largeur doivent être >= 20");
+            throw new RuntimeException("Runtime Error");
         }
     }
 
