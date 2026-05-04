@@ -20,7 +20,8 @@ public class Program {
             new Repeat("Répéter", InstructionType.REPEAT, new Value(0)),
             new Repeat("Fin Répéter", InstructionType.END_REPEAT, new Value(0)),
             new PenAction("Lever stylo", InstructionType.PEN_UP),
-            new PenAction("Abaisser stylo", InstructionType.PEN_DOWN)
+            new PenAction("Abaisser stylo", InstructionType.PEN_DOWN),
+            new DrawRectangle("Rectangle", InstructionType.DRAW_RECTANGLE, new Value(20), new Value(20))
             );
 
     // C'est ici qu'on stocke les blocs que l'utilisateur a glissés.
@@ -177,6 +178,26 @@ public class Program {
             if (varToAssign != null) {
                 varToAssign.setValue(instr.getAssignedValue().getValue());
             }
+        } else if (instr.getType() == InstructionType.DRAW_RECTANGLE) {
+            instr.execute(this.getPen());
+
+            int width = instr.getLargeur().getValue();
+            int height = instr.getHauteur().getValue();
+
+            double x_start = pen.getCoord().getX();
+            double y_start = pen.getCoord().getY();
+            double x_end = x_start + width;
+            double y_end = y_start + height;
+
+            Coordinates p1 = new Coordinates(x_start, y_start);
+            Coordinates p2 = new Coordinates(x_start, y_end);
+            Coordinates p3 = new Coordinates(x_end, y_end);
+            Coordinates p4 = new Coordinates(x_end, y_start);
+
+            shape.addLine(new Line(p1, p2));
+            shape.addLine(new Line(p2, p3));
+            shape.addLine(new Line(p3, p4));
+            shape.addLine(new Line(p4, p1));
         }
 
         else {
@@ -221,6 +242,10 @@ public class Program {
                         String paramStr = (instr.getParameter() != null) ? instr.getParameter().toString() : "0";
                         writer.println(instr.getType() + ";" + paramStr);
                         break;
+                    case DRAW_RECTANGLE:
+                        writer.println(instr.getType() + ";" + instr.getHauteur() + ";" + instr.getLargeur());
+                        break;
+
                     default:
                         // pour PEN_UP, PEN_DOWN, END_REPEAT (qui n'ont pas de paramètre)
                         // Pour les blocs simples sans texte (Stylo, Fin Répéter)
@@ -286,6 +311,15 @@ public class Program {
                                         nouvelleAction.setDifference(evaluate(morceaux[2].trim()));
                                     }
                                     break;
+                                case DRAW_RECTANGLE:
+                                    if (morceaux.length >= 3) {
+                                        Value h = evaluate(morceaux[1].trim());
+                                        Value l = evaluate(morceaux[2].trim());
+                                        if (h != null) nouvelleAction.setHauteur(h);
+                                        if (l != null) nouvelleAction.setLargeur(l);
+                                    }
+                                    break;
+
                                 case MOVE_FORWARD:
                                 case TURN_LEFT:
                                 case TURN_RIGHT:

@@ -95,4 +95,21 @@ public abstract class Instruction {
     public void setDifference(Value difference) {
         throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
     }
+
+    public Value getHauteur() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setHauteur(Value hauteur) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public Value getLargeur() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setLargeur(Value largeur) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
 }

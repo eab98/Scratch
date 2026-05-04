@@ -600,7 +600,66 @@ public class ScratchViewModel {
         return "";
     }
 
+    // Récupère la hauteur pour l'afficher dans la case
+    public String getRectangleHauteur() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.DRAW_RECTANGLE) {
+            Value h = instru.getHauteur();
+            return h == null ? "" : h.toString();
+        }
+        return "";
+    }
+    // Récupère la largeur pour l'afficher dans la case
+    public String getRectangleLargeur() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.DRAW_RECTANGLE) {
+            Value l = instru.getLargeur();
+            return l == null ? "" : l.toString();
+        }
+        return "";
+    }
 
+    public void changeRectangle(String hauteurStr, String largeurStr) {
+        int index = getIndexProperty().get();
+        if (index < 0 || index >= getInstru().size()) return;
+        Instruction instru = getInstru().get(index);
 
+        try {
+            // "evaluate" du program transforme String -> Value (vu qu'on accepte variable et valeur)
+            Value valHauteur = program.evaluate(hauteurStr);
+            Value valLargeur = program.evaluate(largeurStr);
 
+            if (valHauteur == null) throw new RuntimeException("Hauteur invalide");
+            if (valLargeur == null) throw new RuntimeException("Largeur invalide");
+
+            // Si l'utilisateur tape un vrai chiffre (pas une variable) et qu'il est < 20 : Erreur
+            try {
+                int h = Integer.parseInt(hauteurStr.trim());
+                if (h < 20) throw new RuntimeException("La hauteur doit être >= 20");
+            } catch (NumberFormatException ignored) {} // Si c'est du texte (ex: nb), on l'ignore. Ça plantera à l'exécution
+            try {
+                int l = Integer.parseInt(largeurStr.trim());
+                if (l < 20) throw new RuntimeException("La largeur doit être >= 20");
+            } catch (NumberFormatException ignored) {}
+
+            // si tout est bon, on met à jour le modèle
+            instru.setHauteur(valHauteur);
+            instru.setLargeur(valLargeur);
+
+            // On réinitialise l'état (pour forcer à relancer depuis le début)
+            errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+
+            indexExec.set(-1);
+            program.reset();
+            Coordinates coords = pen.getCoord();
+            coordX.set(coords.getX());
+            coordY.set(coords.getY());
+
+        } catch (RuntimeException e) {
+            errorMessage.set(e.getMessage());
+        }
+    }
 }

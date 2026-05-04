@@ -11,5 +11,6 @@ public enum InstructionType {
     VAR_ASSIGNMENT,
     REPEAT,
     END_REPEAT,
-    INCREMENT_VARIABLE
+    INCREMENT_VARIABLE,
+    DRAW_RECTANGLE
 }

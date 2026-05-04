@@ -1,6 +1,8 @@
 package scratch.view;
 
 import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -34,6 +36,9 @@ public class ScratchView extends BorderPane {
     private final Label programTitle = new Label("Programme");
     private final Label sceneTitle = new Label("Scène");
 
+    // case CheckBox
+    private final CheckBox advancedModeCheck = new CheckBox("Mode avancé");
+
     // listes et boutons
     private final HBox buttonProgram = new HBox(8); // Conteneur pour les boutons du programme
 
@@ -61,6 +66,9 @@ public class ScratchView extends BorderPane {
     private final TextField inputAssign2 = new TextField(); // Valeur variable (assignation)
     private final TextField inputIncVar = new TextField(); // Nom variable (incrémentation)
     private final TextField inputIncStep = new TextField(); // Pas/Valeur (incrémentation)
+    private final TextField inputHauteur = new TextField(); // Valeur Hauteur
+    private final TextField inputLargeur = new TextField(); // Valeur Largeur
+
 
     // Boutons +/- pour faciliter la saisie des nombres
     private final Button plusButton = new Button("+");
@@ -69,6 +77,12 @@ public class ScratchView extends BorderPane {
     private final Button minusButtonAmount = new Button("-");
     private final Button plusButtonAssign = new Button("+");
     private final Button minusButtonAssign = new Button("-");
+
+    private final Button plusButtonHauteur = new Button("+");
+    private final Button minusButtonHauteur = new Button("-");
+    private final Button plusButtonLargeur = new Button("+");
+    private final Button minusButtonLargeur = new Button("-");
+
 
     private ChangeListener<String> inputIncListener;
 
@@ -80,6 +94,11 @@ public class ScratchView extends BorderPane {
     private final Label infoTortue = new Label(); // msg d'information
 
     private ChangeListener<String> inputAssignListener;
+
+    private ChangeListener<String> inputRectListener;
+
+    // Liste qui gère en fonction de la checkbox
+    private final ObservableList<Instruction> listeEcran = FXCollections.observableArrayList();
 
 
     public ScratchView(ScratchViewModel scratchViewModel) {
@@ -117,7 +136,7 @@ public class ScratchView extends BorderPane {
      * Configure la colonne de gauche
      */
     private void configPaletteBox() {
-        palette.getChildren().addAll(paletteTitle, paletteList, addToProgramButton);
+        palette.getChildren().addAll(paletteTitle, paletteList, addToProgramButton, advancedModeCheck);
 
         // couleurs selon le type
         paletteList.setCellFactory(lv -> new ListCell<Instruction>() {
@@ -149,12 +168,28 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
+                        case DRAW_RECTANGLE:
+                            setStyle("-fx-text-fill: orange;");
+                            break;
+
                         default:
                             setStyle("-fx-text-fill: black;");
                     }
                 }
             }
         });
+
+        // gestion checkbox
+        advancedModeCheck.setOnAction(e -> {
+            listeEcran.clear(); // vide la liste
+            listeEcran.addAll(scratchViewModel.getCatalogue()); // remet tout dedans
+
+            if (!advancedModeCheck.isSelected()) {
+                // si la case n'est PAS cochée, on supprime le rectangle de la liste
+                listeEcran.removeIf(i -> i.getType() == InstructionType.DRAW_RECTANGLE);
+            }
+        });
+
     }
 
     /**
@@ -207,6 +242,10 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
+                        case DRAW_RECTANGLE:
+                            setStyle("-fx-text-fill: orange;");
+                            break;
+
                         default:
                             setStyle("-fx-text-fill: black;");
                     }
@@ -224,6 +263,7 @@ public class ScratchView extends BorderPane {
         updateDetails();
         configInputAmount();
         configInputAssign();
+        configInputRectangle();
     }
 
     /**
@@ -456,7 +496,12 @@ public class ScratchView extends BorderPane {
      * Relie les listes visuelles aux listes de données contenues dans le ViewModel.
      */
     private void loadData() {
-        paletteList.setItems(scratchViewModel.getCatalogue());
+        // On copie le catalogue, et on enlève le rectangle pour commencer
+        listeEcran.addAll(scratchViewModel.getCatalogue());
+        listeEcran.removeIf(i -> i.getType() == InstructionType.DRAW_RECTANGLE);
+
+        // On dit à l'écran d'afficher notre liste
+        paletteList.setItems(listeEcran);
         programList.setItems(scratchViewModel.getInstru());
     }
 
@@ -506,8 +551,27 @@ public class ScratchView extends BorderPane {
         double newX = scratchViewModel.coordXProperty().get();
         double newY = scratchViewModel.coordYProperty().get();
 
+        int currentIndex = scratchViewModel.getIndexProperty().get();
+        Instruction currentInstru = scratchViewModel.getInstru().get(currentIndex);
+
+        if (currentInstru.getType() == InstructionType.DRAW_RECTANGLE && scratchViewModel.isPenDown() || currentInstru.getType() == InstructionType.DRAW_RECTANGLE && !scratchViewModel.isPenDown()) {
+            GraphicsContext gc = canvas.getGraphicsContext2D();
+            gc.setStroke(Color.RED);
+            gc.setLineWidth(2);
+
+            double w = currentInstru.getLargeur().getValue();
+            double h = currentInstru.getHauteur().getValue();
+
+            double endX = oldX + w;
+            double endY = oldY - h;
+
+            gc.strokeLine(oldX, oldY, oldX, endY);
+            gc.strokeLine(oldX, endY, endX, endY);
+            gc.strokeLine(endX, endY, endX, oldY);
+            gc.strokeLine(endX, oldY, oldX, oldY);
+        }
         // dessine la ligne rouge (si pen baissé)
-        if (scratchViewModel.isPenDown()) {
+        else if (scratchViewModel.isPenDown()) {
             GraphicsContext gc = canvas.getGraphicsContext2D();
             gc.setStroke(Color.RED);
             gc.setLineWidth(2);
@@ -608,6 +672,25 @@ public class ScratchView extends BorderPane {
                 } else if (currentInstru.getType() == InstructionType.VAR_DECLARATION) {
                     content.getChildren().addAll(text, input, text2);
 
+                } else if (currentInstru.getType() == InstructionType.DRAW_RECTANGLE) {
+                    text.setText("Affiche un rectangle de hauteur ");
+                    text2.setText(" et de longueur ");
+
+                    inputHauteur.textProperty().removeListener(inputRectListener);
+                    inputLargeur.textProperty().removeListener(inputRectListener);
+
+                    inputHauteur.setText(scratchViewModel.getRectangleHauteur());
+                    inputLargeur.setText(scratchViewModel.getRectangleLargeur());
+
+                    inputHauteur.textProperty().addListener(inputRectListener);
+                    inputLargeur.textProperty().addListener(inputRectListener);
+
+                    content.getChildren().addAll(text, inputHauteur);
+                    canShowPlusMinusButtonsRectangle1(inputHauteur.getText());
+
+                    content.getChildren().addAll(text2, inputLargeur);
+                    canShowPlusMinusButtonsRectangle2(inputLargeur.getText());
+
                 } else {
                     content.getChildren().addAll(text, input, text2);
                     canShowPlusMinusButtonsAmount(input.getText());
@@ -619,6 +702,39 @@ public class ScratchView extends BorderPane {
                 detailsAction.setContent(contentPlusError);
             }
         }
+    }
+
+    private void configInputRectangle() {
+        // action déclenché quand on tape au clavier
+        inputRectListener = (observable, oldValue, newValue) -> {
+            scratchViewModel.changeRectangle(inputHauteur.getText(), inputLargeur.getText());
+            programList.refresh();
+            canShowPlusMinusButtonsRectangle1(inputHauteur.getText());
+            canShowPlusMinusButtonsRectangle2(inputLargeur.getText());
+        };
+
+        // attache l'action aux deux boîtes
+        inputHauteur.textProperty().addListener(inputRectListener);
+        inputLargeur.textProperty().addListener(inputRectListener);
+
+        plusButtonHauteur.setOnAction(e -> {
+            try { inputHauteur.setText(String.valueOf(Integer.parseInt(inputHauteur.getText()) + 1)); }
+            catch (NumberFormatException ex) {}
+        });
+        minusButtonHauteur.setOnAction(e -> {
+            try { inputHauteur.setText(String.valueOf(Integer.parseInt(inputHauteur.getText()) - 1)); }
+            catch (NumberFormatException ex) {}
+        });
+
+        plusButtonLargeur.setOnAction(e -> {
+            try { inputLargeur.setText(String.valueOf(Integer.parseInt(inputLargeur.getText()) + 1)); }
+            catch (NumberFormatException ex) {}
+        });
+        minusButtonLargeur.setOnAction(e -> {
+            try { inputLargeur.setText(String.valueOf(Integer.parseInt(inputLargeur.getText()) - 1)); }
+            catch (NumberFormatException ex) {}
+        });
+
     }
 
     /**
@@ -692,5 +808,25 @@ public class ScratchView extends BorderPane {
 
         }
     }
+
+    public void canShowPlusMinusButtonsRectangle1(String hauteur) {
+        content.getChildren().removeAll(minusButtonHauteur, plusButtonHauteur);
+
+        try {
+            Integer.parseInt(hauteur);
+            content.getChildren().addAll(plusButtonHauteur, minusButtonHauteur);
+        } catch (NumberFormatException ignored) {} // Si c'est une variable, on ignore !
+    }
+
+    public void canShowPlusMinusButtonsRectangle2(String largeur) {
+        content.getChildren().removeAll(minusButtonLargeur, plusButtonLargeur);
+
+        try {
+            Integer.parseInt(largeur);
+            content.getChildren().addAll(plusButtonLargeur, minusButtonLargeur);
+        } catch (NumberFormatException ignored) {}
+
+    }
+
 
 }
