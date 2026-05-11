@@ -304,6 +304,10 @@ public class Program {
                         writer.println(instr.getType() + ";" + instr.getLongueur() + ";" + instr.getCote());
                         break;
 
+                    case MAKE_TELEPORTATION:
+                        writer.println(instr.getType() + ";" + instr.getNouvelleX() + ";" + instr.getNouvelleY());
+                        break;
+
                     default:
                         // pour PEN_UP, PEN_DOWN, END_REPEAT (qui n'ont pas de paramètre)
                         // Pour les blocs simples sans texte (Stylo, Fin Répéter)
@@ -384,6 +388,15 @@ public class Program {
                                         Value l = evaluate(morceaux[2].trim());
                                         if (h != null) nouvelleAction.setLongueur(h);
                                         if (l != null) nouvelleAction.setCote(l);
+                                    }
+                                    break;
+
+                                case MAKE_TELEPORTATION:
+                                    if (morceaux.length >= 3) {
+                                        Value h = evaluate(morceaux[1].trim());
+                                        Value l = evaluate(morceaux[2].trim());
+                                        if (h != null) nouvelleAction.setNouvelleX(h);
+                                        if (l != null) nouvelleAction.setNouvelleY(l);
                                     }
                                     break;
 
@@ -554,6 +567,12 @@ public class Program {
                     return false;
                 }
             }
+
+            // Règle E : Interdit de mettre une téléportation dans une boucle
+            if (current.getType() == InstructionType.MAKE_TELEPORTATION && !protectedVariables.isEmpty()) {
+                return false;
+            }
+
         }
         return true;
     }

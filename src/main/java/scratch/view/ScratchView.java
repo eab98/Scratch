@@ -13,11 +13,11 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
-import org.w3c.dom.Text;
 import scratch.model.Instruction;
 import scratch.model.InstructionType;
 import scratch.viewmodel.ScratchViewModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -41,6 +41,8 @@ public class ScratchView extends BorderPane {
 
     // case CheckBox
     private final CheckBox advancedModeCheck = new CheckBox("Mode avancé");
+
+    private final CheckBox tpModeCheck = new CheckBox("afficher la téléportation");
 
     // listes et boutons
     private final HBox buttonProgram = new HBox(8); // Conteneur pour les boutons du programme
@@ -133,12 +135,65 @@ public class ScratchView extends BorderPane {
         return advancedModeCheck;
     }
 
-    // liaison advancedMode entre ScratchView et MainView
+    public CheckBox getTpModeCheck() {
+        return tpModeCheck;
+    }
+
+    // liaison entre les differentes vues
     private boolean isAdvancedMode = false;
 
     public void setAdvancedMode(boolean advanced) {
         this.isAdvancedMode = advanced;
     }
+
+    private boolean isTpMode = false;
+
+    public void setTpModeCheck(boolean advanced) {
+        this.isTpMode = advanced;
+    }
+
+    // sauvegarde dans une List les coordonnées de téléportation
+    private final List<double[]> teleportLines = new ArrayList<>();
+
+    // méthode qui redessine toutes les TP si je coche après la case
+    public void redrawTeleportLines() {
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+
+        // sauvegarde la position actuelle de la tortue
+        double turtleX = headTurtle.getLayoutX();
+        double turtleY = headTurtle.getLayoutY();
+        double turtleAngle = headTurtle.getRotate();
+
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight()); // EFFACE TOUT
+        configCanvas(); // REMET LA GRILLE
+
+        // restaure la position de la tortue
+        headTurtle.setLayoutX(turtleX);
+        headTurtle.setLayoutY(turtleY);
+        headTurtle.setRotate(turtleAngle);
+
+        // redessine les traits normaux
+        gc.setStroke(Color.RED);
+        gc.setLineWidth(2);
+        for (double[] l : drawnLines) {
+            gc.strokeLine(l[0], l[1], l[2], l[3]);
+        }
+
+        // si la case est cochée, on go mettre les pointillés
+        if (isTpMode) {
+            gc.setStroke(Color.RED);
+            gc.setLineWidth(2);
+            gc.setLineDashes(10);
+            for (double[] l : teleportLines) {
+                gc.strokeLine(l[0], l[1], l[2], l[3]);
+            }
+            gc.setLineDashes(0);
+        }
+    }
+
+    private final List<double[]> drawnLines = new ArrayList<>();
+
+
 
 
     public ScratchView(ScratchViewModel scratchViewModel) {
@@ -325,7 +380,7 @@ public class ScratchView extends BorderPane {
 
         canvasContainer.getChildren().addAll(canvas, headTurtle); // Superpose la tortue sur le canvas
 
-        VariablesView variablesView = new VariablesView(scratchViewModel);
+        VariablesView variablesView = new VariablesView(scratchViewModel, this);
         infoTortue.textProperty().bind(scratchViewModel.turtleInfoTextProperty()); // Lie le texte aux infos du ViewModel
 
         VBox infosVariablesBox = new VBox(5);
@@ -335,6 +390,8 @@ public class ScratchView extends BorderPane {
         ExecutionView executionView = new ExecutionView(scratchViewModel, () -> {
             GraphicsContext gc = canvas.getGraphicsContext2D();
             gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight()); // Efface tout
+            teleportLines.clear();
+            drawnLines.clear();
             configCanvas(); // Redessine la grille et replace la tortue
         });
 
@@ -639,8 +696,22 @@ public class ScratchView extends BorderPane {
                 gc.strokeLine(l[0], l[1], l[2], l[3]);
             }
 
-        } else if (currentInstru.getType() == InstructionType.MAKE_TELEPORTATION && scratchViewModel.isPenDown() || currentInstru.getType() == InstructionType.MAKE_TELEPORTATION && !scratchViewModel.isPenDown()) {
+        } else if ((currentInstru.getType() == InstructionType.MAKE_TELEPORTATION && scratchViewModel.isPenDown() || currentInstru.getType() == InstructionType.MAKE_TELEPORTATION && !scratchViewModel.isPenDown())) {
+            double endX = currentInstru.getNouvelleX().getValue() + 195;
+            double endY = 195 - currentInstru.getNouvelleY().getValue();
 
+            teleportLines.add(new double[]{oldX, oldY, endX, endY}); // sauvegarde les téléportations
+
+            if (isTpMode) {
+                GraphicsContext gc = canvas.getGraphicsContext2D();
+                gc.setStroke(Color.RED);
+                gc.setLineWidth(2);
+                gc.setLineDashes(10);
+
+                gc.strokeLine(oldX, oldY, endX, endY);
+
+                gc.setLineDashes(0);
+            }
         }
 
         // dessine la ligne rouge (si pen baissé)
@@ -649,6 +720,7 @@ public class ScratchView extends BorderPane {
             gc.setStroke(Color.RED);
             gc.setLineWidth(2);
             gc.strokeLine(oldX, oldY, newX, newY); // Trace un trait de l'ancien point au nouveau
+            drawnLines.add(new double[]{oldX, oldY, newX, newY}); // sauvegarde
         }
 
         // déplace la tortue à sa nouvelle position
