@@ -769,7 +769,7 @@ public class ScratchViewModel {
 
     public String getTPX() {
         Instruction instru = instructions.get(getIndexProperty().get());
-        if (instru.getType() == InstructionType.MAKE_TELEPORTATION) {
+        if (instru.getType() == InstructionType.TELEPORTATION) {
             Value h = instru.getNouvelleX();
             return h == null ? "" : h.toString();
         }
@@ -778,7 +778,7 @@ public class ScratchViewModel {
 
     public String getTPY() {
         Instruction instru = instructions.get(getIndexProperty().get());
-        if (instru.getType() == InstructionType.MAKE_TELEPORTATION) {
+        if (instru.getType() == InstructionType.TELEPORTATION) {
             Value h = instru.getNouvelleY();
             return h == null ? "" : h.toString();
         }

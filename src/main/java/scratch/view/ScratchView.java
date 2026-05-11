@@ -263,7 +263,7 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
-                        case DRAW_RECTANGLE, DRAW_POLYGON, MAKE_TELEPORTATION:
+                        case DRAW_RECTANGLE, DRAW_POLYGON, TELEPORTATION:
                             setStyle("-fx-text-fill: orange;");
                             break;
 
@@ -343,7 +343,7 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
-                        case DRAW_RECTANGLE, DRAW_POLYGON, MAKE_TELEPORTATION:
+                        case DRAW_RECTANGLE, DRAW_POLYGON, TELEPORTATION:
                             setStyle("-fx-text-fill: orange;");
                             break;
 
@@ -696,7 +696,7 @@ public class ScratchView extends BorderPane {
                 gc.strokeLine(l[0], l[1], l[2], l[3]);
             }
 
-        } else if ((currentInstru.getType() == InstructionType.MAKE_TELEPORTATION && scratchViewModel.isPenDown() || currentInstru.getType() == InstructionType.MAKE_TELEPORTATION && !scratchViewModel.isPenDown())) {
+        } else if ((currentInstru.getType() == InstructionType.TELEPORTATION && scratchViewModel.isPenDown() || currentInstru.getType() == InstructionType.TELEPORTATION && !scratchViewModel.isPenDown())) {
             double endX = currentInstru.getNouvelleX().getValue() + 195;
             double endY = 195 - currentInstru.getNouvelleY().getValue();
 
@@ -854,7 +854,7 @@ public class ScratchView extends BorderPane {
 
                     content.getChildren().addAll(text2, inputCote);
                     canShowPlusMinusButtonsPolygone2(inputCote.getText());
-                } else if (currentInstru.getType() == InstructionType.MAKE_TELEPORTATION) {
+                } else if (currentInstru.getType() == InstructionType.TELEPORTATION) {
                     text.setText("Téléporter vers (x,y) ");
                     text2.setText(" , ");
 

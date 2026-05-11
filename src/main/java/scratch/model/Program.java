@@ -23,7 +23,7 @@ public class Program {
             new PenAction("Abaisser stylo", InstructionType.PEN_DOWN),
             new DrawRectangle("Rectangle", InstructionType.DRAW_RECTANGLE, new Value(20), new Value(20)),
             new DrawPolygon("Polygone", InstructionType.DRAW_POLYGON, new Value(20), new Value(6)),
-            new MakeTeleportation("Téléportation", InstructionType.MAKE_TELEPORTATION, new Value(0), new Value(0))
+            new MakeTeleportation("Téléportation", InstructionType.TELEPORTATION, new Value(0), new Value(0))
             );
 
     // C'est ici qu'on stocke les blocs que l'utilisateur a glissés.
@@ -217,7 +217,7 @@ public class Program {
                 Coordinates p2 = new Coordinates(l[2], l[3]);
                 shape.addLine(new Line(p1, p2));
             }
-        } else if (instr.getType() == InstructionType.MAKE_TELEPORTATION) {
+        } else if (instr.getType() == InstructionType.TELEPORTATION) {
             instr.execute(this.getPen());
 
             double x_initial = pen.getCoord().getX();
@@ -304,7 +304,7 @@ public class Program {
                         writer.println(instr.getType() + ";" + instr.getLongueur() + ";" + instr.getCote());
                         break;
 
-                    case MAKE_TELEPORTATION:
+                    case TELEPORTATION:
                         writer.println(instr.getType() + ";" + instr.getNouvelleX() + ";" + instr.getNouvelleY());
                         break;
 
@@ -391,7 +391,7 @@ public class Program {
                                     }
                                     break;
 
-                                case MAKE_TELEPORTATION:
+                                case TELEPORTATION:
                                     if (morceaux.length >= 3) {
                                         Value h = evaluate(morceaux[1].trim());
                                         Value l = evaluate(morceaux[2].trim());
@@ -569,7 +569,7 @@ public class Program {
             }
 
             // Règle E : Interdit de mettre une téléportation dans une boucle
-            if (current.getType() == InstructionType.MAKE_TELEPORTATION && !protectedVariables.isEmpty()) {
+            if (current.getType() == InstructionType.TELEPORTATION && !protectedVariables.isEmpty()) {
                 return false;
             }
 

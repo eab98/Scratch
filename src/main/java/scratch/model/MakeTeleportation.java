@@ -34,7 +34,7 @@ public class MakeTeleportation extends Instruction {
 
     @Override
     public Instruction newInstruction() {
-        return new MakeTeleportation("Téléportation", InstructionType.MAKE_TELEPORTATION, new Value(0), new Value(0));
+        return new MakeTeleportation("Téléportation", InstructionType.TELEPORTATION, new Value(0), new Value(0));
     }
 
     @Override
