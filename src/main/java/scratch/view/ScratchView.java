@@ -13,9 +13,12 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
+import org.w3c.dom.Text;
 import scratch.model.Instruction;
 import scratch.model.InstructionType;
 import scratch.viewmodel.ScratchViewModel;
+
+import java.util.List;
 
 
 // BorderPane car : Gauche (Palette), Centre (Programme), Droite (Scène/Canvas).
@@ -64,10 +67,15 @@ public class ScratchView extends BorderPane {
     private final TextField input = new TextField();
     private final TextField inputAssign1 = new TextField(); // Nom variable (assignation)
     private final TextField inputAssign2 = new TextField(); // Valeur variable (assignation)
+
     private final TextField inputIncVar = new TextField(); // Nom variable (incrémentation)
     private final TextField inputIncStep = new TextField(); // Pas/Valeur (incrémentation)
+
     private final TextField inputHauteur = new TextField(); // Valeur Hauteur
     private final TextField inputLargeur = new TextField(); // Valeur Largeur
+
+    private final TextField inputLongueur = new TextField();
+    private final TextField inputCote = new TextField();
 
 
     // Boutons +/- pour faciliter la saisie des nombres
@@ -83,6 +91,11 @@ public class ScratchView extends BorderPane {
     private final Button plusButtonLargeur = new Button("+");
     private final Button minusButtonLargeur = new Button("-");
 
+    private final Button plusButtonLongueur = new Button("+");
+    private final Button minusButtonLongueur = new Button("-");
+    private final Button plusButtonCote = new Button("+");
+    private final Button minusButtonCote = new Button("-");
+
 
     private ChangeListener<String> inputIncListener;
 
@@ -97,8 +110,25 @@ public class ScratchView extends BorderPane {
 
     private ChangeListener<String> inputRectListener;
 
+    private ChangeListener<String> inputPolygonListener;
+
     // Liste qui gère en fonction de la checkbox
     private final ObservableList<Instruction> listeEcran = FXCollections.observableArrayList();
+
+    public ObservableList<Instruction> getListeEcran() {
+        return listeEcran;
+    }
+
+    public CheckBox getAdvancedModeCheck() {
+        return advancedModeCheck;
+    }
+
+    // liaison advancedMode entre ScratchView et MainView
+    private boolean isAdvancedMode = false;
+
+    public void setAdvancedMode(boolean advanced) {
+        this.isAdvancedMode = advanced;
+    }
 
 
     public ScratchView(ScratchViewModel scratchViewModel) {
@@ -168,7 +198,7 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
-                        case DRAW_RECTANGLE:
+                        case DRAW_RECTANGLE, DRAW_POLYGON:
                             setStyle("-fx-text-fill: orange;");
                             break;
 
@@ -184,9 +214,15 @@ public class ScratchView extends BorderPane {
             listeEcran.clear(); // vide la liste
             listeEcran.addAll(scratchViewModel.getCatalogue()); // remet tout dedans
 
+            // Si la case n'est PAS cochée, on retire le rectangle
             if (!advancedModeCheck.isSelected()) {
                 // si la case n'est PAS cochée, on supprime le rectangle de la liste
                 listeEcran.removeIf(i -> i.getType() == InstructionType.DRAW_RECTANGLE);
+            }
+
+            // Si on n'est PAS en mode advanced, on retire le polygone
+            if (!isAdvancedMode) {
+                listeEcran.removeIf(i -> i.getType() == InstructionType.DRAW_POLYGON);
             }
         });
 
@@ -242,7 +278,7 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
-                        case DRAW_RECTANGLE:
+                        case DRAW_RECTANGLE, DRAW_POLYGON:
                             setStyle("-fx-text-fill: orange;");
                             break;
 
@@ -264,6 +300,7 @@ public class ScratchView extends BorderPane {
         configInputAmount();
         configInputAssign();
         configInputRectangle();
+        configInputPolygone();
     }
 
     /**
@@ -304,7 +341,12 @@ public class ScratchView extends BorderPane {
         // Quand on clique dans la palette, on prévient le ViewModel
         this.paletteList.getSelectionModel().selectedIndexProperty()
                 .addListener((observable, oldValue, newValue) -> {
-                    this.scratchViewModel.getCatalogIndexProperty().set(newValue.intValue());
+                    int visualIndex = newValue.intValue();
+                    if (visualIndex >= 0 && visualIndex < listeEcran.size()) {
+                        Instruction selected = listeEcran.get(visualIndex);
+                        int realIndex = scratchViewModel.getCatalogue().indexOf(selected);
+                        scratchViewModel.getCatalogIndexProperty().set(realIndex);
+                    }
                 } );
 
         // Quand on clique dans le programme, on prévient le ViewModel et on met à jour le panneau de détails
@@ -499,6 +541,7 @@ public class ScratchView extends BorderPane {
         // On copie le catalogue, et on enlève le rectangle pour commencer
         listeEcran.addAll(scratchViewModel.getCatalogue());
         listeEcran.removeIf(i -> i.getType() == InstructionType.DRAW_RECTANGLE);
+        listeEcran.removeIf(i -> i.getType() == InstructionType.DRAW_POLYGON);
 
         // On dit à l'écran d'afficher notre liste
         paletteList.setItems(listeEcran);
@@ -547,6 +590,8 @@ public class ScratchView extends BorderPane {
         double oldX = headTurtle.getLayoutX();
         double oldY = headTurtle.getLayoutY();
 
+        double angle = headTurtle.getRotate();
+
         // récupère la nouvelle position calculée
         double newX = scratchViewModel.coordXProperty().get();
         double newY = scratchViewModel.coordYProperty().get();
@@ -569,6 +614,20 @@ public class ScratchView extends BorderPane {
             gc.strokeLine(oldX, endY, endX, endY);
             gc.strokeLine(endX, endY, endX, oldY);
             gc.strokeLine(endX, oldY, oldX, oldY);
+        } else if (currentInstru.getType() == InstructionType.DRAW_POLYGON && scratchViewModel.isPenDown() || currentInstru.getType() == InstructionType.DRAW_POLYGON && !scratchViewModel.isPenDown()) {
+            GraphicsContext gc = canvas.getGraphicsContext2D();
+            gc.setStroke(Color.RED);
+            gc.setLineWidth(2);
+
+            int size = currentInstru.getLongueur().getValue();
+            int num = currentInstru.getCote().getValue();
+
+            List<double[]> lines = scratchViewModel.getPolygonLines(oldX, oldY, angle, size, num);
+
+            for (double[] l : lines) {
+                gc.strokeLine(l[0], l[1], l[2], l[3]);
+            }
+
         }
         // dessine la ligne rouge (si pen baissé)
         else if (scratchViewModel.isPenDown()) {
@@ -691,7 +750,26 @@ public class ScratchView extends BorderPane {
                     content.getChildren().addAll(text2, inputLargeur);
                     canShowPlusMinusButtonsRectangle2(inputLargeur.getText());
 
-                } else {
+                } else if (currentInstru.getType() == InstructionType.DRAW_POLYGON) {
+                    text.setText("Affiche un polygone de côté ");
+                    text2.setText(" nombre de côtés ");
+
+                    inputLongueur.textProperty().removeListener(inputPolygonListener);
+                    inputCote.textProperty().removeListener(inputPolygonListener);
+
+                    inputLongueur.setText(scratchViewModel.getPolygoneLongueur());
+                    inputCote.setText(scratchViewModel.getPolygoneCote());
+
+                    inputLongueur.textProperty().addListener(inputPolygonListener);
+                    inputCote.textProperty().addListener(inputPolygonListener);
+
+                    content.getChildren().addAll(text, inputLongueur);
+                    canShowPlusMinusButtonsPolygone1(inputLongueur.getText());
+
+                    content.getChildren().addAll(text2, inputCote);
+                    canShowPlusMinusButtonsPolygone2(inputCote.getText());
+                }
+                else {
                     content.getChildren().addAll(text, input, text2);
                     canShowPlusMinusButtonsAmount(input.getText());
                 }
@@ -732,6 +810,39 @@ public class ScratchView extends BorderPane {
         });
         minusButtonLargeur.setOnAction(e -> {
             try { inputLargeur.setText(String.valueOf(Integer.parseInt(inputLargeur.getText()) - 1)); }
+            catch (NumberFormatException ex) {}
+        });
+
+    }
+
+    private void configInputPolygone() {
+        // action déclenché quand on tape au clavier
+        inputPolygonListener = (observable, oldValue, newValue) -> {
+            scratchViewModel.changePolygone(inputLongueur.getText(), inputCote.getText());
+            programList.refresh();
+            canShowPlusMinusButtonsPolygone1(inputLongueur.getText());
+            canShowPlusMinusButtonsPolygone2(inputCote.getText());
+        };
+
+        // attache l'action aux deux boîtes
+        inputLongueur.textProperty().addListener(inputPolygonListener);
+        inputCote.textProperty().addListener(inputPolygonListener);
+
+        plusButtonLongueur.setOnAction(e -> {
+            try { inputLongueur.setText(String.valueOf(Integer.parseInt(inputLongueur.getText()) + 1)); }
+            catch (NumberFormatException ex) {}
+        });
+        minusButtonLongueur.setOnAction(e -> {
+            try { inputLongueur.setText(String.valueOf(Integer.parseInt(inputLongueur.getText()) - 1)); }
+            catch (NumberFormatException ex) {}
+        });
+
+        plusButtonCote.setOnAction(e -> {
+            try { inputCote.setText(String.valueOf(Integer.parseInt(inputCote.getText()) + 1)); }
+            catch (NumberFormatException ex) {}
+        });
+        minusButtonCote.setOnAction(e -> {
+            try { inputCote.setText(String.valueOf(Integer.parseInt(inputCote.getText()) - 1)); }
             catch (NumberFormatException ex) {}
         });
 
@@ -826,6 +937,24 @@ public class ScratchView extends BorderPane {
             content.getChildren().addAll(plusButtonLargeur, minusButtonLargeur);
         } catch (NumberFormatException ignored) {}
 
+    }
+
+    public void canShowPlusMinusButtonsPolygone1(String longueur) {
+        content.getChildren().removeAll(minusButtonLongueur, plusButtonLongueur);
+
+        try {
+            Integer.parseInt(longueur);
+            content.getChildren().addAll(plusButtonLongueur, minusButtonLongueur);
+        } catch (NumberFormatException ignored) {} // Si c'est une variable, on ignore !
+    }
+
+    public void canShowPlusMinusButtonsPolygone2(String cote) {
+        content.getChildren().removeAll(minusButtonCote, plusButtonCote);
+
+        try {
+            Integer.parseInt(cote);
+            content.getChildren().addAll(plusButtonCote, minusButtonCote);
+        } catch (NumberFormatException ignored) {} // Si c'est une variable, on ignore !
     }
 
 

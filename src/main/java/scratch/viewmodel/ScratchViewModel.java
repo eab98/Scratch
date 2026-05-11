@@ -609,6 +609,7 @@ public class ScratchViewModel {
         }
         return "";
     }
+
     // Récupère la largeur pour l'afficher dans la case
     public String getRectangleLargeur() {
         Instruction instru = instructions.get(getIndexProperty().get());
@@ -662,4 +663,74 @@ public class ScratchViewModel {
             errorMessage.set(e.getMessage());
         }
     }
+
+    // Récupère la longueur du polygone pour l'afficher dans la case
+    public String getPolygoneLongueur() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.DRAW_POLYGON) {
+            Value h = instru.getLongueur();
+            return h == null ? "" : h.toString();
+        }
+        return "";
+    }
+
+    // Récupère le nombre de côté du polygone pour l'afficher dans la case
+    public String getPolygoneCote() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.DRAW_POLYGON) {
+            Value h = instru.getCote();
+            return h == null ? "" : h.toString();
+        }
+        return "";
+    }
+
+    public void changePolygone(String longueurStr, String coteStr) {
+        int index = getIndexProperty().get();
+        if (index < 0 || index >= getInstru().size()) return;
+        Instruction instru = getInstru().get(index);
+
+        try {
+            // "evaluate" du program transforme String -> Value (vu qu'on accepte variable et valeur)
+            Value valLongueur = program.evaluate(longueurStr);
+            Value valCote = program.evaluate(coteStr);
+
+            if (valLongueur == null) throw new RuntimeException("Longueur invalide");
+            if (valCote == null) throw new RuntimeException("Nombre de côtés invalide");
+
+            // Si l'utilisateur tape un vrai chiffre (pas une variable) et qu'il est < 3 : Erreur
+            try {
+                int h = Integer.parseInt(longueurStr.trim());
+                if (h < 3) throw new RuntimeException("La longueur doit être >= 3");
+            } catch (NumberFormatException ignored) {} // Si c'est du texte (ex: nb), on l'ignore. Ça plantera à l'exécution
+            try {
+                int l = Integer.parseInt(coteStr.trim());
+                if (l < 3) throw new RuntimeException("Le nombre de côtés doit être >= 3");
+            } catch (NumberFormatException ignored) {}
+
+            // si tout est bon, on met à jour le modèle
+            instru.setLongueur(valLongueur);
+            instru.setCote(valCote);
+
+            // On réinitialise l'état (pour forcer à relancer depuis le début)
+            errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+
+            indexExec.set(-1);
+            program.reset();
+            Coordinates coords = pen.getCoord();
+            coordX.set(coords.getX());
+            coordY.set(coords.getY());
+
+        } catch (RuntimeException e) {
+            errorMessage.set(e.getMessage());
+        }
+    }
+
+    // méthode qui fait le pont entre le modele et la vue
+    public List<double[]> getPolygonLines(double x, double y, double angle, int size, int num) {
+        return Program.getPolygonLines(x, y, angle, size, num);
+    }
+
 }

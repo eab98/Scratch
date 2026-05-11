@@ -112,4 +112,20 @@ public abstract class Instruction {
         throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
     }
 
+    public Value getLongueur() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setLongueur(Value longueur) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public Value getCote() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setCote(Value cote) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
 }

@@ -21,7 +21,8 @@ public class Program {
             new Repeat("Fin Répéter", InstructionType.END_REPEAT, new Value(0)),
             new PenAction("Lever stylo", InstructionType.PEN_UP),
             new PenAction("Abaisser stylo", InstructionType.PEN_DOWN),
-            new DrawRectangle("Rectangle", InstructionType.DRAW_RECTANGLE, new Value(20), new Value(20))
+            new DrawRectangle("Rectangle", InstructionType.DRAW_RECTANGLE, new Value(20), new Value(20)),
+            new DrawPolygon("Polygone", InstructionType.DRAW_POLYGON, new Value(20), new Value(6))
             );
 
     // C'est ici qu'on stocke les blocs que l'utilisateur a glissés.
@@ -198,6 +199,23 @@ public class Program {
             shape.addLine(new Line(p2, p3));
             shape.addLine(new Line(p3, p4));
             shape.addLine(new Line(p4, p1));
+        } else if (instr.getType() == InstructionType.DRAW_POLYGON) {
+            instr.execute(this.getPen());
+
+            double x = pen.getCoord().getX();
+            double y = pen.getCoord().getY();
+            double angle = pen.getOrientation();
+
+            int size = instr.getLongueur().getValue();
+            int num = instr.getCote().getValue();
+
+            List<double[]> lines = getPolygonLines(x, y, angle, size, num);
+
+            for (double[] l : lines) {
+                Coordinates p1 = new Coordinates(l[0], l[1]);
+                Coordinates p2 = new Coordinates(l[2], l[3]);
+                shape.addLine(new Line(p1, p2));
+            }
         }
 
         else {
@@ -213,6 +231,30 @@ public class Program {
                 shape.addLine(new Line(initial, end));
             }
         }
+    }
+
+    public static List<double[]> getPolygonLines(double x, double y, double angle, int size, int num) {
+        List<double[]> lines = new ArrayList<>();
+
+        double currentAngle = Math.toRadians(angle);
+        double stepAngle = 2 * Math.PI / num;
+
+        double currentX = x;
+        double currentY = y;
+
+        for (int i = 0; i < num; i++) {
+            double nextX = currentX + size * Math.cos(currentAngle);
+            double nextY = currentY + size * Math.sin(currentAngle);
+
+            lines.add(new double[]{ currentX, currentY, nextX, nextY });
+
+            currentX = nextX;
+            currentY = nextY;
+
+            currentAngle += stepAngle;
+        }
+
+        return lines;
     }
 
 
@@ -244,6 +286,10 @@ public class Program {
                         break;
                     case DRAW_RECTANGLE:
                         writer.println(instr.getType() + ";" + instr.getHauteur() + ";" + instr.getLargeur());
+                        break;
+
+                    case DRAW_POLYGON:
+                        writer.println(instr.getType() + ";" + instr.getLongueur() + ";" + instr.getCote());
                         break;
 
                     default:
@@ -317,6 +363,15 @@ public class Program {
                                         Value l = evaluate(morceaux[2].trim());
                                         if (h != null) nouvelleAction.setHauteur(h);
                                         if (l != null) nouvelleAction.setLargeur(l);
+                                    }
+                                    break;
+
+                                case DRAW_POLYGON:
+                                    if (morceaux.length >= 3) {
+                                        Value h = evaluate(morceaux[1].trim());
+                                        Value l = evaluate(morceaux[2].trim());
+                                        if (h != null) nouvelleAction.setLongueur(h);
+                                        if (l != null) nouvelleAction.setCote(l);
                                     }
                                     break;
 
@@ -414,6 +469,16 @@ public class Program {
         // Vérifier que les déclarations de variables sont TOUTES au début
         int indexFirstinstruction = 0;
         int i = 0;
+
+        int compteurPolygone = 0;
+        for (Instruction instruction : instructions) {
+            if (instruction.getType() == InstructionType.DRAW_POLYGON) {
+                ++compteurPolygone;
+                if (compteurPolygone == 3) {
+                    return false;
+                }
+            }
+        }
 
         // On avance tant qu'on lit des "Déclarations"
         while(i < instructions.size() && instructions.get(i).getType() == InstructionType.VAR_DECLARATION ){
