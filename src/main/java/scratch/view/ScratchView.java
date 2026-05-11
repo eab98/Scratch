@@ -748,7 +748,9 @@ public class ScratchView extends BorderPane {
                 input.setDisable(true);
                 content.getChildren().clear();
                 content.getChildren().addAll(text, input);
-                detailsAction.setContent(content);
+                contentPlusError.getChildren().clear();
+                contentPlusError.getChildren().addAll(content, errorMessage);
+                detailsAction.setContent(contentPlusError);
             }
 
 

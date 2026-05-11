@@ -158,7 +158,10 @@ public class Program {
     }
 
     public void execute(Instruction instr) {
-        if (instr.getType() == InstructionType.PEN_DOWN || instr.getType() == InstructionType.PEN_UP) {
+        if ((instr.getType() == InstructionType.PEN_DOWN && isPenDown()) || (instr.getType() == InstructionType.PEN_UP && !isPenDown())) {
+            throw new RuntimeException("Runtime Error");
+
+        } else if (instr.getType() == InstructionType.PEN_DOWN || instr.getType() == InstructionType.PEN_UP) {
             setPenDown(instr.changePenStatus(this.penDown));
 
         } else if (instr.getType() == InstructionType.VAR_DECLARATION) {
