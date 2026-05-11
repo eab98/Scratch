@@ -1,6 +1,8 @@
 package scratch.view;
 
 import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -14,6 +16,9 @@ import javafx.scene.shape.Polygon;
 import scratch.model.Instruction;
 import scratch.model.InstructionType;
 import scratch.viewmodel.ScratchViewModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 // BorderPane car : Gauche (Palette), Centre (Programme), Droite (Scène/Canvas).
@@ -33,6 +38,11 @@ public class ScratchView extends BorderPane {
     private final Label paletteTitle = new Label("Palette d'actions");
     private final Label programTitle = new Label("Programme");
     private final Label sceneTitle = new Label("Scène");
+
+    // case CheckBox
+    private final CheckBox advancedModeCheck = new CheckBox("Mode avancé");
+
+    private final CheckBox tpModeCheck = new CheckBox("afficher la téléportation");
 
     // listes et boutons
     private final HBox buttonProgram = new HBox(8); // Conteneur pour les boutons du programme
@@ -59,8 +69,19 @@ public class ScratchView extends BorderPane {
     private final TextField input = new TextField();
     private final TextField inputAssign1 = new TextField(); // Nom variable (assignation)
     private final TextField inputAssign2 = new TextField(); // Valeur variable (assignation)
+
     private final TextField inputIncVar = new TextField(); // Nom variable (incrémentation)
     private final TextField inputIncStep = new TextField(); // Pas/Valeur (incrémentation)
+
+    private final TextField inputHauteur = new TextField(); // Valeur Hauteur
+    private final TextField inputLargeur = new TextField(); // Valeur Largeur
+
+    private final TextField inputLongueur = new TextField();
+    private final TextField inputCote = new TextField();
+
+    private final TextField inputTPX = new TextField();
+    private final TextField inputTPY = new TextField();
+
 
     // Boutons +/- pour faciliter la saisie des nombres
     private final Button plusButton = new Button("+");
@@ -69,6 +90,22 @@ public class ScratchView extends BorderPane {
     private final Button minusButtonAmount = new Button("-");
     private final Button plusButtonAssign = new Button("+");
     private final Button minusButtonAssign = new Button("-");
+
+    private final Button plusButtonHauteur = new Button("+");
+    private final Button minusButtonHauteur = new Button("-");
+    private final Button plusButtonLargeur = new Button("+");
+    private final Button minusButtonLargeur = new Button("-");
+
+    private final Button plusButtonLongueur = new Button("+");
+    private final Button minusButtonLongueur = new Button("-");
+    private final Button plusButtonCote = new Button("+");
+    private final Button minusButtonCote = new Button("-");
+
+    private final Button plusButtonTPX = new Button("+");
+    private final Button minusButtonTPX = new Button("-");
+    private final Button plusButtonTPY = new Button("+");
+    private final Button minusButtonTPY = new Button("-");
+
 
     private ChangeListener<String> inputIncListener;
 
@@ -80,6 +117,83 @@ public class ScratchView extends BorderPane {
     private final Label infoTortue = new Label(); // msg d'information
 
     private ChangeListener<String> inputAssignListener;
+
+    private ChangeListener<String> inputRectListener;
+
+    private ChangeListener<String> inputPolygonListener;
+
+    private ChangeListener<String> inputTPListener;
+
+    // Liste qui gère en fonction de la checkbox
+    private final ObservableList<Instruction> listeEcran = FXCollections.observableArrayList();
+
+    public ObservableList<Instruction> getListeEcran() {
+        return listeEcran;
+    }
+
+    public CheckBox getAdvancedModeCheck() {
+        return advancedModeCheck;
+    }
+
+    public CheckBox getTpModeCheck() {
+        return tpModeCheck;
+    }
+
+    // liaison entre les differentes vues
+    private boolean isAdvancedMode = false;
+
+    public void setAdvancedMode(boolean advanced) {
+        this.isAdvancedMode = advanced;
+    }
+
+    private boolean isTpMode = false;
+
+    public void setTpModeCheck(boolean advanced) {
+        this.isTpMode = advanced;
+    }
+
+    // sauvegarde dans une List les coordonnées de téléportation
+    private final List<double[]> teleportLines = new ArrayList<>();
+
+    // méthode qui redessine toutes les TP si je coche après la case
+    public void redrawTeleportLines() {
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+
+        // sauvegarde la position actuelle de la tortue
+        double turtleX = headTurtle.getLayoutX();
+        double turtleY = headTurtle.getLayoutY();
+        double turtleAngle = headTurtle.getRotate();
+
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight()); // EFFACE TOUT
+        configCanvas(); // REMET LA GRILLE
+
+        // restaure la position de la tortue
+        headTurtle.setLayoutX(turtleX);
+        headTurtle.setLayoutY(turtleY);
+        headTurtle.setRotate(turtleAngle);
+
+        // redessine les traits normaux
+        gc.setStroke(Color.RED);
+        gc.setLineWidth(2);
+        for (double[] l : drawnLines) {
+            gc.strokeLine(l[0], l[1], l[2], l[3]);
+        }
+
+        // si la case est cochée, on go mettre les pointillés
+        if (isTpMode) {
+            gc.setStroke(Color.RED);
+            gc.setLineWidth(2);
+            gc.setLineDashes(10);
+            for (double[] l : teleportLines) {
+                gc.strokeLine(l[0], l[1], l[2], l[3]);
+            }
+            gc.setLineDashes(0);
+        }
+    }
+
+    private final List<double[]> drawnLines = new ArrayList<>();
+
+
 
 
     public ScratchView(ScratchViewModel scratchViewModel) {
@@ -117,7 +231,7 @@ public class ScratchView extends BorderPane {
      * Configure la colonne de gauche
      */
     private void configPaletteBox() {
-        palette.getChildren().addAll(paletteTitle, paletteList, addToProgramButton);
+        palette.getChildren().addAll(paletteTitle, paletteList, addToProgramButton, advancedModeCheck);
 
         // couleurs selon le type
         paletteList.setCellFactory(lv -> new ListCell<Instruction>() {
@@ -149,12 +263,34 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
+                        case DRAW_RECTANGLE, DRAW_POLYGON, MAKE_TELEPORTATION:
+                            setStyle("-fx-text-fill: orange;");
+                            break;
+
                         default:
                             setStyle("-fx-text-fill: black;");
                     }
                 }
             }
         });
+
+        // gestion checkbox
+        advancedModeCheck.setOnAction(e -> {
+            listeEcran.clear(); // vide la liste
+            listeEcran.addAll(scratchViewModel.getCatalogue()); // remet tout dedans
+
+            // Si la case n'est PAS cochée, on retire le rectangle
+            if (!advancedModeCheck.isSelected()) {
+                // si la case n'est PAS cochée, on supprime le rectangle de la liste
+                listeEcran.removeIf(i -> i.getType() == InstructionType.DRAW_RECTANGLE);
+            }
+
+            // Si on n'est PAS en mode advanced, on retire le polygone
+            if (!isAdvancedMode) {
+                listeEcran.removeIf(i -> i.getType() == InstructionType.DRAW_POLYGON);
+            }
+        });
+
     }
 
     /**
@@ -207,6 +343,10 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
+                        case DRAW_RECTANGLE, DRAW_POLYGON, MAKE_TELEPORTATION:
+                            setStyle("-fx-text-fill: orange;");
+                            break;
+
                         default:
                             setStyle("-fx-text-fill: black;");
                     }
@@ -224,6 +364,9 @@ public class ScratchView extends BorderPane {
         updateDetails();
         configInputAmount();
         configInputAssign();
+        configInputRectangle();
+        configInputPolygone();
+        configInputTP();
     }
 
     /**
@@ -237,7 +380,7 @@ public class ScratchView extends BorderPane {
 
         canvasContainer.getChildren().addAll(canvas, headTurtle); // Superpose la tortue sur le canvas
 
-        VariablesView variablesView = new VariablesView(scratchViewModel);
+        VariablesView variablesView = new VariablesView(scratchViewModel, this);
         infoTortue.textProperty().bind(scratchViewModel.turtleInfoTextProperty()); // Lie le texte aux infos du ViewModel
 
         VBox infosVariablesBox = new VBox(5);
@@ -247,6 +390,8 @@ public class ScratchView extends BorderPane {
         ExecutionView executionView = new ExecutionView(scratchViewModel, () -> {
             GraphicsContext gc = canvas.getGraphicsContext2D();
             gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight()); // Efface tout
+            teleportLines.clear();
+            drawnLines.clear();
             configCanvas(); // Redessine la grille et replace la tortue
         });
 
@@ -264,7 +409,12 @@ public class ScratchView extends BorderPane {
         // Quand on clique dans la palette, on prévient le ViewModel
         this.paletteList.getSelectionModel().selectedIndexProperty()
                 .addListener((observable, oldValue, newValue) -> {
-                    this.scratchViewModel.getCatalogIndexProperty().set(newValue.intValue());
+                    int visualIndex = newValue.intValue();
+                    if (visualIndex >= 0 && visualIndex < listeEcran.size()) {
+                        Instruction selected = listeEcran.get(visualIndex);
+                        int realIndex = scratchViewModel.getCatalogue().indexOf(selected);
+                        scratchViewModel.getCatalogIndexProperty().set(realIndex);
+                    }
                 } );
 
         // Quand on clique dans le programme, on prévient le ViewModel et on met à jour le panneau de détails
@@ -456,7 +606,13 @@ public class ScratchView extends BorderPane {
      * Relie les listes visuelles aux listes de données contenues dans le ViewModel.
      */
     private void loadData() {
-        paletteList.setItems(scratchViewModel.getCatalogue());
+        // On copie le catalogue, et on enlève le rectangle pour commencer
+        listeEcran.addAll(scratchViewModel.getCatalogue());
+        listeEcran.removeIf(i -> i.getType() == InstructionType.DRAW_RECTANGLE);
+        listeEcran.removeIf(i -> i.getType() == InstructionType.DRAW_POLYGON);
+
+        // On dit à l'écran d'afficher notre liste
+        paletteList.setItems(listeEcran);
         programList.setItems(scratchViewModel.getInstru());
     }
 
@@ -502,16 +658,69 @@ public class ScratchView extends BorderPane {
         double oldX = headTurtle.getLayoutX();
         double oldY = headTurtle.getLayoutY();
 
+        double angle = headTurtle.getRotate();
+
         // récupère la nouvelle position calculée
         double newX = scratchViewModel.coordXProperty().get();
         double newY = scratchViewModel.coordYProperty().get();
 
+        int currentIndex = scratchViewModel.getIndexProperty().get();
+        Instruction currentInstru = scratchViewModel.getInstru().get(currentIndex);
+
+        if (currentInstru.getType() == InstructionType.DRAW_RECTANGLE && scratchViewModel.isPenDown() || currentInstru.getType() == InstructionType.DRAW_RECTANGLE && !scratchViewModel.isPenDown()) {
+            GraphicsContext gc = canvas.getGraphicsContext2D();
+            gc.setStroke(Color.RED);
+            gc.setLineWidth(2);
+
+            double w = currentInstru.getLargeur().getValue();
+            double h = currentInstru.getHauteur().getValue();
+
+            double endX = oldX + w;
+            double endY = oldY - h;
+
+            gc.strokeLine(oldX, oldY, oldX, endY);
+            gc.strokeLine(oldX, endY, endX, endY);
+            gc.strokeLine(endX, endY, endX, oldY);
+            gc.strokeLine(endX, oldY, oldX, oldY);
+        } else if (currentInstru.getType() == InstructionType.DRAW_POLYGON && scratchViewModel.isPenDown() || currentInstru.getType() == InstructionType.DRAW_POLYGON && !scratchViewModel.isPenDown()) {
+            GraphicsContext gc = canvas.getGraphicsContext2D();
+            gc.setStroke(Color.RED);
+            gc.setLineWidth(2);
+
+            int size = currentInstru.getLongueur().getValue();
+            int num = currentInstru.getCote().getValue();
+
+            List<double[]> lines = scratchViewModel.getPolygonLines(oldX, oldY, angle, size, num);
+
+            for (double[] l : lines) {
+                gc.strokeLine(l[0], l[1], l[2], l[3]);
+            }
+
+        } else if ((currentInstru.getType() == InstructionType.MAKE_TELEPORTATION && scratchViewModel.isPenDown() || currentInstru.getType() == InstructionType.MAKE_TELEPORTATION && !scratchViewModel.isPenDown())) {
+            double endX = currentInstru.getNouvelleX().getValue() + 195;
+            double endY = 195 - currentInstru.getNouvelleY().getValue();
+
+            teleportLines.add(new double[]{oldX, oldY, endX, endY}); // sauvegarde les téléportations
+
+            if (isTpMode) {
+                GraphicsContext gc = canvas.getGraphicsContext2D();
+                gc.setStroke(Color.RED);
+                gc.setLineWidth(2);
+                gc.setLineDashes(10);
+
+                gc.strokeLine(oldX, oldY, endX, endY);
+
+                gc.setLineDashes(0);
+            }
+        }
+
         // dessine la ligne rouge (si pen baissé)
-        if (scratchViewModel.isPenDown()) {
+        else if (scratchViewModel.isPenDown()) {
             GraphicsContext gc = canvas.getGraphicsContext2D();
             gc.setStroke(Color.RED);
             gc.setLineWidth(2);
             gc.strokeLine(oldX, oldY, newX, newY); // Trace un trait de l'ancien point au nouveau
+            drawnLines.add(new double[]{oldX, oldY, newX, newY}); // sauvegarde
         }
 
         // déplace la tortue à sa nouvelle position
@@ -608,7 +817,63 @@ public class ScratchView extends BorderPane {
                 } else if (currentInstru.getType() == InstructionType.VAR_DECLARATION) {
                     content.getChildren().addAll(text, input, text2);
 
-                } else {
+                } else if (currentInstru.getType() == InstructionType.DRAW_RECTANGLE) {
+                    text.setText("Affiche un rectangle de hauteur ");
+                    text2.setText(" et de longueur ");
+
+                    inputHauteur.textProperty().removeListener(inputRectListener);
+                    inputLargeur.textProperty().removeListener(inputRectListener);
+
+                    inputHauteur.setText(scratchViewModel.getRectangleHauteur());
+                    inputLargeur.setText(scratchViewModel.getRectangleLargeur());
+
+                    inputHauteur.textProperty().addListener(inputRectListener);
+                    inputLargeur.textProperty().addListener(inputRectListener);
+
+                    content.getChildren().addAll(text, inputHauteur);
+                    canShowPlusMinusButtonsRectangle1(inputHauteur.getText());
+
+                    content.getChildren().addAll(text2, inputLargeur);
+                    canShowPlusMinusButtonsRectangle2(inputLargeur.getText());
+
+                } else if (currentInstru.getType() == InstructionType.DRAW_POLYGON) {
+                    text.setText("Affiche un polygone de côté ");
+                    text2.setText(" nombre de côtés ");
+
+                    inputLongueur.textProperty().removeListener(inputPolygonListener);
+                    inputCote.textProperty().removeListener(inputPolygonListener);
+
+                    inputLongueur.setText(scratchViewModel.getPolygoneLongueur());
+                    inputCote.setText(scratchViewModel.getPolygoneCote());
+
+                    inputLongueur.textProperty().addListener(inputPolygonListener);
+                    inputCote.textProperty().addListener(inputPolygonListener);
+
+                    content.getChildren().addAll(text, inputLongueur);
+                    canShowPlusMinusButtonsPolygone1(inputLongueur.getText());
+
+                    content.getChildren().addAll(text2, inputCote);
+                    canShowPlusMinusButtonsPolygone2(inputCote.getText());
+                } else if (currentInstru.getType() == InstructionType.MAKE_TELEPORTATION) {
+                    text.setText("Téléporter vers (x,y) ");
+                    text2.setText(" , ");
+
+                    inputTPX.textProperty().removeListener(inputTPListener);
+                    inputTPY.textProperty().removeListener(inputTPListener);
+
+                    inputTPX.setText(scratchViewModel.getTPX());
+                    inputTPY.setText(scratchViewModel.getTPY());
+
+                    inputTPX.textProperty().addListener(inputTPListener);
+                    inputTPY.textProperty().addListener(inputTPListener);
+
+                    content.getChildren().addAll(text, inputTPX);
+                    canShowPlusMinusButtonsTP1(inputTPX.getText());
+
+                    content.getChildren().addAll(text2, inputTPY);
+                    canShowPlusMinusButtonsTP2(inputTPY.getText());
+                }
+                else {
                     content.getChildren().addAll(text, input, text2);
                     canShowPlusMinusButtonsAmount(input.getText());
                 }
@@ -619,6 +884,105 @@ public class ScratchView extends BorderPane {
                 detailsAction.setContent(contentPlusError);
             }
         }
+    }
+
+    private void configInputRectangle() {
+        // action déclenché quand on tape au clavier
+        inputRectListener = (observable, oldValue, newValue) -> {
+            scratchViewModel.changeRectangle(inputHauteur.getText(), inputLargeur.getText());
+            programList.refresh();
+            canShowPlusMinusButtonsRectangle1(inputHauteur.getText());
+            canShowPlusMinusButtonsRectangle2(inputLargeur.getText());
+        };
+
+        // attache l'action aux deux boîtes
+        inputHauteur.textProperty().addListener(inputRectListener);
+        inputLargeur.textProperty().addListener(inputRectListener);
+
+        plusButtonHauteur.setOnAction(e -> {
+            try { inputHauteur.setText(String.valueOf(Integer.parseInt(inputHauteur.getText()) + 1)); }
+            catch (NumberFormatException ex) {}
+        });
+        minusButtonHauteur.setOnAction(e -> {
+            try { inputHauteur.setText(String.valueOf(Integer.parseInt(inputHauteur.getText()) - 1)); }
+            catch (NumberFormatException ex) {}
+        });
+
+        plusButtonLargeur.setOnAction(e -> {
+            try { inputLargeur.setText(String.valueOf(Integer.parseInt(inputLargeur.getText()) + 1)); }
+            catch (NumberFormatException ex) {}
+        });
+        minusButtonLargeur.setOnAction(e -> {
+            try { inputLargeur.setText(String.valueOf(Integer.parseInt(inputLargeur.getText()) - 1)); }
+            catch (NumberFormatException ex) {}
+        });
+
+    }
+
+    private void configInputPolygone() {
+        // action déclenché quand on tape au clavier
+        inputPolygonListener = (observable, oldValue, newValue) -> {
+            scratchViewModel.changePolygone(inputLongueur.getText(), inputCote.getText());
+            programList.refresh();
+            canShowPlusMinusButtonsPolygone1(inputLongueur.getText());
+            canShowPlusMinusButtonsPolygone2(inputCote.getText());
+        };
+
+        // attache l'action aux deux boîtes
+        inputLongueur.textProperty().addListener(inputPolygonListener);
+        inputCote.textProperty().addListener(inputPolygonListener);
+
+        plusButtonLongueur.setOnAction(e -> {
+            try { inputLongueur.setText(String.valueOf(Integer.parseInt(inputLongueur.getText()) + 1)); }
+            catch (NumberFormatException ex) {}
+        });
+        minusButtonLongueur.setOnAction(e -> {
+            try { inputLongueur.setText(String.valueOf(Integer.parseInt(inputLongueur.getText()) - 1)); }
+            catch (NumberFormatException ex) {}
+        });
+
+        plusButtonCote.setOnAction(e -> {
+            try { inputCote.setText(String.valueOf(Integer.parseInt(inputCote.getText()) + 1)); }
+            catch (NumberFormatException ex) {}
+        });
+        minusButtonCote.setOnAction(e -> {
+            try { inputCote.setText(String.valueOf(Integer.parseInt(inputCote.getText()) - 1)); }
+            catch (NumberFormatException ex) {}
+        });
+
+    }
+
+    private void configInputTP() {
+        // action déclenché quand on tape au clavier
+        inputTPListener = (observable, oldValue, newValue) -> {
+            scratchViewModel.makeTeleportation(inputTPX.getText(), inputTPY.getText());
+            programList.refresh();
+            canShowPlusMinusButtonsTP1(inputTPX.getText());
+            canShowPlusMinusButtonsTP2(inputTPY.getText());
+        };
+
+        // attache l'action aux deux boîtes
+        inputTPX.textProperty().addListener(inputTPListener);
+        inputTPY.textProperty().addListener(inputTPListener);
+
+        plusButtonTPX.setOnAction(e -> {
+            try { inputTPX.setText(String.valueOf(Integer.parseInt(inputTPX.getText()) + 1)); }
+            catch (NumberFormatException ex) {}
+        });
+        minusButtonTPX.setOnAction(e -> {
+            try { inputTPX.setText(String.valueOf(Integer.parseInt(inputTPX.getText()) - 1)); }
+            catch (NumberFormatException ex) {}
+        });
+
+        plusButtonTPY.setOnAction(e -> {
+            try { inputTPY.setText(String.valueOf(Integer.parseInt(inputTPY.getText()) + 1)); }
+            catch (NumberFormatException ex) {}
+        });
+        minusButtonTPY.setOnAction(e -> {
+            try { inputTPY.setText(String.valueOf(Integer.parseInt(inputTPY.getText()) - 1)); }
+            catch (NumberFormatException ex) {}
+        });
+
     }
 
     /**
@@ -692,5 +1056,61 @@ public class ScratchView extends BorderPane {
 
         }
     }
+
+    public void canShowPlusMinusButtonsRectangle1(String hauteur) {
+        content.getChildren().removeAll(minusButtonHauteur, plusButtonHauteur);
+
+        try {
+            Integer.parseInt(hauteur);
+            content.getChildren().addAll(plusButtonHauteur, minusButtonHauteur);
+        } catch (NumberFormatException ignored) {} // Si c'est une variable, on ignore !
+    }
+
+    public void canShowPlusMinusButtonsRectangle2(String largeur) {
+        content.getChildren().removeAll(minusButtonLargeur, plusButtonLargeur);
+
+        try {
+            Integer.parseInt(largeur);
+            content.getChildren().addAll(plusButtonLargeur, minusButtonLargeur);
+        } catch (NumberFormatException ignored) {}
+
+    }
+
+    public void canShowPlusMinusButtonsPolygone1(String longueur) {
+        content.getChildren().removeAll(minusButtonLongueur, plusButtonLongueur);
+
+        try {
+            Integer.parseInt(longueur);
+            content.getChildren().addAll(plusButtonLongueur, minusButtonLongueur);
+        } catch (NumberFormatException ignored) {} // Si c'est une variable, on ignore !
+    }
+
+    public void canShowPlusMinusButtonsPolygone2(String cote) {
+        content.getChildren().removeAll(minusButtonCote, plusButtonCote);
+
+        try {
+            Integer.parseInt(cote);
+            content.getChildren().addAll(plusButtonCote, minusButtonCote);
+        } catch (NumberFormatException ignored) {} // Si c'est une variable, on ignore !
+    }
+
+    public void canShowPlusMinusButtonsTP1(String longueur) {
+        content.getChildren().removeAll(minusButtonTPX, plusButtonTPX);
+
+        try {
+            Integer.parseInt(longueur);
+            content.getChildren().addAll(plusButtonTPX, minusButtonTPX);
+        } catch (NumberFormatException ignored) {} // Si c'est une variable, on ignore !
+    }
+
+    public void canShowPlusMinusButtonsTP2(String cote) {
+        content.getChildren().removeAll(minusButtonTPY, plusButtonTPY);
+
+        try {
+            Integer.parseInt(cote);
+            content.getChildren().addAll(plusButtonTPY, minusButtonTPY);
+        } catch (NumberFormatException ignored) {} // Si c'est une variable, on ignore !
+    }
+
 
 }

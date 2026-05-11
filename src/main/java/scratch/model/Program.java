@@ -20,7 +20,10 @@ public class Program {
             new Repeat("Répéter", InstructionType.REPEAT, new Value(0)),
             new Repeat("Fin Répéter", InstructionType.END_REPEAT, new Value(0)),
             new PenAction("Lever stylo", InstructionType.PEN_UP),
-            new PenAction("Abaisser stylo", InstructionType.PEN_DOWN)
+            new PenAction("Abaisser stylo", InstructionType.PEN_DOWN),
+            new DrawRectangle("Rectangle", InstructionType.DRAW_RECTANGLE, new Value(20), new Value(20)),
+            new DrawPolygon("Polygone", InstructionType.DRAW_POLYGON, new Value(20), new Value(6)),
+            new MakeTeleportation("Téléportation", InstructionType.MAKE_TELEPORTATION, new Value(0), new Value(0))
             );
 
     // C'est ici qu'on stocke les blocs que l'utilisateur a glissés.
@@ -177,6 +180,54 @@ public class Program {
             if (varToAssign != null) {
                 varToAssign.setValue(instr.getAssignedValue().getValue());
             }
+        } else if (instr.getType() == InstructionType.DRAW_RECTANGLE) {
+            instr.execute(this.getPen());
+
+            int width = instr.getLargeur().getValue();
+            int height = instr.getHauteur().getValue();
+
+            double x_start = pen.getCoord().getX();
+            double y_start = pen.getCoord().getY();
+            double x_end = x_start + width;
+            double y_end = y_start + height;
+
+            Coordinates p1 = new Coordinates(x_start, y_start);
+            Coordinates p2 = new Coordinates(x_start, y_end);
+            Coordinates p3 = new Coordinates(x_end, y_end);
+            Coordinates p4 = new Coordinates(x_end, y_start);
+
+            shape.addLine(new Line(p1, p2));
+            shape.addLine(new Line(p2, p3));
+            shape.addLine(new Line(p3, p4));
+            shape.addLine(new Line(p4, p1));
+        } else if (instr.getType() == InstructionType.DRAW_POLYGON) {
+            instr.execute(this.getPen());
+
+            double x = pen.getCoord().getX();
+            double y = pen.getCoord().getY();
+            double angle = pen.getOrientation();
+
+            int size = instr.getLongueur().getValue();
+            int num = instr.getCote().getValue();
+
+            List<double[]> lines = getPolygonLines(x, y, angle, size, num);
+
+            for (double[] l : lines) {
+                Coordinates p1 = new Coordinates(l[0], l[1]);
+                Coordinates p2 = new Coordinates(l[2], l[3]);
+                shape.addLine(new Line(p1, p2));
+            }
+        } else if (instr.getType() == InstructionType.MAKE_TELEPORTATION) {
+            instr.execute(this.getPen());
+
+            double x_initial = pen.getCoord().getX();
+            double y_initial = pen.getCoord().getY();
+
+            double x_end = instr.getNouvelleX().getValue();
+            double y_end = instr.getNouvelleY().getValue();
+
+            pen.getCoord().setX(x_end + 195); // OFFSET pour recentrer
+            pen.getCoord().setY(195 - y_end); // OFFSET + inversion de l'axe y
         }
 
         else {
@@ -192,6 +243,30 @@ public class Program {
                 shape.addLine(new Line(initial, end));
             }
         }
+    }
+
+    public static List<double[]> getPolygonLines(double x, double y, double angle, int size, int num) {
+        List<double[]> lines = new ArrayList<>();
+
+        double currentAngle = Math.toRadians(angle);
+        double stepAngle = 2 * Math.PI / num;
+
+        double currentX = x;
+        double currentY = y;
+
+        for (int i = 0; i < num; i++) {
+            double nextX = currentX + size * Math.cos(currentAngle);
+            double nextY = currentY + size * Math.sin(currentAngle);
+
+            lines.add(new double[]{ currentX, currentY, nextX, nextY });
+
+            currentX = nextX;
+            currentY = nextY;
+
+            currentAngle += stepAngle;
+        }
+
+        return lines;
     }
 
 
@@ -221,6 +296,18 @@ public class Program {
                         String paramStr = (instr.getParameter() != null) ? instr.getParameter().toString() : "0";
                         writer.println(instr.getType() + ";" + paramStr);
                         break;
+                    case DRAW_RECTANGLE:
+                        writer.println(instr.getType() + ";" + instr.getHauteur() + ";" + instr.getLargeur());
+                        break;
+
+                    case DRAW_POLYGON:
+                        writer.println(instr.getType() + ";" + instr.getLongueur() + ";" + instr.getCote());
+                        break;
+
+                    case MAKE_TELEPORTATION:
+                        writer.println(instr.getType() + ";" + instr.getNouvelleX() + ";" + instr.getNouvelleY());
+                        break;
+
                     default:
                         // pour PEN_UP, PEN_DOWN, END_REPEAT (qui n'ont pas de paramètre)
                         // Pour les blocs simples sans texte (Stylo, Fin Répéter)
@@ -286,6 +373,33 @@ public class Program {
                                         nouvelleAction.setDifference(evaluate(morceaux[2].trim()));
                                     }
                                     break;
+                                case DRAW_RECTANGLE:
+                                    if (morceaux.length >= 3) {
+                                        Value h = evaluate(morceaux[1].trim());
+                                        Value l = evaluate(morceaux[2].trim());
+                                        if (h != null) nouvelleAction.setHauteur(h);
+                                        if (l != null) nouvelleAction.setLargeur(l);
+                                    }
+                                    break;
+
+                                case DRAW_POLYGON:
+                                    if (morceaux.length >= 3) {
+                                        Value h = evaluate(morceaux[1].trim());
+                                        Value l = evaluate(morceaux[2].trim());
+                                        if (h != null) nouvelleAction.setLongueur(h);
+                                        if (l != null) nouvelleAction.setCote(l);
+                                    }
+                                    break;
+
+                                case MAKE_TELEPORTATION:
+                                    if (morceaux.length >= 3) {
+                                        Value h = evaluate(morceaux[1].trim());
+                                        Value l = evaluate(morceaux[2].trim());
+                                        if (h != null) nouvelleAction.setNouvelleX(h);
+                                        if (l != null) nouvelleAction.setNouvelleY(l);
+                                    }
+                                    break;
+
                                 case MOVE_FORWARD:
                                 case TURN_LEFT:
                                 case TURN_RIGHT:
@@ -368,6 +482,11 @@ public class Program {
 //            return false;
 //        }
 
+        Instruction derniere = instructions.get(instructions.size() - 1);
+        if (derniere.getType() == InstructionType.DRAW_RECTANGLE) {
+            return false;
+        }
+
         // Si une boucle n'est pas fermée, on bloque tout direct.
         if (!allLoopsClosed())
             return false;
@@ -375,6 +494,16 @@ public class Program {
         // Vérifier que les déclarations de variables sont TOUTES au début
         int indexFirstinstruction = 0;
         int i = 0;
+
+        int compteurPolygone = 0;
+        for (Instruction instruction : instructions) {
+            if (instruction.getType() == InstructionType.DRAW_POLYGON) {
+                ++compteurPolygone;
+                if (compteurPolygone == 3) {
+                    return false;
+                }
+            }
+        }
 
         // On avance tant qu'on lit des "Déclarations"
         while(i < instructions.size() && instructions.get(i).getType() == InstructionType.VAR_DECLARATION ){
@@ -438,6 +567,12 @@ public class Program {
                     return false;
                 }
             }
+
+            // Règle E : Interdit de mettre une téléportation dans une boucle
+            if (current.getType() == InstructionType.MAKE_TELEPORTATION && !protectedVariables.isEmpty()) {
+                return false;
+            }
+
         }
         return true;
     }
