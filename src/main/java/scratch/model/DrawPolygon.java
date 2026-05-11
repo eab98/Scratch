@@ -12,18 +12,22 @@ public class DrawPolygon extends Instruction {
         this.cote = cote;
     }
 
+    @Override
     public Value getLongueur() {
         return longueur;
     }
 
+    @Override
     public void setLongueur(Value longueur) {
         this.longueur = longueur;
     }
 
+    @Override
     public Value getCote() {
         return cote;
     }
 
+    @Override
     public void setCote(Value cote) {
         this.cote = cote;
     }

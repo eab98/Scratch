@@ -77,6 +77,9 @@ public class ScratchView extends BorderPane {
     private final TextField inputLongueur = new TextField();
     private final TextField inputCote = new TextField();
 
+    private final TextField inputTPX = new TextField();
+    private final TextField inputTPY = new TextField();
+
 
     // Boutons +/- pour faciliter la saisie des nombres
     private final Button plusButton = new Button("+");
@@ -96,6 +99,11 @@ public class ScratchView extends BorderPane {
     private final Button plusButtonCote = new Button("+");
     private final Button minusButtonCote = new Button("-");
 
+    private final Button plusButtonTPX = new Button("+");
+    private final Button minusButtonTPX = new Button("-");
+    private final Button plusButtonTPY = new Button("+");
+    private final Button minusButtonTPY = new Button("-");
+
 
     private ChangeListener<String> inputIncListener;
 
@@ -111,6 +119,8 @@ public class ScratchView extends BorderPane {
     private ChangeListener<String> inputRectListener;
 
     private ChangeListener<String> inputPolygonListener;
+
+    private ChangeListener<String> inputTPListener;
 
     // Liste qui gère en fonction de la checkbox
     private final ObservableList<Instruction> listeEcran = FXCollections.observableArrayList();
@@ -198,7 +208,7 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
-                        case DRAW_RECTANGLE, DRAW_POLYGON:
+                        case DRAW_RECTANGLE, DRAW_POLYGON, MAKE_TELEPORTATION:
                             setStyle("-fx-text-fill: orange;");
                             break;
 
@@ -278,7 +288,7 @@ public class ScratchView extends BorderPane {
                             setStyle("-fx-text-fill: lightseagreen;");
                             break;
 
-                        case DRAW_RECTANGLE, DRAW_POLYGON:
+                        case DRAW_RECTANGLE, DRAW_POLYGON, MAKE_TELEPORTATION:
                             setStyle("-fx-text-fill: orange;");
                             break;
 
@@ -301,6 +311,7 @@ public class ScratchView extends BorderPane {
         configInputAssign();
         configInputRectangle();
         configInputPolygone();
+        configInputTP();
     }
 
     /**
@@ -628,7 +639,10 @@ public class ScratchView extends BorderPane {
                 gc.strokeLine(l[0], l[1], l[2], l[3]);
             }
 
+        } else if (currentInstru.getType() == InstructionType.MAKE_TELEPORTATION && scratchViewModel.isPenDown() || currentInstru.getType() == InstructionType.MAKE_TELEPORTATION && !scratchViewModel.isPenDown()) {
+
         }
+
         // dessine la ligne rouge (si pen baissé)
         else if (scratchViewModel.isPenDown()) {
             GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -768,6 +782,24 @@ public class ScratchView extends BorderPane {
 
                     content.getChildren().addAll(text2, inputCote);
                     canShowPlusMinusButtonsPolygone2(inputCote.getText());
+                } else if (currentInstru.getType() == InstructionType.MAKE_TELEPORTATION) {
+                    text.setText("Téléporter vers (x,y) ");
+                    text2.setText(" , ");
+
+                    inputTPX.textProperty().removeListener(inputTPListener);
+                    inputTPY.textProperty().removeListener(inputTPListener);
+
+                    inputTPX.setText(scratchViewModel.getTPX());
+                    inputTPY.setText(scratchViewModel.getTPY());
+
+                    inputTPX.textProperty().addListener(inputTPListener);
+                    inputTPY.textProperty().addListener(inputTPListener);
+
+                    content.getChildren().addAll(text, inputTPX);
+                    canShowPlusMinusButtonsTP1(inputTPX.getText());
+
+                    content.getChildren().addAll(text2, inputTPY);
+                    canShowPlusMinusButtonsTP2(inputTPY.getText());
                 }
                 else {
                     content.getChildren().addAll(text, input, text2);
@@ -843,6 +875,39 @@ public class ScratchView extends BorderPane {
         });
         minusButtonCote.setOnAction(e -> {
             try { inputCote.setText(String.valueOf(Integer.parseInt(inputCote.getText()) - 1)); }
+            catch (NumberFormatException ex) {}
+        });
+
+    }
+
+    private void configInputTP() {
+        // action déclenché quand on tape au clavier
+        inputTPListener = (observable, oldValue, newValue) -> {
+            scratchViewModel.makeTeleportation(inputTPX.getText(), inputTPY.getText());
+            programList.refresh();
+            canShowPlusMinusButtonsTP1(inputTPX.getText());
+            canShowPlusMinusButtonsTP2(inputTPY.getText());
+        };
+
+        // attache l'action aux deux boîtes
+        inputTPX.textProperty().addListener(inputTPListener);
+        inputTPY.textProperty().addListener(inputTPListener);
+
+        plusButtonTPX.setOnAction(e -> {
+            try { inputTPX.setText(String.valueOf(Integer.parseInt(inputTPX.getText()) + 1)); }
+            catch (NumberFormatException ex) {}
+        });
+        minusButtonTPX.setOnAction(e -> {
+            try { inputTPX.setText(String.valueOf(Integer.parseInt(inputTPX.getText()) - 1)); }
+            catch (NumberFormatException ex) {}
+        });
+
+        plusButtonTPY.setOnAction(e -> {
+            try { inputTPY.setText(String.valueOf(Integer.parseInt(inputTPY.getText()) + 1)); }
+            catch (NumberFormatException ex) {}
+        });
+        minusButtonTPY.setOnAction(e -> {
+            try { inputTPY.setText(String.valueOf(Integer.parseInt(inputTPY.getText()) - 1)); }
             catch (NumberFormatException ex) {}
         });
 
@@ -954,6 +1019,24 @@ public class ScratchView extends BorderPane {
         try {
             Integer.parseInt(cote);
             content.getChildren().addAll(plusButtonCote, minusButtonCote);
+        } catch (NumberFormatException ignored) {} // Si c'est une variable, on ignore !
+    }
+
+    public void canShowPlusMinusButtonsTP1(String longueur) {
+        content.getChildren().removeAll(minusButtonTPX, plusButtonTPX);
+
+        try {
+            Integer.parseInt(longueur);
+            content.getChildren().addAll(plusButtonTPX, minusButtonTPX);
+        } catch (NumberFormatException ignored) {} // Si c'est une variable, on ignore !
+    }
+
+    public void canShowPlusMinusButtonsTP2(String cote) {
+        content.getChildren().removeAll(minusButtonTPY, plusButtonTPY);
+
+        try {
+            Integer.parseInt(cote);
+            content.getChildren().addAll(plusButtonTPY, minusButtonTPY);
         } catch (NumberFormatException ignored) {} // Si c'est une variable, on ignore !
     }
 

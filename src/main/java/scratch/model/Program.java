@@ -22,7 +22,8 @@ public class Program {
             new PenAction("Lever stylo", InstructionType.PEN_UP),
             new PenAction("Abaisser stylo", InstructionType.PEN_DOWN),
             new DrawRectangle("Rectangle", InstructionType.DRAW_RECTANGLE, new Value(20), new Value(20)),
-            new DrawPolygon("Polygone", InstructionType.DRAW_POLYGON, new Value(20), new Value(6))
+            new DrawPolygon("Polygone", InstructionType.DRAW_POLYGON, new Value(20), new Value(6)),
+            new MakeTeleportation("Téléportation", InstructionType.MAKE_TELEPORTATION, new Value(0), new Value(0))
             );
 
     // C'est ici qu'on stocke les blocs que l'utilisateur a glissés.
@@ -216,6 +217,17 @@ public class Program {
                 Coordinates p2 = new Coordinates(l[2], l[3]);
                 shape.addLine(new Line(p1, p2));
             }
+        } else if (instr.getType() == InstructionType.MAKE_TELEPORTATION) {
+            instr.execute(this.getPen());
+
+            double x_initial = pen.getCoord().getX();
+            double y_initial = pen.getCoord().getY();
+
+            double x_end = instr.getNouvelleX().getValue();
+            double y_end = instr.getNouvelleY().getValue();
+
+            pen.getCoord().setX(x_end + 195); // OFFSET pour recentrer
+            pen.getCoord().setY(195 - y_end); // OFFSET + inversion de l'axe y
         }
 
         else {

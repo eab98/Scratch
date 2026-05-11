@@ -13,5 +13,6 @@ public enum InstructionType {
     END_REPEAT,
     INCREMENT_VARIABLE,
     DRAW_RECTANGLE,
-    DRAW_POLYGON
+    DRAW_POLYGON,
+    MAKE_TELEPORTATION
 }

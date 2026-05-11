@@ -128,4 +128,20 @@ public abstract class Instruction {
         throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
     }
 
+    public Value getNouvelleX() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setNouvelleX(Value nouvelleX) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public Value getNouvelleY() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setNouvelleY(Value nouvelleY) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
 }

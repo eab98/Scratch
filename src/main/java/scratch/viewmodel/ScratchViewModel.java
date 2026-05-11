@@ -733,4 +733,56 @@ public class ScratchViewModel {
         return Program.getPolygonLines(x, y, angle, size, num);
     }
 
+    public void makeTeleportation(String nouvelleX, String nouvelleY) {
+        int index = getIndexProperty().get();
+        if (index < 0 || index >= getInstru().size()) return;
+        Instruction instru = getInstru().get(index);
+
+        try {
+            // "evaluate" du program transforme String -> Value (vu qu'on accepte variable et valeur)
+            Value valNouvelleX = program.evaluate(nouvelleX);
+            Value valNouvelleY = program.evaluate(nouvelleY);
+
+            if (valNouvelleX == null) throw new RuntimeException("Erreur valeur");
+            if (valNouvelleY == null) throw new RuntimeException("Erreur valeur");
+
+            // si tout est bon, on met à jour le modèle
+            instru.setNouvelleX(valNouvelleX);
+            instru.setNouvelleY(valNouvelleY);
+
+            // On réinitialise l'état (pour forcer à relancer depuis le début)
+            errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+
+            indexExec.set(-1);
+            program.reset();
+            Coordinates coords = pen.getCoord();
+            coordX.set(coords.getX());
+            coordY.set(coords.getY());
+
+        } catch (RuntimeException e) {
+            errorMessage.set(e.getMessage());
+        }
+    }
+
+    public String getTPX() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.MAKE_TELEPORTATION) {
+            Value h = instru.getNouvelleX();
+            return h == null ? "" : h.toString();
+        }
+        return "";
+    }
+
+    public String getTPY() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.MAKE_TELEPORTATION) {
+            Value h = instru.getNouvelleY();
+            return h == null ? "" : h.toString();
+        }
+        return "";
+    }
+
 }
