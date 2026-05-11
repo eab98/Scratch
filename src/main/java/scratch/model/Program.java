@@ -502,7 +502,7 @@ public class Program {
         for (Instruction instruction : instructions) {
             if (instruction.getType() == InstructionType.DRAW_POLYGON) {
                 ++compteurPolygone;
-                if (compteurPolygone == 3) {
+                if (compteurPolygone > 3) {
                     return false;
                 }
             }
