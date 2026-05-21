@@ -600,7 +600,189 @@ public class ScratchViewModel {
         return "";
     }
 
+    // Récupère la hauteur pour l'afficher dans la case
+    public String getRectangleHauteur() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.DRAW_RECTANGLE) {
+            Value h = instru.getHauteur();
+            return h == null ? "" : h.toString();
+        }
+        return "";
+    }
 
+    // Récupère la largeur pour l'afficher dans la case
+    public String getRectangleLargeur() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.DRAW_RECTANGLE) {
+            Value l = instru.getLargeur();
+            return l == null ? "" : l.toString();
+        }
+        return "";
+    }
 
+    public void changeRectangle(String hauteurStr, String largeurStr) {
+        int index = getIndexProperty().get();
+        if (index < 0 || index >= getInstru().size()) return;
+        Instruction instru = getInstru().get(index);
+
+        try {
+            // "evaluate" du program transforme String -> Value (vu qu'on accepte variable et valeur)
+            Value valHauteur = program.evaluate(hauteurStr);
+            Value valLargeur = program.evaluate(largeurStr);
+
+            if (valHauteur == null) throw new RuntimeException("Hauteur invalide");
+            if (valLargeur == null) throw new RuntimeException("Largeur invalide");
+
+            // Si l'utilisateur tape un vrai chiffre (pas une variable) et qu'il est < 20 : Erreur
+            try {
+                int h = Integer.parseInt(hauteurStr.trim());
+                if (h < 20) throw new RuntimeException("La hauteur doit être >= 20");
+            } catch (NumberFormatException ignored) {} // Si c'est du texte (ex: nb), on l'ignore. Ça plantera à l'exécution
+            try {
+                int l = Integer.parseInt(largeurStr.trim());
+                if (l < 20) throw new RuntimeException("La largeur doit être >= 20");
+            } catch (NumberFormatException ignored) {}
+
+            // si tout est bon, on met à jour le modèle
+            instru.setHauteur(valHauteur);
+            instru.setLargeur(valLargeur);
+
+            // On réinitialise l'état (pour forcer à relancer depuis le début)
+            errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+
+            indexExec.set(-1);
+            program.reset();
+            Coordinates coords = pen.getCoord();
+            coordX.set(coords.getX());
+            coordY.set(coords.getY());
+
+        } catch (RuntimeException e) {
+            errorMessage.set(e.getMessage());
+        }
+    }
+
+    // Récupère la longueur du polygone pour l'afficher dans la case
+    public String getPolygoneLongueur() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.DRAW_POLYGON) {
+            Value h = instru.getLongueur();
+            return h == null ? "" : h.toString();
+        }
+        return "";
+    }
+
+    // Récupère le nombre de côté du polygone pour l'afficher dans la case
+    public String getPolygoneCote() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.DRAW_POLYGON) {
+            Value h = instru.getCote();
+            return h == null ? "" : h.toString();
+        }
+        return "";
+    }
+
+    public void changePolygone(String longueurStr, String coteStr) {
+        int index = getIndexProperty().get();
+        if (index < 0 || index >= getInstru().size()) return;
+        Instruction instru = getInstru().get(index);
+
+        try {
+            // "evaluate" du program transforme String -> Value (vu qu'on accepte variable et valeur)
+            Value valLongueur = program.evaluate(longueurStr);
+            Value valCote = program.evaluate(coteStr);
+
+            if (valLongueur == null) throw new RuntimeException("Longueur invalide");
+            if (valCote == null) throw new RuntimeException("Nombre de côtés invalide");
+
+            // Si l'utilisateur tape un vrai chiffre (pas une variable) et qu'il est < 3 : Erreur
+            try {
+                int h = Integer.parseInt(longueurStr.trim());
+                if (h < 3) throw new RuntimeException("La longueur doit être >= 3");
+            } catch (NumberFormatException ignored) {} // Si c'est du texte (ex: nb), on l'ignore. Ça plantera à l'exécution
+            try {
+                int l = Integer.parseInt(coteStr.trim());
+                if (l < 3) throw new RuntimeException("Le nombre de côtés doit être >= 3");
+            } catch (NumberFormatException ignored) {}
+
+            // si tout est bon, on met à jour le modèle
+            instru.setLongueur(valLongueur);
+            instru.setCote(valCote);
+
+            // On réinitialise l'état (pour forcer à relancer depuis le début)
+            errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+
+            indexExec.set(-1);
+            program.reset();
+            Coordinates coords = pen.getCoord();
+            coordX.set(coords.getX());
+            coordY.set(coords.getY());
+
+        } catch (RuntimeException e) {
+            errorMessage.set(e.getMessage());
+        }
+    }
+
+    // méthode qui fait le pont entre le modele et la vue
+    public List<double[]> getPolygonLines(double x, double y, double angle, int size, int num) {
+        return Program.getPolygonLines(x, y, angle, size, num);
+    }
+
+    public void makeTeleportation(String nouvelleX, String nouvelleY) {
+        int index = getIndexProperty().get();
+        if (index < 0 || index >= getInstru().size()) return;
+        Instruction instru = getInstru().get(index);
+
+        try {
+            // "evaluate" du program transforme String -> Value (vu qu'on accepte variable et valeur)
+            Value valNouvelleX = program.evaluate(nouvelleX);
+            Value valNouvelleY = program.evaluate(nouvelleY);
+
+            if (valNouvelleX == null) throw new RuntimeException("Erreur valeur");
+            if (valNouvelleY == null) throw new RuntimeException("Erreur valeur");
+
+            // si tout est bon, on met à jour le modèle
+            instru.setNouvelleX(valNouvelleX);
+            instru.setNouvelleY(valNouvelleY);
+
+            // On réinitialise l'état (pour forcer à relancer depuis le début)
+            errorMessage.set("");
+            isRunning = false;
+            isLoaded = false;
+            updateState();
+
+            indexExec.set(-1);
+            program.reset();
+            Coordinates coords = pen.getCoord();
+            coordX.set(coords.getX());
+            coordY.set(coords.getY());
+
+        } catch (RuntimeException e) {
+            errorMessage.set(e.getMessage());
+        }
+    }
+
+    public String getTPX() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.TELEPORTATION) {
+            Value h = instru.getNouvelleX();
+            return h == null ? "" : h.toString();
+        }
+        return "";
+    }
+
+    public String getTPY() {
+        Instruction instru = instructions.get(getIndexProperty().get());
+        if (instru.getType() == InstructionType.TELEPORTATION) {
+            Value h = instru.getNouvelleY();
+            return h == null ? "" : h.toString();
+        }
+        return "";
+    }
 
 }

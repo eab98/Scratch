@@ -95,4 +95,53 @@ public abstract class Instruction {
     public void setDifference(Value difference) {
         throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
     }
+
+    public Value getHauteur() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setHauteur(Value hauteur) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public Value getLargeur() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setLargeur(Value largeur) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public Value getLongueur() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setLongueur(Value longueur) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public Value getCote() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setCote(Value cote) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public Value getNouvelleX() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setNouvelleX(Value nouvelleX) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public Value getNouvelleY() {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
+    public void setNouvelleY(Value nouvelleY) {
+        throw new UnsupportedOperationException("Action interdite pour ce type d'instruction");
+    }
+
 }
