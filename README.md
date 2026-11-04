@@ -1,15 +1,64 @@
-# Projet ANC4 2526 - Groupe a05 - Scratch
+# Scratch-like drawing program
 
-## Notes de version itération 1
+A desktop app inspired by Scratch, made with [Denisa Gaitan](https://github.com/degaitan) and [Anass Adahchour](https://github.com/adhanass) for a school project at EPFC (2025-2026).
 
-### Liste des bugs connus
+You build a small drawing program from a catalogue of actions (move, turn, pen up/down, variables, loops), set the parameters of each action, then run it step by step or automatically and watch the cursor draw on the canvas. Programs can be saved to a file and loaded again.
 
-* Dans "Details de l'action", on affiche "pixels" au lieu de "degrés" pour les instructions de type TURN, mais le programme s'exécute correctement.
+Made with Java and JavaFX, following the MVVM pattern (model, view models, views). Each instruction knows how to execute itself (Command pattern).
 
-### Liste des fonctionnalités supplémentaires
+## Screenshots
 
-### Divers
+<img src="docs/scratch_ss.png" width="700" alt="Program editor">
 
-## Notes de version itération 2
+## Analysis and design
 
-* Aucun bug connu. Toutes les fonctionnalités sont présentes
+This project was part of an analysis and design course, so the modelling came before the code.
+
+- Before coding, we made a domain class diagram of the problem (the actions, their parameters, how a program is executed) and had it validated by our professor.
+- In the second iteration, we updated the domain diagram with the new features (variables, loops) before implementing them.
+- At the end, we made a software class diagram showing the real structure of the app: the model, the view models and the views, and how they are linked.
+
+The diagrams are below, and the PlantUML sources are in the `UML` folder.
+
+
+## Class diagrams
+
+<img src="docs/software_diag_overview.png" width="700" alt="Software class diagram">
+<details>
+<summary>Software class diagram (detailed)</summary>
+
+<img src="docs/software_diag.png" alt="Detailed software class diagram">
+
+</details>
+
+<details>
+<summary>Domain class diagram (analysis)</summary>
+
+<img src="docs/domain_diag.png" width="700" alt="Domain class diagram">
+
+</details>
+
+## What I did
+
+In the model:
+- Part of the overall class Structures and core Instructions logic
+- Part of the core Program structure and execution logic
+- Loop (REPEAT) logic and implementation (with the exception of REPEAT-END REPEAT matching)
+- Part of the variable assignment
+
+Errors:
+- Loop (REPEAT) errors including wrong values and faulty structure
+- Invalid assignments
+- Execution errors on invalid variable use
+
+In the views and view models:
+- Configuring the up, down, duplicate and delete buttons and binding them with the backend
+- Buttons disabling
+- Instruction palette and program instructions list appearance
+- Double click to add an instruction to the program
+
+## Run it
+
+Java 25 and Maven are required to properly run this project.
+
+Open the project in IntelliJ and run the class `scratch.App`.
